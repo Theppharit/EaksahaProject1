@@ -1,0 +1,64 @@
+<?php
+require '../conn/config.php';
+require 'includes/auth.php';
+
+$pageTitle  = 'เปลี่ยนรหัสผ่าน';
+$activePage = 'password';
+
+$message = '';
+$messageType = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $current = $_POST['current_password'] ?? '';
+    $new     = $_POST['new_password'] ?? '';
+    $confirm = $_POST['confirm_password'] ?? '';
+
+    $stmt = $pdo->prepare('SELECT * FROM admin_users WHERE id = ?');
+    $stmt->execute([$_SESSION['admin_id']]);
+    $admin = $stmt->fetch();
+
+    if (!$admin || !password_verify($current, $admin['password'])) {
+        $message = 'รหัสผ่านปัจจุบันไม่ถูกต้อง';
+        $messageType = 'error';
+    } elseif (strlen($new) < 6) {
+        $message = 'รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร';
+        $messageType = 'error';
+    } elseif ($new !== $confirm) {
+        $message = 'รหัสผ่านใหม่และคำยืนยันไม่ตรงกัน';
+        $messageType = 'error';
+    } else {
+        $hash = password_hash($new, PASSWORD_DEFAULT);
+        $pdo->prepare('UPDATE admin_users SET password = ? WHERE id = ?')->execute([$hash, $_SESSION['admin_id']]);
+        $message = 'เปลี่ยนรหัสผ่านสำเร็จ';
+        $messageType = 'success';
+    }
+}
+
+require 'includes/head.php';
+?>
+<h1>เปลี่ยนรหัสผ่าน</h1>
+
+<?php if ($message): ?>
+    <div class="alert alert-<?= htmlspecialchars($messageType) ?>"><?= htmlspecialchars($message) ?></div>
+<?php endif; ?>
+
+<div class="form-card">
+    <form method="POST">
+        <div class="field">
+            <label for="current_password">รหัสผ่านปัจจุบัน</label>
+            <input type="password" id="current_password" name="current_password" required>
+        </div>
+        <div class="field">
+            <label for="new_password">รหัสผ่านใหม่</label>
+            <input type="password" id="new_password" name="new_password" required>
+            <div class="hint">อย่างน้อย 6 ตัวอักษร</div>
+        </div>
+        <div class="field">
+            <label for="confirm_password">ยืนยันรหัสผ่านใหม่</label>
+            <input type="password" id="confirm_password" name="confirm_password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">บันทึก</button>
+    </form>
+</div>
+
+<?php require 'includes/footer.php'; ?>
