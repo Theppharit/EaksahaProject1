@@ -1,0 +1,308 @@
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --accent:   #0EA5E9;   /* จะถูกทับด้วยสีแบรนด์ในหน้า rate.php */
+  --mint:     #10B981;
+  --bg:       #F0F9FE;
+  --bg2:      #E8F5FC;
+  --card:     #FFFFFF;
+  --line:     #DCE9F2;
+  --text:     #0F1F2E;
+  --muted:    #5C7186;
+  --muted-2:  #8CA0B3;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Sarabun', sans-serif;
+  background:
+    radial-gradient(900px 460px at 50% -10%, rgba(14,165,233,0.16), transparent 60%),
+    radial-gradient(700px 420px at 100% 110%, rgba(16,185,129,0.12), transparent 55%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ----- โครงหน้า ----- */
+.rate-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 16px;
+}
+
+/* ----- การ์ดหลัก ----- */
+.rate-card {
+  width: 100%;
+  max-width: 430px;
+  flex-shrink: 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 0 24px 32px;
+  box-shadow: 0 24px 60px -24px rgba(2,132,199,0.35);
+  text-align: center;
+  overflow: hidden;
+}
+
+/* ----- แถบหัวแบรนด์ ----- */
+.brand-strip {
+  margin: 0 -24px 24px;
+  padding: 22px 24px 18px;
+  background: linear-gradient(180deg, #F4FBFF 0%, #FFFFFF 100%);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+}
+.brand-strip::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--mint), transparent);
+}
+.brand-mark {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--text);
+}
+.brand-tagline {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 3px;
+  letter-spacing: 0.03em;
+}
+
+/* ----- รูปพนักงานขาย ----- */
+.staff-photo {
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  margin: 6px auto 14px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #E8F5FC, #F4FBFF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--accent);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 12%, transparent), 0 10px 24px -10px rgba(2,132,199,0.4);
+}
+.staff-photo img { width: 100%; height: 100%; object-fit: cover; }
+.staff-initial {
+  color: var(--accent);
+  font-size: 40px;
+  font-weight: 700;
+}
+
+/* ----- ป้ายแบรนด์ ----- */
+.brand-badge {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 4px 16px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #FFFFFF;
+  background: var(--accent);
+  box-shadow: 0 4px 14px -5px var(--accent);
+}
+
+h1 {
+  font-size: 19px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+.position {
+  font-size: 13.5px;
+  color: var(--muted);
+  margin-bottom: 22px;
+}
+
+.prompt {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 18px;
+  line-height: 1.6;
+}
+
+/* ----- ช่องข้อเสนอแนะ ----- */
+.feedback-field {
+  text-align: left;
+  margin-bottom: 18px;
+}
+.feedback-field label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.feedback-field textarea {
+  width: 100%;
+  min-height: 78px;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #FBFDFF;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  resize: vertical;
+}
+.feedback-field textarea::placeholder { color: var(--muted-2); }
+.feedback-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+/* ----- ปุ่มให้คะแนน ----- */
+.score-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.score-btn {
+  width: 100%;
+  padding: 14px 18px;
+  border: none;
+  border-radius: 13px;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #FFFFFF;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.1s ease, box-shadow 0.15s ease, opacity 0.2s ease;
+  letter-spacing: 0.01em;
+}
+.score-btn .emo { font-size: 20px; line-height: 1; }
+.score-btn .lbl { text-align: left; }
+.score-btn:hover { transform: translateY(-2px); }
+.score-btn:active { transform: translateY(0); }
+
+/* ระดับความพึงพอใจ: เขียวมิ้นต์ (ดีมาก) → ฟ้า → เหลือง → ส้ม → แดงกุหลาบ */
+.score-5 { background: linear-gradient(135deg, #10B981, #059669); box-shadow: 0 8px 18px -7px rgba(16,185,129,0.55); }
+.score-4 { background: linear-gradient(135deg, #38BDF8, #0284C7); box-shadow: 0 8px 18px -7px rgba(14,165,233,0.5); }
+.score-3 { background: linear-gradient(135deg, #FBBF24, #D97706); box-shadow: 0 8px 18px -7px rgba(245,158,11,0.45); }
+.score-2 { background: linear-gradient(135deg, #FB923C, #EA580C); box-shadow: 0 8px 18px -7px rgba(249,115,22,0.45); }
+.score-1 { background: linear-gradient(135deg, #FB7185, #E11D48); box-shadow: 0 8px 18px -7px rgba(225,29,72,0.45); }
+
+/* ----- หน้า error ----- */
+.error-state { padding: 20px 0 8px; }
+.error-icon {
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  background: rgba(225,29,72,0.08);
+  color: #E11D48;
+  font-size: 28px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+  border: 1px solid rgba(225,29,72,0.3);
+}
+.error-state h2 { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+.error-state p { font-size: 14px; color: var(--muted); }
+
+/* ----- footer bar ----- */
+.footer-bar {
+  width: 100%;
+  max-width: 430px;
+  margin-top: 22px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0284C7 0%, #0EA5E9 55%, #10B981 100%);
+  color: #FFFFFF;
+  text-align: center;
+  padding: 24px 20px 18px;
+  border-radius: 20px;
+  box-shadow: 0 16px 40px -18px rgba(2,132,199,0.55);
+}
+.footer-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.10) 1px, transparent 1px);
+  background-size: 18px 18px;
+  pointer-events: none;
+}
+.footer-logo {
+  position: relative;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: #FFFFFF;
+  margin-bottom: 8px;
+}
+.footer-logo span { color: #D2FBE8; margin-left: 4px; }
+.footer-dev {
+  position: relative;
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 3px;
+}
+.footer-college {
+  position: relative;
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.88);
+  margin-bottom: 12px;
+}
+.footer-divider {
+  position: relative;
+  width: 36px; height: 1px;
+  background: rgba(255,255,255,0.4);
+  margin: 0 auto 10px;
+}
+.footer-copy {
+  position: relative;
+  font-size: 10.5px;
+  color: rgba(255,255,255,0.65);
+  letter-spacing: 0.02em;
+}
+
+/* ----- หน้าขอบคุณ ----- */
+.thankyou-card { padding-bottom: 34px; }
+.thankyou-icon {
+  width: 74px; height: 74px;
+  border-radius: 50%;
+  background: rgba(16,185,129,0.10);
+  color: #059669;
+  font-size: 38px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px auto 18px;
+  border: 1px solid rgba(16,185,129,0.35);
+  box-shadow: 0 0 0 8px rgba(16,185,129,0.06);
+}
+.thankyou-card h1 { font-size: 21px; margin-bottom: 8px; }
+.thankyou-card .subtitle { font-size: 14px; color: var(--muted); line-height: 1.7; }
+.thankyou-card .subtitle strong { color: var(--text); }
+.thankyou-note {
+  margin-top: 16px;
+  font-size: 12.5px;
+  color: var(--muted-2);
+}
+
+@media (max-width: 480px) {
+  .rate-card { max-width: 100%; }
+  .footer-bar { max-width: 100%; }
+}
