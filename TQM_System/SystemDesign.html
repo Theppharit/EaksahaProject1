@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Design v3 — ระบบจองคิวรถสไลด์ (7 บทบาท + ฐานข้อมูล)</title>
+<style>
+  :root{
+    --page:#f9f9f7; --surface:#fcfcfb; --ink-1:#0b0b0b; --ink-2:#52514e; --ink-3:#898781;
+    --hairline:#e1e0d9; --border:rgba(11,11,11,.10);
+    --brand:#2a78d6; --brand-dark:#1c5cab; --brand-soft:#e3eefb;
+    --good:#0ca30c; --good-text:#006300; --good-bg:#e8f6e8;
+    --warning:#fab219; --warning-text:#7a5200; --warning-bg:#fdf3dc;
+    --critical:#d03b3b; --critical-text:#a02020; --critical-bg:#fbe9e9;
+    --violet:#4a3aa7; --violet-bg:#eae7f8;
+    --aqua:#1baf7a; --aqua-bg:#e2f5ee; --aqua-text:#0e7a54;
+    --orange:#eb6834; --orange-bg:#fdeae2; --orange-text:#b34a1e;
+    --pink:#e87ba4; --pink-bg:#fbecf2;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:system-ui,-apple-system,"Segoe UI","Leelawadee UI","Noto Sans Thai",Tahoma,sans-serif;background:var(--page);color:var(--ink-1);font-size:14px;line-height:1.6;}
+  .wrap{max-width:1120px;margin:0 auto;padding:26px 22px 90px;}
+  .doc-head{background:#122a44;color:#fff;border-radius:16px;padding:26px 30px;}
+  .doc-head .kicker{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8fb4de;margin-bottom:6px;}
+  .doc-head h1{font-size:23px;line-height:1.35;}
+  .doc-head .en{font-size:12.5px;color:#a9c4e4;margin-top:5px;}
+  .doc-head .meta{display:flex;gap:16px;flex-wrap:wrap;margin-top:13px;font-size:12px;color:#c8d9ee;}
+
+  /* nav */
+  .nav{position:sticky;top:0;z-index:20;background:rgba(249,249,247,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--hairline);padding:9px 0;margin:14px 0 4px;display:flex;gap:6px;flex-wrap:wrap;}
+  .nav a{font-size:11.5px;text-decoration:none;color:var(--ink-2);background:var(--surface);border:1px solid var(--hairline);border-radius:99px;padding:5px 11px;}
+  .nav a:hover{background:var(--brand-soft);color:var(--brand-dark);border-color:#bcd6f4;}
+
+  h2{font-size:19px;margin:34px 0 4px;display:flex;align-items:center;gap:10px;scroll-margin-top:60px;}
+  h2 .no{width:28px;height:28px;border-radius:8px;background:var(--brand);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+  h2 .en{font-size:12.5px;color:var(--ink-3);font-weight:400;}
+  h3.sub{font-size:14px;margin:16px 0 7px;color:var(--brand-dark);border-left:3px solid var(--brand);padding-left:9px;}
+  .lead{color:var(--ink-2);font-size:13.5px;margin-bottom:14px;}
+
+  /* role summary cards */
+  .rolecards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;}
+  .rc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;border-top:4px solid var(--c);}
+  .rc .ic{font-size:19px;}
+  .rc h4{font-size:13.5px;margin:3px 0 1px;}
+  .rc .en{font-size:10.5px;color:var(--ink-3);}
+  .rc p{font-size:11.5px;color:var(--ink-2);margin-top:5px;}
+
+  /* role detail block */
+  .role{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:0;overflow:hidden;margin-bottom:14px;scroll-margin-top:60px;}
+  .role .rhead{display:flex;align-items:center;gap:11px;padding:13px 17px;color:#fff;background:var(--c);}
+  .role .rhead .ic{font-size:22px;}
+  .role .rhead h3{font-size:16px;}
+  .role .rhead .en{font-size:11px;opacity:.85;}
+  .role .rbody{padding:14px 18px;}
+  .fgroup{margin-bottom:12px;}
+  .fgroup:last-child{margin-bottom:0;}
+  .fgroup .t{font-size:12px;font-weight:700;color:var(--ink-1);text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+  .fgroup .t .dot{width:7px;height:7px;border-radius:50%;background:var(--c);}
+  .fgroup ul{margin-left:17px;font-size:12.5px;color:var(--ink-2);}
+  .fgroup ul li{margin-bottom:4px;}
+  .fgroup ul li b{color:var(--ink-1);}
+  .tag{display:inline-block;font-size:9.5px;font-weight:700;border-radius:99px;padding:1px 7px;margin-left:4px;vertical-align:middle;}
+  .t-key{background:var(--warning-bg);color:var(--warning-text);}
+  .t-api{background:var(--pink-bg);color:#9c3c66;}
+  .t-ai{background:var(--violet-bg);color:var(--violet);}
+
+  /* lifecycle */
+  .life{display:flex;flex-direction:column;gap:8px;}
+  .lstep{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:11px 14px;display:flex;gap:12px;align-items:flex-start;}
+  .lstep .n{min-width:26px;height:26px;padding:0 6px;border-radius:99px;background:var(--brand);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;}
+  .lstep .c{flex:1;}
+  .lstep h4{font-size:13px;}
+  .lstep p{font-size:12px;color:var(--ink-2);margin-top:2px;}
+  .lstep .who{font-size:10px;font-weight:600;padding:1px 8px;border-radius:99px;background:#efeeea;color:var(--ink-2);white-space:nowrap;}
+  .down{text-align:center;color:var(--ink-3);font-size:13px;line-height:1;}
+  .op{background:#f4f7fb;border:1px solid #d6e3f4;border-radius:11px;padding:12px 14px;margin:8px 0;}
+  .op .oh{font-weight:700;font-size:13px;color:var(--brand-dark);margin-bottom:6px;}
+  .op ol{margin-left:18px;font-size:12.5px;color:var(--ink-2);}
+  .op ol li{margin-bottom:5px;}
+  .op ol li b{color:var(--ink-1);}
+
+  /* status chips + visibility table */
+  table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+  thead th{text-align:left;font-size:11px;color:#fff;background:var(--brand);padding:9px 11px;font-weight:600;}
+  tbody td{padding:9px 11px;border-bottom:1px solid var(--hairline);vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  .st{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap;}
+  .s-wait{background:var(--warning-bg);color:var(--warning-text);}
+  .s-recv{background:var(--brand-soft);color:var(--brand-dark);}
+  .s-appr{background:var(--violet-bg);color:var(--violet);}
+  .s-run{background:var(--aqua-bg);color:var(--aqua-text);}
+  .s-done{background:var(--good-bg);color:var(--good-text);}
+  .s-pay{background:#e6f0fb;color:var(--brand-dark);}
+  .s-cancel{background:var(--critical-bg);color:var(--critical-text);}
+  .yes{color:var(--good-text);font-weight:700;} .no{color:#c8c6bf;}
+
+  /* rules */
+  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:11px;}
+  .rule{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;border-left:4px solid var(--c);}
+  .rule .h{font-size:13px;font-weight:700;margin-bottom:4px;}
+  .rule p{font-size:12px;color:var(--ink-2);}
+
+  /* DB */
+  .dbgroup{margin-bottom:16px;}
+  .dbgroup .gh{font-size:13px;font-weight:700;color:#fff;background:var(--c);border-radius:8px 8px 0 0;padding:8px 12px;}
+  .dbtable{border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;overflow:hidden;}
+  .dbtable table{border:none;border-radius:0;}
+  .dbtable thead th{background:#f0f4fa;color:var(--ink-1);font-size:11px;}
+  .dbtable td:first-child{font-weight:700;font-size:12px;white-space:nowrap;}
+  .dbtable code{font-family:ui-monospace,Menlo,monospace;font-size:11px;background:#f2f2ef;padding:1px 5px;border-radius:4px;color:#334;}
+  .pk{color:var(--brand-dark);font-weight:700;} .fk{color:var(--orange-text);}
+
+  .rel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;font-size:12.5px;color:var(--ink-2);}
+  .rel ul{margin-left:16px;} .rel li{margin-bottom:4px;}
+  .rel code{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--brand-dark);}
+
+  .confirm{background:var(--warning-bg);border:1px solid #f2d9a0;border-left:4px solid var(--warning);border-radius:12px;padding:14px 17px;}
+  .confirm h3{font-size:14px;color:var(--warning-text);margin-bottom:8px;}
+  .confirm ol{margin-left:19px;font-size:12.5px;color:#5c4a1e;}
+  .confirm ol li{margin-bottom:6px;}
+  .confirm b{color:var(--warning-text);}
+
+  .note{margin-top:16px;background:var(--brand-soft);border:1px solid #bcd6f4;border-radius:10px;padding:12px 15px;font-size:12.5px;color:#173e66;}
+  @media(max-width:640px){.rolecards{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="doc-head">
+    <div class="kicker">System Design v3 · จากสเปคลูกค้าฉบับเต็ม 7 บทบาท</div>
+    <h1>🚛 ระบบจองคิวรถสไลด์ — ฟีเจอร์ตามบทบาท + โครงสร้างฐานข้อมูล</h1>
+    <div class="en">EV Showroom · รถสไลด์ประจำ 5 คัน (เจ้าของรถหลัก) · แย่งกดรับงาน · AI ตรวจรูปรถ · GPS · อนุมัติ 2 ด่าน · จ่ายรอบเดือน + ผูก PO ผ่าน API</div>
+    <div class="meta"><span>👥 7 บทบาท</span><span>🔄 วงจร 11 สถานะ</span><span>🗄️ ~23 ตารางฐานข้อมูล</span><span>🤖 AI Photo + GPS Verify</span></div>
+  </div>
+
+  <div class="nav">
+    <a href="#overview">ภาพรวม 7 บทบาท</a>
+    <a href="#r1">1 ผู้จองคิว</a>
+    <a href="#r2">2 ผจก.สาขา</a>
+    <a href="#r3">3 Trailer</a>
+    <a href="#r4">4 บัญชี</a>
+    <a href="#r5">5 ผู้บริหาร</a>
+    <a href="#r6">6 Admin</a>
+    <a href="#r7">7 เซลล์</a>
+    <a href="#life">วงจรสถานะ</a>
+    <a href="#rules">กติกาสำคัญ</a>
+    <a href="#db">ฐานข้อมูล</a>
+    <a href="#confirm">ข้อต้องยืนยัน</a>
+  </div>
+
+  <!-- ═══ OVERVIEW ═══ -->
+  <h2 id="overview"><span class="no">0</span> ภาพรวม 7 บทบาท <span class="en">Roles at a glance</span></h2>
+  <p class="lead">แต่ละบทบาท Login แล้วเข้าสู่หน้าจอของตนเอง เห็นและทำได้ตามสิทธิ์ · ระบบหมุนรอบงานผ่าน <b>2 ด่านอนุมัติ</b> (ผจก.สาขา → งานบัญชี) และปิดจบด้วย <b>AI ตรวจรูป + GPS</b></p>
+  <div class="rolecards">
+    <div class="rc" style="--c:var(--brand)"><span class="ic">🧑‍💼</span><h4>1. ผู้จองคิว</h4><div class="en">Booking Officer (ฝ่ายขายโชว์รูม)</div><p>สร้างคำขอจองคิว, ติดตามสถานะ, ขอแก้ใบจอง, รับใบจองเข้าปฏิทิน</p></div>
+    <div class="rc" style="--c:var(--violet)"><span class="ic">👔</span><h4>2. ผจก.สาขา (SHR)</h4><div class="en">Branch Manager / Approver</div><p>อนุมัติเจ้าของรถ/รถเสริม + ใบจองคิว (ยืนยันตัวตน), ตั้งเกณฑ์ราคา, ยกเลิกได้</p></div>
+    <div class="rc" style="--c:var(--aqua)"><span class="ic">🚛</span><h4>3. เจ้าของรถหลัก</h4><div class="en">Trailer Owner</div><p>ลงทะเบียนรถหลัก/เสริม, กดรับคิว, เลือกคนขับ, ดำเนินงาน 3.1–3.5, ปิดงาน</p></div>
+    <div class="rc" style="--c:var(--warning)"><span class="ic">💰</span><h4>4. งานบัญชี</h4><div class="en">Accounting</div><p>อนุมัติจ่ายใบจอง, ปฏิทินรอจ่าย, ตั้งวันจ่ายเดือนละครั้ง, ผูกเลข PO ผ่าน API</p></div>
+    <div class="rc" style="--c:var(--orange)"><span class="ic">📊</span><h4>5. ผู้บริหาร</h4><div class="en">Executive</div><p>แดชบอร์ดภาพรวม คิวสำเร็จ/ยกเลิก+สาเหตุ ดูได้หลายช่วงเวลา (Read-only)</p></div>
+    <div class="rc" style="--c:#52514e"><span class="ic">🛡️</span><h4>6. Admin</h4><div class="en">System Admin</div><p>กำหนดตำแหน่ง User, เรทราคาตามพื้นที่, แนบระเบียบ/เอกสาร, ทำได้ทุกอย่างยกเว้น API</p></div>
+    <div class="rc" style="--c:var(--pink)"><span class="ic">🏷️</span><h4>7. เซลล์</h4><div class="en">Brand Sales</div><p>ดูคิวที่รถของตนอยู่ + สถานะ (เห็นรายละเอียดเฉพาะช่วง “กำลังดำเนินงาน”)</p></div>
+  </div>
+
+  <!-- ═══ ROLE 1 ═══ -->
+  <h2 id="r1"><span class="no">1</span> ผู้จองคิว <span class="en">Booking Officer — เจ้าหน้าที่ฝ่ายขายของโชว์รูม</span></h2>
+  <div class="role" style="--c:var(--brand)">
+    <div class="rhead"><span class="ic">🧑‍💼</span><div><h3>ผู้จองคิว</h3><div class="en">สร้างและติดตามคำขอจองคิวรถสไลด์</div></div></div>
+    <div class="rbody">
+      <div class="fgroup"><div class="t"><span class="dot"></span>ตรวจสอบ &amp; ประวัติ</div>
+        <ul><li>เช็ค<b>คิวรถสไลด์ที่ว่าง</b>ก่อนจอง</li><li>ดู<b>ประวัติการจองคิว</b>ที่ผ่านมาของตนเอง</li></ul></div>
+      <div class="fgroup"><div class="t"><span class="dot"></span>สร้างคำขอจองคิว</div>
+        <ul><li>ระบุข้อมูลให้ครบเพื่อจอง: <b>ข้อมูลรถ · รูปภาพรถ · เซลล์ที่ขาย · จำนวนรถ · ปลายทางส่งมอบ (ปักหมุด GPS) · วันเวลาส่งมอบ</b> <span class="tag t-key">บังคับครบ</span></li><li>กดยืนยัน → ระบบ <b>ส่งคิวไปยังเจ้าของรถสไลด์หลักทุกราย</b> (broadcast)</li></ul></div>
+      <div class="fgroup"><div class="t"><span class="dot"></span>ติดตามสถานะ</div>
+        <ul><li>ดูว่าคิวอยู่ขั้นใด: รอรับงาน / เจ้าของรถรับงาน / คิวรออนุมัติ → แก้ไขใบจอง → ผจก.อนุมัติ → งานบัญชีตรวจสอบ / อนุมัติใบจอง / กำลังดำเนินงาน / ปิดงาน / ถูกยกเลิก</li><li>ถ้าไม่อนุมัติ → <b>ดูหมายเหตุ</b>ในสถานะได้</li><li>เมื่ออนุมัติแล้ว → รับใบจองคิว + <b>บรรจุลงปฏิทิน</b>ตามวันเวลาที่คนขับนัดหมาย</li></ul></div>
+      <div class="fgroup"><div class="t"><span class="dot"></span>ขอแก้ไขหลังอนุมัติ</div>
+        <ul><li>ส่ง<b>คำขอแก้ไขใบจอง</b>ถึง ผจก.สาขา พร้อมเหตุผล (เช่น ขออัปโหลดรูปรถใหม่)</li><li>ถ้า ผจก.อนุมัติคำขอ → แก้ไข + อัปเดตได้ทันที</li><li><b>ล็อกถาวร</b>เมื่อเจ้าของรถหลักผ่านขั้น 3.1 แล้ว (แก้ไม่ได้อีก) <span class="tag t-key">Lock@3.1</span></li></ul></div>
+      <div class="fgroup"><div class="t"><span class="dot"></span>ดูความคืบหน้าช่วงดำเนินงาน</div>
+        <ul><li>ผ่าน 3.1–3.2 → “กำลังจัดเตรียมรถ” (<b>ดูรูปภาพได้</b>)</li><li>ผ่าน 3.3 → “กำลังเดินทาง” (<b>เห็นพิกัด GPS</b> เรียลไทม์)</li><li>ผ่าน 3.5 → “ส่งมอบเรียบร้อย”</li></ul></div>
+    </div>
+  </div>
+
+  <!-- ═══ ROLE 2 ═══ -->
+  <h2 id="r2"><span class="no">2</span> ผู้จัดการสาขา (SHR) <span class="en">Branch Manager — ด่านอนุมัติหลัก</span></h2>
+  <div class="role" style="--c:var(--violet)">
+    <div class="rhead"><span class="ic">👔</span><div><h3>ผู้จัดการสาขา (SHR)</h3><div class="en">อนุมัติ · กำกับ · ควบคุมเกณฑ์ราคา</div></div></div>
+    <div class="rbody">
+      <div class="fgroup"><div class="t"><span class="dot"></span>การอนุมัติ (ยืนยันตัวตนทุกครั้ง)<span class="tag t-key">2FA/Identity</span></div>
+        <ul><li>อนุมัติ<b>ข้อมูลเจ้าของรถหลัก</b> และ<b>รถเสริม</b>ที่เจ้าของรถหลักเพิ่มเข้ามา</li><li>อนุมัติ<b>ใบจองคิวรถสไลด์</b> — ถ้าไม่อนุมัติต้อง<b>ระบุหมายเหตุ</b> (เช่น ข้อมูลไม่ครบ/กำกวม)</li><li>ถ้าไม่อนุมัติ → เด้งแจ้งเตือนกลับ<b>เจ้าของรถ</b>ให้แก้ไข</li><li>อนุมัติแล้ว → ส่งใบจองต่อไปยัง<b>งานบัญชี</b></li></ul></div>
+      <div class="fgroup"><div class="t"><span class="dot"></span>จัดการคำขอแก้ไข</div>
+        <ul><li>อนุมัติการแก้ไขใบจองที่<b>งานบัญชีอนุมัติจ่ายแล้ว</b>ได้ · ดูรายการแก้ไขที่ส่งกลับมา</li><li><b>ยกเลิกการอนุมัติแก้ไข</b> (ต้องระบุเหตุผล) → ข้อมูลใหม่ถูกยกเลิกการอัปเดต (revert)</li><li>ล็อกเมื่อเจ้าของรถหลักผ่าน 3.1</li></ul></div>
+      <div class="fgroup"><div class="t"><span class="dot"></span>มองเห็น &amp; ควบคุม</div>
+        <ul><li>ดู<b>รายงานภาพรวมทั้งหมด</b> — คิวสำเร็จ/กำลังดำเนิน/ทุกขั้นตอนของทุกคิว</li><li>เห็น<b>ข้อมูลรถทุกคัน</b> · เห็น<b>ข้อมูลการบัญชี</b>รวมวันจ่ายในปฏิทินรอจ่าย</li><li>ติดตามคิวรถทุกคัน<b>เรียลไทม์ทุกขั้น</b>จนปิดงาน</li></ul></div>
+      <div class="fgroup"><div class="t"><span class="dot"></span>ตั้งค่า &amp; ยกเลิก</div>
+        <ul><li>เป็นผู้<b>อัปเดตเกณฑ์ราคาตามระยะทาง</b> <span class="tag t-key">ดูข้อต้องยืนยัน #1</span></li><li><b>ยกเลิกใบจองคิว</b>ได้เมื่อจำเป็น — ต้องระบุหมายเหตุชัดเจน</li></ul></div>
+    </div>
+  </div>
+
+  <!-- ═══ ROLE 3 ═══ -->
+  <h2 id="r3"><span class="no">3</span> เจ้าของรถสไลด์หลัก (Trailer) <span class="en">Trailer Owner — ผู้เดินรถ</span></h2>
+  <div class="role" style="--c:var(--aqua)">
+    <div class="rhead"><span class="ic">🚛</span><div><h3>เจ้าของรถสไลด์หลัก (Trailer)</h3><div class="en">รับงาน · จัดคนขับ · ดำเนินงานภาคสนาม</div></div></div>
+    <div class="rbody">
+      <div class="fgroup"><div class="t"><span class="dot"></span>ลงทะเบียนรถ (ต้อง ผจก.อนุมัติ)</div>
+        <ul><li>ลงทะเบียน<b>รถหลัก</b>ของตน: ทะเบียน/ประกันคุ้มครอง/ใบขับขี่/ข้อมูลคนขับ/ยืนยันตัวตน/วันจด พ.ร.บ./ทุนประกัน/ข้อมูลรถ (<b>แนบไฟล์ได้</b>)</li><li>ลงทะเบียน<b>รถเสริม</b> (ฟิลด์ชุดเดียวกัน) · ต้องผ่าน ผจก.อนุมัติ</li><li>ต้องได้รับอนุมัติก่อนจึงเห็นระบบจองคิวส่วนผู้เดินรถ</li></ul></div>
+      <div class="fgroup"><div class="t"><span class="dot"></span>สถานะรถ &amp; รายได้</div>
+        <ul><li>ดูสถานะรถหลักของตน · ดู/<b>อัปเดตสถานะรถเสริม</b> (ว่าง/ไม่ว่าง)</li><li>ดูคิวงาน/งานที่จบแล้ว — รายวัน/สัปดาห์/เดือน/6 เดือน/ปี หรือระบุวันเอง</li><li>แสดง<b>ยอดเงินที่ต้องได้รับ</b> (นับเฉพาะใบจองที่บัญชีอนุมัติจ่าย + ปิดงานแล้ว)</li></ul></div>
+      <div class="fgroup"><div class="t"><span class="dot"></span>รับคิว &amp; สร้างใบจอง</div>
+        <ul><li>มีคิวเข้า → แจ้งเตือน + เลือก<b>รับ/ไม่รับ</b> · <b>ใครรับก่อนได้งาน</b> คนที่กดทีหลังถูกปฏิเสธ</li><li>รับแล้วเห็น: ยี่ห้อรถที่สั่ง, จำนวนรถ, เซลล์ที่ขาย, ผู้จอง, ปลายทาง + <b>เรทราคาที่จะได้รับ</b>, วันเวลาส่งมอบ</li><li><b>เลือกคนขับหลัก/เสริม</b>ให้พอกับจำนวนรถ (ไม่พอ → เพิ่มรถเสริม ผ่าน ผจก.อนุมัติ) → ระบุวันเวลาเดินทาง → <b>ขอสร้างใบจองคิว</b> (ผจก.อนุมัติ)</li><li>ดูสถานะคิวว่าอนุมัติหรือยัง · ไม่อนุมัติ → เด้งเตือนให้แก้แล้วส่งใหม่</li><li>ได้ใบจอง → เห็นใบจองของตน + บรรจุลง<b>ปฏิทิน</b>ตามที่นัดหมาย</li></ul></div>
+      <div class="fgroup"><div class="t"><span class="dot"></span>ดำเนินงานภาคสนาม (กดเริ่มงานเมื่อถึงวันนัด)</div>
+        <div class="op"><div class="oh">ลำดับ 3.1 → 3.5 (เจ้าของรถหลัก + คนขับรถเสริมทำต่อรถที่รับผิดชอบ)</div>
+          <ol>
+            <li><b>3.1 ถ่ายรูปก่อนขึ้นสไลด์</b> — หน้า/ข้าง 2 ข้าง/หลัง · <b>AI ตรวจตรงกับรูปที่ผู้จองคิวบันทึกไว้</b> → ตรงจึงไปต่อ <span class="tag t-ai">AI</span> <span class="tag t-key">ผ่านแล้ว = ล็อกใบจอง</span></li>
+            <li><b>3.2 ถ่ายรูปขณะขึ้นสไลด์</b> — 4 มุม · AI ตรวจตรง → ไปต่อ <span class="tag t-ai">AI</span></li>
+            <li><b>3.3 เริ่มจับ GPS</b> จากต้นทางถึงปลายทาง · ผู้จองคิว/ผจก./เซลล์ ดูพิกัดปัจจุบันได้</li>
+            <li><b>3.4 ถึงที่หมาย → กดส่งมอบ</b> · ถ้าปลายทางไม่ตรงหมุดเดิม ยังส่งได้แต่ต้อง<b>ระบุหมายเหตุ</b> และ<b>ระบบคำนวณราคาใหม่ทั้งใบจอง+ปฏิทินจ่าย</b>ตามเกณฑ์ราคา <span class="tag t-key">Off-pin recalc</span></li>
+            <li><b>3.5 ถ่ายรูปหลังลงจากสไลด์</b> — 4 มุม · AI ตรวจตรง → <b>กดปิดงาน</b>ได้ <span class="tag t-ai">AI</span></li>
+          </ol>
+        </div>
+        <ul><li>ปิดงานสำเร็จ → ระบบส่งแจ้งเตือน <span class="tag t-key">ดูข้อต้องยืนยัน #2</span></li></ul></div>
+    </div>
+  </div>
+
+  <!-- ═══ ROLE 4 ═══ -->
+  <h2 id="r4"><span class="no">4</span> เจ้าหน้าที่งานบัญชี <span class="en">Accounting — ด่านอนุมัติจ่าย + PO/API</span></h2>
+  <div class="role" style="--c:var(--warning)">
+    <div class="rhead"><span class="ic">💰</span><div><h3>เจ้าหน้าที่งานบัญชี</h3><div class="en">อนุมัติจ่าย · ปฏิทินรอจ่าย · ผูก PO</div></div></div>
+    <div class="rbody">
+      <div class="fgroup"><div class="t"><span class="dot"></span>อนุมัติจ่ายใบจอง</div>
+        <ul><li>รับใบจองที่ ผจก.อนุมัติแล้ว (มี<b>เลขบิล</b> + รายละเอียด)</li><li><b>อนุมัติจ่ายเงิน</b> = ใบจองอนุมัติครบทุกขั้น · ไม่อนุมัติต้องระบุหมายเหตุ → เด้งกลับเจ้าของรถให้แก้</li><li>อนุมัติแล้ว → แจ้งเตือน + บรรจุลงปฏิทินตามนัดของผู้จองคิว/เจ้าของรถ</li><li>ดู<b>ประวัติการแก้ไข</b>ใบจองได้ทุกขั้น</li></ul></div>
+      <div class="fgroup"><div class="t"><span class="dot"></span>ปฏิทินรอจ่ายเงิน &amp; รอบจ่าย</div>
+        <ul><li>บันทึกใบจองที่อนุมัติเข้า<b>ปฏิทินรอจ่ายเงิน</b></li><li>จ่ายจริง<b>เดือนละ 1 ครั้ง</b> — ตั้งได้ <b>1 วัน/เดือน</b> (วันเดิมทุกเดือน หรือแก้ไขวันได้)</li><li>ดูปฏิทินรอจ่าย<b>รายเจ้าของรถหลักแต่ละคน</b>ได้</li></ul></div>
+      <div class="fgroup"><div class="t"><span class="dot"></span>ผูกเลข PO ผ่าน API<span class="tag t-api">API บริษัท</span></div>
+        <ul><li>เจ้าของรถ<b>ปิดงานสำเร็จ</b> → รายการในปฏิทินอัปเดตเป็น “ปิดงาน” เพื่อ<b>ผูกเลข PO</b> (จากระบบใบเสร็จเดิมของบริษัท ผ่าน API) ในวันจ่ายจริง</li><li>เฉพาะรายการ<b>สถานะปิดงาน</b>เท่านั้นที่ผูก PO เพื่อจ่ายได้</li><li>ยกเลิกใบจองที่อนุมัติจ่ายแล้ว → ยังแสดงอยู่แต่สถานะ <b>ยกเลิก</b> และ<b>ผูก PO ไม่ได้</b></li><li>จ่ายจริงผ่านใบเสร็จที่มี PO ในระบบบริษัทแล้ว → ระบบ(ผ่าน API)เปลี่ยนสถานะเป็น <b>ชำระเงินแล้ว</b>ในงวดเดือนนั้น ดูย้อนหลังได้</li></ul></div>
+    </div>
+  </div>
+
+  <!-- ═══ ROLE 5,6,7 ═══ -->
+  <h2 id="r5"><span class="no">5</span> ผู้บริหาร <span class="en">Executive</span></h2>
+  <div class="role" style="--c:var(--orange)">
+    <div class="rhead"><span class="ic">📊</span><div><h3>ผู้บริหาร</h3><div class="en">แดชบอร์ดภาพรวม (Read-only)</div></div></div>
+    <div class="rbody"><div class="fgroup"><div class="t"><span class="dot"></span>แดชบอร์ดรายงาน</div>
+      <ul><li>ดูภาพรวมการจองคิว, <b>คิวสำเร็จ</b>, <b>คิวที่ยกเลิก + สาเหตุ</b></li><li>เลือกช่วงเวลา: รายวัน / สัปดาห์ / เดือน / 3 เดือน / 6 เดือน / ปี / ระบุวันเอง</li></ul></div></div>
+  </div>
+
+  <h2 id="r6"><span class="no">6</span> Admin ผู้ดูแลระบบ <span class="en">System Admin</span></h2>
+  <div class="role" style="--c:#52514e">
+    <div class="rhead"><span class="ic">🛡️</span><div><h3>Admin</h3><div class="en">ดูแลระบบภาพรวม — ทำได้ทุกอย่างยกเว้น API</div></div></div>
+    <div class="rbody"><div class="fgroup"><div class="t"><span class="dot"></span>สิทธิ์ &amp; การตั้งค่า</div>
+      <ul><li><b>กำหนดตำแหน่งงาน (Role) ของ User</b></li><li>ดูแล/ดูรายงานภาพรวมทั้งหมด · เห็นทุกอย่าง ทำได้ทุกอย่างที่ทุกสถานะทำได้ <b>ยกเว้นเรื่อง API</b></li><li>แนบ<b>ระเบียบการใช้งาน</b> + อัปโหลด<b>เอกสารจำเป็น</b>ที่ผู้ใช้ต้องรู้</li><li>ระบุ<b>เรทราคาวิ่งตามจังหวัด/อำเภอ/ระยะทาง</b> (เรทมาตรฐานเดียวสำหรับรถสไลด์) <span class="tag t-key">ดูข้อต้องยืนยัน #1</span></li></ul></div></div>
+  </div>
+
+  <h2 id="r7"><span class="no">7</span> เซลล์ (ที่ขายรถแต่ละแบรนด์) <span class="en">Brand Sales — view-limited</span></h2>
+  <div class="role" style="--c:var(--pink)">
+    <div class="rhead"><span class="ic">🏷️</span><div><h3>เซลล์</h3><div class="en">ดูคิวที่รถของตนเกี่ยวข้อง (จำกัดสิทธิ์)</div></div></div>
+    <div class="rbody"><div class="fgroup"><div class="t"><span class="dot"></span>การมองเห็น (จำกัด)</div>
+      <ul><li>ดูว่ารถที่ตนขายอยู่ในคิวใด — ทั้ง<b>ปัจจุบันและย้อนหลัง</b></li><li>ดูสถานะคิว (รอรับงาน/เจ้าของรถรับงาน/คิวรออนุมัติ/อนุมัติใบจอง/กำลังดำเนินงาน/ปิดงาน) — <b>ดูรายละเอียดไม่ได้ ยกเว้นช่วง “กำลังดำเนินงาน”</b></li><li>ช่วงดำเนินงาน: 3.1–3.2 → “กำลังจัดเตรียมรถ” (ดูรูปได้) · 3.3 → “กำลังเดินทาง” (เห็นพิกัด) · 3.5 → “ส่งมอบเรียบร้อย”</li></ul></div></div>
+  </div>
+
+  <!-- ═══ LIFECYCLE ═══ -->
+  <h2 id="life"><span class="no">8</span> วงจรสถานะงาน (End-to-End) <span class="en">Job Lifecycle</span></h2>
+  <div class="life">
+    <div class="lstep"><div class="n">1</div><div class="c"><h4>ผู้จองคิวสร้างคำขอ → broadcast <span class="who">ผู้จองคิว</span></h4><p>กรอกข้อมูลครบ (รถ/รูป/เซลล์/จำนวน/หมุด GPS/วันเวลา) → ส่งให้เจ้าของรถหลักทุกราย</p></div></div>
+    <div class="down">▼ &nbsp;<span class="st s-wait">รอรับงาน</span></div>
+    <div class="lstep"><div class="n">2</div><div class="c"><h4>เจ้าของรถหลักแย่งกดรับ (ก่อนได้งาน) <span class="who">Trailer</span></h4><p>คนแรกที่กดรับได้งาน คนอื่นถูกปฏิเสธ · เห็นรายละเอียด + เรทราคา</p></div></div>
+    <div class="down">▼ &nbsp;<span class="st s-recv">เจ้าของรถรับงาน</span></div>
+    <div class="lstep"><div class="n">3</div><div class="c"><h4>เลือกคนขับ/รถเสริม + วันเวลาเดินทาง → ขอสร้างใบจอง <span class="who">Trailer</span></h4><p>จัดคนขับให้พอจำนวนรถ (รถเสริมไม่พอ→เพิ่ม ผ่าน ผจก.) → ส่งขออนุมัติใบจอง</p></div></div>
+    <div class="down">▼ &nbsp;<span class="st s-appr">คิวรออนุมัติ</span></div>
+    <div class="lstep"><div class="n">4</div><div class="c"><h4>ผจก.สาขาอนุมัติใบจอง (ยืนยันตัวตน) <span class="who">ผจก.</span></h4><p>อนุมัติ → ส่งต่อบัญชี · ไม่อนุมัติ (ระบุหมายเหตุ) → เด้งกลับเจ้าของรถแก้ไข → ส่งใหม่</p></div></div>
+    <div class="down">▼ &nbsp;<span class="st s-appr">ผจก.อนุมัติ</span> → <span class="st s-appr">งานบัญชีตรวจสอบ</span></div>
+    <div class="lstep"><div class="n">5</div><div class="c"><h4>งานบัญชีอนุมัติจ่าย = อนุมัติครบทุกขั้น <span class="who">บัญชี</span></h4><p>อนุมัติ → เข้าปฏิทินรอจ่าย + ปฏิทินนัดหมาย · ไม่อนุมัติ (หมายเหตุ) → เด้งกลับแก้</p></div></div>
+    <div class="down">▼ &nbsp;<span class="st s-appr">อนุมัติใบจองคิว</span></div>
+    <div class="lstep"><div class="n">6</div><div class="c"><h4>ถึงวันนัด → กดเริ่มงาน → ดำเนินงาน 3.1–3.5 <span class="who">Trailer</span></h4><p>3.1 รูปก่อนขึ้น (AI+<b>ล็อกใบจอง</b>) → 3.2 รูปขณะขึ้น (AI) → 3.3 GPS → 3.4 ส่งมอบ (ผิดหมุด=recalc) → 3.5 รูปหลังลง (AI)</p></div></div>
+    <div class="down">▼ &nbsp;<span class="st s-run">กำลังดำเนินงาน</span></div>
+    <div class="lstep"><div class="n">7</div><div class="c"><h4>กดปิดงาน → แจ้งเตือน <span class="who">Trailer</span></h4><p>รายการในปฏิทินรอจ่ายอัปเดตเป็น “ปิดงาน” → พร้อมผูก PO</p></div></div>
+    <div class="down">▼ &nbsp;<span class="st s-done">ปิดงาน</span></div>
+    <div class="lstep"><div class="n">8</div><div class="c"><h4>รอบจ่ายเดือน → ผูก PO ผ่าน API → ชำระเงินแล้ว <span class="who">บัญชี + API</span></h4><p>วันจ่ายจริง (เดือนละครั้ง) เฉพาะรายการ “ปิดงาน” ผูก PO จากระบบบริษัท → จ่ายแล้วในระบบบริษัท → API เปลี่ยนสถานะเป็น “ชำระเงินแล้ว” งวดเดือนนั้น</p></div></div>
+    <div class="down">▼ &nbsp;<span class="st s-pay">ชำระเงินแล้ว</span></div>
+    <div class="lstep" style="border-color:var(--critical)"><div class="n">✕</div><div class="c"><h4>ทางแยก — ยกเลิก <span class="who">ผจก.</span></h4><p>ผจก.ยกเลิกได้ (ต้องระบุเหตุผล) · ถ้ายกเลิกหลังบัญชีอนุมัติจ่าย → ยังแสดงอยู่ สถานะ <b>ยกเลิก</b> ผูก PO ไม่ได้</p></div></div>
+  </div>
+
+  <h3 class="sub">ใครเห็นอะไรช่วง “กำลังดำเนินงาน” (Visibility)</h3>
+  <table>
+    <thead><tr><th>ขั้น</th><th>สถานะที่แสดง</th><th>ผู้จองคิว</th><th>เซลล์</th><th>ผจก. / ผู้บริหาร</th></tr></thead>
+    <tbody>
+      <tr><td>3.1–3.2</td><td>กำลังจัดเตรียมรถ</td><td class="yes">✓ ดูรูปได้</td><td class="yes">✓ ดูรูปได้</td><td class="yes">✓ ทุกขั้นเรียลไทม์</td></tr>
+      <tr><td>3.3</td><td>กำลังเดินทาง</td><td class="yes">✓ เห็นพิกัด GPS</td><td class="yes">✓ เห็นพิกัด GPS</td><td class="yes">✓</td></tr>
+      <tr><td>3.5</td><td>ส่งมอบเรียบร้อย</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td>ก่อน/หลังช่วงนี้</td><td>สถานะอื่น ๆ</td><td class="yes">✓ สถานะ+หมายเหตุ</td><td class="no">✗ เห็นชื่อสถานะเท่านั้น</td><td class="yes">✓ เห็นทั้งหมด</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ═══ RULES ═══ -->
+  <h2 id="rules"><span class="no">9</span> กติกา/กลไกสำคัญ (Cross-cutting) <span class="en">Key Business Rules</span></h2>
+  <div class="rules">
+    <div class="rule" style="--c:var(--violet)"><div class="h">🔐 ยืนยันตัวตนทุกการอนุมัติของ ผจก.</div><p>การอนุมัติของ ผจก.สาขา (เจ้าของรถ/รถเสริม/ใบจอง/แก้ไข/ยกเลิก) ต้องยืนยันตัวตนเสมอ (เช่น OTP/PIN/ลายนิ้วมือ) — บันทึกลง Audit Log</p></div>
+    <div class="rule" style="--c:var(--brand)"><div class="h">🤖 AI ตรวจรูปรถ 3 จุด (3.1/3.2/3.5)</div><p>เทียบรูป 4 มุม (หน้า/ข้าง 2 ข้าง/หลัง) ที่คนขับถ่าย กับรูปอ้างอิงที่ผู้จองคิวอัปโหลด — ต้องตรงจึงไปต่อ/ปิดงานได้ <span class="tag t-key">ต้องนิยามเกณฑ์ “ตรง” — ดูข้อยืนยัน #3</span></p></div>
+    <div class="rule" style="--c:var(--warning)"><div class="h">🔒 ล็อกใบจองเมื่อผ่าน 3.1</div><p>เมื่อเจ้าของรถหลักผ่านขั้น 3.1 → ใบจองแก้ไขไม่ได้อีก (ทั้งผู้จองคิวและ ผจก.) เพื่อกันข้อมูลเปลี่ยนกลางงาน</p></div>
+    <div class="rule" style="--c:var(--aqua)"><div class="h">✏️ คำขอแก้ไขหลังอนุมัติ (มี revert)</div><p>ผู้จองคิวขอแก้ (ระบุเหตุผล) → ผจก.อนุมัติ → แก้ได้ทันที · ผจก.ยกเลิกการอนุมัติแก้ได้ (ระบุเหตุผล) → ข้อมูลใหม่ถูก revert · เก็บ before/after</p></div>
+    <div class="rule" style="--c:var(--orange)"><div class="h">📍 ส่งผิดหมุด → คำนวณราคาใหม่</div><p>3.4 ถ้าปลายทางไม่ตรงหมุดที่ปักไว้ ยังกดส่งมอบได้แต่ต้องมีหมายเหตุ · ระบบคำนวณราคาในใบจอง+ปฏิทินจ่ายใหม่ทั้งหมดตามเกณฑ์ราคา</p></div>
+    <div class="rule" style="--c:var(--pink)"><div class="h">💵 จ่ายรอบเดือน + ผูก PO ผ่าน API</div><p>จ่ายเดือนละครั้ง (บัญชีตั้ง 1 วัน/เดือน) · เฉพาะรายการ “ปิดงาน” ผูกเลข PO จากระบบใบเสร็จเดิม (API) · จ่ายจริงแล้ว → สถานะ “ชำระเงินแล้ว” รายงวด</p></div>
+    <div class="rule" style="--c:var(--critical)"><div class="h">🚫 ยกเลิกหลังอนุมัติจ่าย</div><p>ยังแสดงรายการอยู่แต่สถานะ “ยกเลิก” · ผูก PO ไม่ได้ · เก็บเหตุผล+ผู้ยกเลิกไว้ในประวัติ (รายงานผู้บริหารเห็นสาเหตุ)</p></div>
+    <div class="rule" style="--c:#52514e"><div class="h">💲 เกณฑ์ราคาตามพื้นที่/ระยะทาง</div><p>เรทมาตรฐานเดียวสำหรับรถสไลด์ อ้างอิงจังหวัด/อำเภอ/ระยะทาง · ใช้ตอนแสดงเรทให้เจ้าของรถ + คำนวณ recalc เมื่อส่งผิดหมุด</p></div>
+  </div>
+
+  <!-- ═══ DATABASE ═══ -->
+  <h2 id="db"><span class="no">10</span> โครงสร้างฐานข้อมูล (ครบวงจร) <span class="en">Database Schema · ~23 ตาราง</span></h2>
+  <p class="lead"><span class="pk">■ PK</span> = Primary Key · <span class="fk">■ FK</span> = Foreign Key (เชื่อมตารางอื่น) · จัดกลุ่มตามหน้าที่</p>
+
+  <!-- Group A -->
+  <div class="dbgroup" style="--c:#52514e">
+    <div class="gh">กลุ่ม A · ผู้ใช้ &amp; Master Data</div>
+    <div class="dbtable"><table>
+      <thead><tr><th>ตาราง</th><th>หน้าที่</th><th>ฟิลด์สำคัญ</th></tr></thead>
+      <tbody>
+        <tr><td>users</td><td>ผู้ใช้ทุกบทบาท + สิทธิ์</td><td><code class="pk">user_id</code> · full_name · username · <b>role</b>(booking_officer/branch_manager/trailer_owner/accounting/executive/admin/brand_sales) · phone · identity_verified · position_label · status</td></tr>
+        <tr><td>brands</td><td>ยี่ห้อรถ EV ที่ขาย</td><td><code class="pk">brand_id</code> · brand_name</td></tr>
+        <tr><td>trailer_owners</td><td>โปรไฟล์เจ้าของรถหลัก 5 ราย</td><td><code class="pk">owner_id</code> · <code class="fk">user_id</code> · approval_status · <code class="fk">approved_by</code> · approved_at</td></tr>
+        <tr><td>slide_vehicles</td><td>รถสไลด์ (หลัก/เสริม)</td><td><code class="pk">vehicle_id</code> · <code class="fk">owner_id</code> · type(main/reserve) · plate_no · vehicle_info · insurer · coverage · sum_insured · prb_date · availability(free/busy) · approval_status · <code class="fk">approved_by</code></td></tr>
+        <tr><td>drivers</td><td>คนขับหลัก/เสริม</td><td><code class="pk">driver_id</code> · <code class="fk">owner_id</code> · name · license_no · id_verified · phone · type(main/reserve)</td></tr>
+        <tr><td>vehicle_documents</td><td>ไฟล์แนบของรถ/คนขับ</td><td><code class="pk">doc_id</code> · <code class="fk">vehicle_id</code> · doc_type(ประกัน/พ.ร.บ./ใบขับขี่/บัตร ปชช.) · file_url · uploaded_at</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- Group B -->
+  <div class="dbgroup" style="--c:var(--brand)">
+    <div class="gh">กลุ่ม B · การจองคิว &amp; ใบจอง</div>
+    <div class="dbtable"><table>
+      <thead><tr><th>ตาราง</th><th>หน้าที่</th><th>ฟิลด์สำคัญ</th></tr></thead>
+      <tbody>
+        <tr><td>bookings</td><td>คำขอจองคิว (โดยผู้จองคิว)</td><td><code class="pk">booking_id</code> · booking_code · <code class="fk">booking_officer_id</code> · num_cars · dest_lat · dest_lng · dest_address · delivery_datetime · <b>status</b> · <code class="fk">accepted_owner_id</code> · accepted_at</td></tr>
+        <tr><td>booking_cars</td><td>รถ EV แต่ละคันในออเดอร์</td><td><code class="pk">bcar_id</code> · <code class="fk">booking_id</code> · <code class="fk">brand_id</code> · model · <code class="fk">selling_sales_rep_id</code> · ref_photo_front/left/right/back · <code class="fk">assigned_driver_id</code> · <code class="fk">assigned_vehicle_id</code></td></tr>
+        <tr><td>booking_slips</td><td>ใบจองคิว (เลขบิล)</td><td><code class="pk">slip_id</code> · bill_no · <code class="fk">booking_id</code> · <code class="fk">trailer_owner_id</code> · travel_datetime · appointment_datetime · base_price · final_price · <code class="fk">rate_id</code> · status · locked(bool)</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- Group C -->
+  <div class="dbgroup" style="--c:var(--violet)">
+    <div class="gh">กลุ่ม C · อนุมัติ · แก้ไข · ยกเลิก</div>
+    <div class="dbtable"><table>
+      <thead><tr><th>ตาราง</th><th>หน้าที่</th><th>ฟิลด์สำคัญ</th></tr></thead>
+      <tbody>
+        <tr><td>approvals</td><td>บันทึกทุกการอนุมัติ/ปฏิเสธ</td><td><code class="pk">approval_id</code> · <code class="fk">slip_id</code> · stage(vehicle_reg/manager/accounting/edit) · <code class="fk">actor_id</code> · decision(approve/reject/revoke) · note · identity_verified · created_at</td></tr>
+        <tr><td>edit_requests</td><td>คำขอแก้ไขใบจอง + revert</td><td><code class="pk">edit_id</code> · <code class="fk">slip_id</code> · <code class="fk">requester_id</code> · reason · status(pending/approved/revoked) · <code class="fk">approved_by</code> · revoke_reason · before_json · after_json</td></tr>
+        <tr><td>cancellations</td><td>ประวัติการยกเลิก</td><td><code class="pk">cancel_id</code> · <code class="fk">slip_id</code> · <code class="fk">by_user_id</code> · role · reason · stage · created_at</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- Group D -->
+  <div class="dbgroup" style="--c:var(--aqua)">
+    <div class="gh">กลุ่ม D · ดำเนินงาน &amp; GPS</div>
+    <div class="dbtable"><table>
+      <thead><tr><th>ตาราง</th><th>หน้าที่</th><th>ฟิลด์สำคัญ</th></tr></thead>
+      <tbody>
+        <tr><td>operation_steps</td><td>ขั้น 3.1–3.5 + ผล AI</td><td><code class="pk">step_id</code> · <code class="fk">bcar_id</code> · step_no(3.1/3.2/3.4/3.5) · <code class="fk">actor_id</code> · photo_front/left/right/back · ai_match_result(pass/fail) · ai_score · note(off-pin) · delivered_lat/lng · created_at</td></tr>
+        <tr><td>gps_tracks</td><td>พิกัดระหว่างเดินทาง (3.3)</td><td><code class="pk">track_id</code> · <code class="fk">slip_id</code> · lat · lng · recorded_at</td></tr>
+        <tr><td>job_status_log</td><td>ประวัติเปลี่ยนสถานะทุกครั้ง</td><td><code class="pk">log_id</code> · <code class="fk">slip_id</code> · status · <code class="fk">actor_id</code> · changed_at</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- Group E -->
+  <div class="dbgroup" style="--c:var(--warning)">
+    <div class="gh">กลุ่ม E · เกณฑ์ราคา · การเงิน · PO/API</div>
+    <div class="dbtable"><table>
+      <thead><tr><th>ตาราง</th><th>หน้าที่</th><th>ฟิลด์สำคัญ</th></tr></thead>
+      <tbody>
+        <tr><td>rate_table</td><td>เรทราคาตามพื้นที่/ระยะทาง</td><td><code class="pk">rate_id</code> · province · district · distance_min_km · distance_max_km · price · <code class="fk">set_by</code> · effective_date</td></tr>
+        <tr><td>payment_calendar</td><td>ปฏิทินรอจ่าย/ตั้งเบิก</td><td><code class="pk">pay_id</code> · <code class="fk">slip_id</code> · <code class="fk">trailer_owner_id</code> · amount · status(pending/closed/paid/cancelled) · month_period · pay_date · <code class="fk">po_id</code> · paid_at</td></tr>
+        <tr><td>payment_settings</td><td>ตั้งวันจ่ายเดือนละครั้ง</td><td><code class="pk">setting_id</code> · pay_day_of_month · <code class="fk">updated_by</code> · updated_at</td></tr>
+        <tr><td>po_links</td><td>เชื่อม PO ระบบบริษัท (API)</td><td><code class="pk">po_id</code> · <code class="fk">pay_id</code> · po_number · api_status · synced_at</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- Group F -->
+  <div class="dbgroup" style="--c:var(--pink)">
+    <div class="gh">กลุ่ม F · ระบบ · แจ้งเตือน · Audit</div>
+    <div class="dbtable"><table>
+      <thead><tr><th>ตาราง</th><th>หน้าที่</th><th>ฟิลด์สำคัญ</th></tr></thead>
+      <tbody>
+        <tr><td>system_documents</td><td>ระเบียบ/เอกสารที่ผู้ใช้ต้องรู้</td><td><code class="pk">sdoc_id</code> · title · file_url · <code class="fk">uploaded_by</code> · created_at</td></tr>
+        <tr><td>notifications</td><td>แจ้งเตือนในระบบ</td><td><code class="pk">noti_id</code> · <code class="fk">user_id</code> · ref_type · ref_id · message · is_read · created_at</td></tr>
+        <tr><td>audit_log</td><td>บันทึกทุกการกระทำสำคัญ</td><td><code class="pk">audit_id</code> · <code class="fk">actor_id</code> · action · entity · entity_id · meta_json · created_at</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <h3 class="sub">ความสัมพันธ์หลัก (Key Relationships)</h3>
+  <div class="rel">
+    <ul>
+      <li><code>users 1—1 trailer_owners</code> · <code>trailer_owners 1—* slide_vehicles</code> · <code>trailer_owners 1—* drivers</code> · <code>slide_vehicles 1—* vehicle_documents</code></li>
+      <li><code>users(ผู้จองคิว) 1—* bookings</code> · <code>bookings 1—* booking_cars</code> · <code>booking_cars *—1 brands</code> · <code>booking_cars *—1 users(เซลล์)</code></li>
+      <li><code>bookings 1—1 booking_slips</code> · <code>booking_slips *—1 trailer_owners</code> · <code>booking_slips *—1 rate_table</code></li>
+      <li><code>booking_slips 1—* approvals / edit_requests / cancellations / job_status_log / gps_tracks</code></li>
+      <li><code>booking_cars 1—* operation_steps</code> (3.1–3.5 ต่อคันรถ + คนขับที่รับผิดชอบ)</li>
+      <li><code>booking_slips 1—1 payment_calendar</code> · <code>payment_calendar 1—1 po_links</code> (เฉพาะสถานะ “ปิดงาน”)</li>
+      <li><code>users 1—* notifications / audit_log / system_documents</code></li>
+    </ul>
+  </div>
+
+  <!-- ═══ CONFIRM ═══ -->
+  <h2 id="confirm"><span class="no">11</span> ข้อที่ต้องยืนยันก่อนลงมือ <span class="en">Points to Confirm</span></h2>
+  <div class="confirm" style="background:var(--good-bg);border-color:#bfe3bf;border-left-color:var(--good);">
+    <h3 style="color:var(--good-text);">✅ ข้อสรุปที่ล็อกแล้ว (Resolved · v3.1)</h3>
+    <ol style="color:#0f4d1f;">
+      <li><b>เกณฑ์ราคา:</b> <b>ผจก.สาขาเป็นคนตั้งทั้งหมด</b> (จังหวัด/อำเภอ/ระยะทาง) — ตัดหน้าที่นี้ออกจาก Admin · <code>rate_table.set_by = branch_manager</code></li>
+      <li><b>แจ้งเตือนปิดงาน:</b> ส่งไปยัง <b>ผู้จองคิว + ผจก.สาขา + เซลล์</b> (แทนคำว่า “สวัสดี” ที่พิมพ์ตก)</li>
+      <li><b>AI ตรวจรูป:</b> ช่วยเทียบรูป 3.1–3.5 กับรูปที่ผู้จองคิวถ่ายไว้ · <b>3.1 เป็นด่านบังคับ</b> (ต้องตรงจึงไปต่อ) · 3.2/3.5 <b>ตั้งค่าได้</b>ว่าบังคับถ่ายครบ 4 มุมหรือไม่ · มี<b>ทางให้คนรีวิว</b>เมื่อ AI ตัดสินก้ำกึ่ง</li>
+      <li><b>2 ด่านอนุมัติ:</b> ผจก.อนุมัติคิว → บัญชีอนุมัติว่าจ่ายได้ = รวมกันเป็น “อนุมัติใบจองคิว” (ต้องผ่านทั้งคู่ถึงเริ่มงาน)</li>
+      <li><b>ยืนยันตัวตน ผจก.:</b> ใช้ <b>Passkey / ไบโอเมตริก</b> (ลายนิ้วมือ/สแกนหน้า) — ฝากคนทำแทนไม่ได้ + ใช้ได้ทั้งคอมและมือถือ</li>
+      <li><b>ปฏิทินรอจ่าย:</b> รายการ<b>เข้าเมื่อ “ปิดงาน” แล้วเท่านั้น</b> (โมเดลง่าย) · งานที่ปิดหลังวันจ่ายของเดือน → <b>ยกไปงวดถัดไป</b></li>
+    </ol>
+  </div>
+
+  <div class="note">💡 <b>ขั้นถัดไป:</b> ข้อสรุปทั้ง 6 ล็อกแล้ว · ผมกำลัง (1) ปรับราคาให้ตรง scope v3 (โจทย์นี้เพิ่ม AI ตรวจรูป, 2 ด่านอนุมัติ, PO/API, edit workflow, 7 บทบาท — งานโตขึ้นจาก v2) แล้ว (2) พร้อมลงมือสร้าง prototype เดินได้จริงตาม flow นี้ทีละบทบาท</div>
+
+</div>
+</body>
+</html>
