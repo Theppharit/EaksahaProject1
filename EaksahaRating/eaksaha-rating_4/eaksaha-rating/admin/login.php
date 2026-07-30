@@ -258,12 +258,12 @@ foreach (['logo.png', 'logo.jpg', 'logo.jpeg', 'logo.webp'] as $lf) {
                     <button type="button" class="lt-midnight" data-theme-pick="midnight" title="มืดน้ำเงิน"></button>
                 </div>
 
-                <div class="login-links">
+                <!-- <div class="login-links">
                     <a href="developer.php">ทีมผู้พัฒนาระบบ</a>
                     <div class="divider"></div>
                     Copyright &copy; <?= date('Y') ?> <?= htmlspecialchars(ORG_DEPT) ?><br>
                     <?= htmlspecialchars(ORG_DEPT2) ?>
-                </div>
+                </div> -->
             </div>
         </div>
     </div>
