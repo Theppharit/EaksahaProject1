@@ -1,27 +1,9 @@
-{% extends "dashboard/_base.html" %}
+{% extends "dashboard/index.html" %}
 
 {% block title %}แอดมิน{% endblock %}
+{% block page_heading %}จัดการระบบ{% endblock %}
+{% block dash_title %}จัดการระบบ{% endblock %}
+{% block dash_sub %}ใบจองทั้งหมด ผู้ใช้งาน และการตั้งค่า{% endblock %}
 
-{% block dashboard %}
-<div class="welcome">
-  <div class="welcome-badge">{{ user.get_role_display }}</div>
-
-  <h1 class="welcome-title">ยินดีต้อนรับ {{ user.get_full_name|default:user.username }}</h1>
-  <p class="welcome-sub">ระบบ Admin · ใช้ได้ทั้งคอมและมือถือ</p>
-
-  <div class="welcome-divider"></div>
-
-  <p class="welcome-label">เมนูที่จะมีในหน้านี้</p>
-  <ul class="welcome-list">
-    <li>Dashboard — ทุกคิวที่ยังไม่ปิดงาน · ปฏิทินผู้จองทุกคน · กราฟสถิติ</li>
-    <li>ซัพพอร์ตระบบ — ผู้จัดการ · ผู้จองคิว · คนขับรถสไลด์ · งานบัญชี</li>
-    <li>สิทธิ์การเข้าถึง — เปลี่ยนสิทธิ์แล้วแจ้งเตือนเจ้าของบัญชีให้ยืนยัน</li>
-    <li>อัพโหลดเอกสารการใช้งานระบบ — กำหนดว่าโรลไหนเห็นเอกสารใด</li>
-    <li>ตั้งค่าสีหลักประจำแต่ละตำแหน่ง</li>
-  </ul>
-
-  <p class="welcome-foot">
-    หน้านี้ยังเป็นโครงเปล่า — เนื้อหาจริงจะทยอยเพิ่มตามเอกสารสเปกที่ลูกค้าอนุมัติแล้ว
-  </p>
-</div>
-{% endblock %}
+{#  เนื้อหาเฉพาะของแอดมิน เพิ่มได้ที่นี่
+    {% block extra_bottom %} ... {% endblock %}  #}

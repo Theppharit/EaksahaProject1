@@ -1,33 +1,31 @@
 /* ============================================================
-   table.css — ตารางรายการงาน / ใบแจ้งหนี้ / ผู้ใช้
+   table.css — ตารางใบจอง · แถบเครื่องมือ · แบ่งหน้า
    ============================================================ */
 
 @layer components {
-  /* ครอบไว้เพื่อให้เลื่อนแนวนอนได้บนมือถือ */
+  /* ครอบไว้ให้เลื่อนแนวนอนได้บนมือถือ */
   .table-wrap {
     @apply w-full overflow-x-auto;
   }
 
   .table {
-    @apply w-full min-w-[640px] border-collapse text-left text-[14px];
+    @apply w-full min-w-[820px] border-collapse text-left text-[14px];
   }
 
   .table thead th {
     background-color: var(--color-surface-2);
     color: var(--color-ink-soft);
     border-bottom: 1px solid var(--color-line);
-    @apply px-5 py-3 text-[12px] font-semibold uppercase tracking-wide whitespace-nowrap;
+    @apply whitespace-nowrap px-5 py-3 text-[12px] font-semibold uppercase tracking-wide;
   }
 
   .table tbody td {
     border-bottom: 1px solid var(--color-line);
     @apply px-5 py-3.5 align-middle;
   }
-
   .table tbody tr:last-child td {
     border-bottom: 0;
   }
-
   .table tbody tr {
     @apply transition;
   }
@@ -35,17 +33,14 @@
     background-color: var(--color-surface-2);
   }
 
-  /* คอลัมน์ตัวเลข/เงิน ให้ชิดขวา */
+  /* คอลัมน์ปุ่มจัดการ — บีบให้แคบที่สุด */
+  .table .act {
+    @apply w-px whitespace-nowrap text-right;
+  }
   .table .num {
     @apply text-right tabular;
   }
 
-  /* คอลัมน์ปุ่มจัดการ */
-  .table .act {
-    @apply w-px whitespace-nowrap text-right;
-  }
-
-  /* ข้อความรอง เช่น ทะเบียนรถใต้ชื่อลูกค้า */
   .cell-main {
     @apply font-medium;
   }
@@ -54,13 +49,16 @@
     @apply text-[12px];
   }
 
-  /* แถบเครื่องมือเหนือตาราง */
+  /* แถบค้นหา/ตัวกรองเหนือตาราง */
   .table-toolbar {
     border-bottom: 1px solid var(--color-line);
     @apply flex flex-wrap items-center gap-2 px-5 py-3;
   }
+  .table-toolbar .select {
+    @apply w-auto py-2 text-[14px];
+  }
 
-  /* แถบแบ่งหน้า */
+  /* แบ่งหน้า */
   .pagination {
     color: var(--color-ink-soft);
     @apply flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-[13px];

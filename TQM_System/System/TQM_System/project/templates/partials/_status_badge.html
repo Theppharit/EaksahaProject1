@@ -1,0 +1,11 @@
+{# ป้ายสถานะใบจอง — รับตัวแปร status (ค่าใน DB) และ label (ข้อความไทย) #}
+{% if status == "pending_accept" %}<span class="badge badge-wait">{{ label }}</span>
+{% elif status == "accepted" %}<span class="badge badge-go">{{ label }}</span>
+{% elif status == "pending_approval" %}<span class="badge badge-wait">{{ label }}</span>
+{% elif status == "shr_approved" %}<span class="badge badge-review">{{ label }}</span>
+{% elif status == "accounting_review" %}<span class="badge badge-review">{{ label }}</span>
+{% elif status == "approved" %}<span class="badge badge-done">{{ label }}</span>
+{% elif status == "in_progress" %}<span class="badge badge-go">{{ label }}</span>
+{% elif status == "closed" %}<span class="badge badge-cancel">{{ label }}</span>
+{% elif status == "cancelled" %}<span class="badge badge-urgent">{{ label }}</span>
+{% else %}<span class="badge badge-plain">{{ label }}</span>{% endif %}

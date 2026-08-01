@@ -1,0 +1,155 @@
+{% extends "dashboard/_base.html" %}
+
+{% block title %}{{ booking.booking_no }}{% endblock %}
+{% block page_heading %}ใบจอง {{ booking.booking_no }}{% endblock %}
+
+{% block content %}
+
+  <div class="page-head">
+    <div>
+      <h1>{{ booking.booking_no }}
+        {% include "partials/_status_badge.html" with status=booking.status label=booking.get_status_display %}
+      </h1>
+      <p class="page-sub">สร้างเมื่อ {{ booking.created_at|date:"j M Y H:i" }} น. โดย {{ booking.created_by.get_full_name|default:booking.created_by.username }}</p>
+    </div>
+    <a href="{% url 'jobs:list' %}" class="btn btn-outline">← กลับรายการ</a>
+  </div>
+
+  <div class="grid-main">
+
+    <!-- ══════════ คอลัมน์ซ้าย ══════════ -->
+    <div class="col-wide space-y-5">
+
+      <!-- ── ข้อมูลใบจอง ── -->
+      <div class="card">
+        <div class="card-head">
+          <h3 class="card-title">รายละเอียดงาน</h3>
+          <div class="card-tools">
+            <a href="{% url 'jobs:edit' booking.pk %}" class="btn btn-outline btn-sm">แก้ไข</a>
+          </div>
+        </div>
+        <div class="card-body">
+          <dl class="detail-grid">
+            <div><dt>ลูกค้า</dt><dd>{{ booking.customer.name }}<span class="cell-sub"> · {{ booking.customer.phone }}</span></dd></div>
+            <div><dt>รถที่ขนย้าย</dt><dd>{% if booking.vehicle %}{{ booking.vehicle }}{% else %}—{% endif %}</dd></div>
+            <div><dt>วันเวลานัดหมาย</dt><dd>{{ booking.appointment_at|date:"j F Y H:i" }} น.</dd></div>
+            <div><dt>เซลล์ผู้ดูแล</dt><dd>{% if booking.sales %}{{ booking.sales.get_full_name|default:booking.sales.username }}{% else %}— ไม่ระบุ —{% endif %}</dd></div>
+            <div class="col-span-full"><dt>จุดรับรถ</dt><dd>{{ booking.pickup_address }}</dd></div>
+            <div class="col-span-full"><dt>จุดส่งรถ</dt><dd>{{ booking.dropoff_address }}</dd></div>
+            <div><dt>ระยะทาง</dt><dd>{% if booking.distance_km %}{{ booking.distance_km }} กม.{% else %}—{% endif %}</dd></div>
+            <div><dt>ค่าบริการ</dt><dd class="tabular font-kanit font-semibold">{{ booking.total_price|floatformat:2 }} บาท</dd></div>
+            {% if booking.note %}<div class="col-span-full"><dt>หมายเหตุ</dt><dd>{{ booking.note|linebreaksbr }}</dd></div>{% endif %}
+            {% if booking.cancelled_reason %}<div class="col-span-full"><dt>เหตุผลที่ยกเลิก</dt><dd class="text-brand">{{ booking.cancelled_reason }}</dd></div>{% endif %}
+          </dl>
+        </div>
+      </div>
+
+      <!-- ── ผู้รับงาน ── -->
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">ผู้รับงาน</h3></div>
+        <div class="card-body">
+          {% if booking.truck_owner %}
+            <dl class="detail-grid">
+              <div><dt>เจ้าของรถ</dt><dd>{{ booking.truck_owner.name }}</dd></div>
+              <div><dt>รถที่ใช้</dt><dd>{% if booking.truck %}{{ booking.truck.plate }} ({{ booking.truck.get_type_display }}){% else %}—{% endif %}</dd></div>
+              <div><dt>คนขับ</dt><dd>{% if booking.driver %}{{ booking.driver.name }}<span class="cell-sub"> · {{ booking.driver.phone }}</span>{% else %}—{% endif %}</dd></div>
+              <div><dt>รับงานเมื่อ</dt><dd>{{ booking.accepted_at|date:"j M Y H:i"|default:"—" }}</dd></div>
+            </dl>
+          {% elif accept_form %}
+            <form method="post" action="{% url 'jobs:accept' booking.pk %}" class="space-y-4">
+              {% csrf_token %}
+              <div class="alert alert-info">
+                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg>
+                <span>งานนี้ยังไม่มีผู้รับ — เลือกรถและคนขับเพื่อกดรับงาน</span>
+              </div>
+              <div class="form-grid">
+                {% for field in accept_form %}
+                  <div class="field {% if field.name == 'note' %}form-full{% endif %}">
+                    <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% for e in field.errors %}<p class="error">{{ e }}</p>{% endfor %}
+                  </div>
+                {% endfor %}
+              </div>
+              <button type="submit" class="btn btn-primary">รับงานนี้</button>
+            </form>
+          {% else %}
+            <p class="empty">ยังไม่มีเจ้าของรถกดรับงานนี้</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- ── 5 ขั้นตอนการดำเนินงาน ── -->
+      {% if steps %}
+        <div class="card">
+          <div class="card-head"><h3 class="card-title">ขั้นตอนการดำเนินงาน</h3></div>
+          <div class="card-body">
+            <ol class="steps">
+              {% for s in steps %}
+                <li class="step {% if s.is_done %}is-done{% endif %}">
+                  <span class="step-dot">{{ forloop.counter }}</span>
+                  <div>
+                    <p class="step-title">{{ s.get_code_display }}</p>
+                    <p class="cell-sub">
+                      {% if s.is_done %}เสร็จเมื่อ {{ s.done_at|date:"j M H:i" }} น.{% else %}ยังไม่ดำเนินการ{% endif %}
+                    </p>
+                  </div>
+                </li>
+              {% endfor %}
+            </ol>
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+
+    <!-- ══════════ คอลัมน์ขวา ══════════ -->
+    <div class="space-y-5">
+
+      <!-- ── ปุ่มดำเนินการ ── -->
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">การดำเนินการ</h3></div>
+        <div class="card-body">
+          {% if actions %}
+            <form method="post" action="{% url 'jobs:action' booking.pk %}" class="space-y-3">
+              {% csrf_token %}
+              <div class="field">
+                <label class="label" for="note">หมายเหตุ</label>
+                <textarea name="note" id="note" rows="3" class="textarea"
+                          placeholder="บังคับกรอกกรณีตีกลับหรือยกเลิก"></textarea>
+              </div>
+              <div class="space-y-2">
+                {% for a in actions %}
+                  <button type="submit" name="target" value="{{ a.target }}"
+                          class="btn btn-{{ a.style }} w-full">{{ a.label }}</button>
+                {% endfor %}
+              </div>
+            </form>
+          {% else %}
+            <p class="empty">ไม่มีรายการที่คุณดำเนินการได้ในสถานะนี้</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- ── ไทม์ไลน์สถานะ ── -->
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">ประวัติการดำเนินการ</h3></div>
+        <div class="card-body">
+          <ol class="timeline">
+            {% for log in logs %}
+              <li>
+                <p class="tl-title">{{ log.get_from_status_display }} → <strong>{{ log.get_to_status_display }}</strong></p>
+                <p class="cell-sub">{{ log.created_at|date:"j M Y H:i" }} น. · {{ log.by.get_full_name|default:log.by.username }}</p>
+                {% if log.note %}<p class="tl-note">{{ log.note }}</p>{% endif %}
+              </li>
+            {% empty %}
+              <li><p class="cell-sub">ยังไม่มีการเปลี่ยนสถานะ</p></li>
+            {% endfor %}
+          </ol>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+{% endblock %}

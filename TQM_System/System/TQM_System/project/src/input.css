@@ -7,7 +7,6 @@
    คำสั่ง   → npm run dev (ระหว่างทำงาน) / npm run build (ก่อน deploy)
 
    ⚠ ไฟล์ที่ไม่ได้ @import ตรงนี้ จะไม่ถูกรวมเข้าไฟล์ผลลัพธ์เลย
-     สร้างไฟล์ใหม่แล้วอย่าลืมกลับมาเปิด import
    ============================================================ */
 
 @import "tailwindcss";
@@ -15,26 +14,27 @@
 /* ── 1. โทเคนกลาง: สี ฟอนต์ ความโค้ง ─────────── */
 @import "./theme.css";
 
-/* ── 2. สไตล์เริ่มต้นของ tag ─────────────────── */
+/* ── 2. utility ที่สร้างเพิ่มเอง ───────────────── */
+@import "./utilities.css";
+
+/* ── 3. สไตล์เริ่มต้นของ tag ─────────────────── */
 @import "./base.css";
 
-/* ── 3. component ที่ใช้อยู่ตอนนี้ ─────────────── */
-@import "./components/button.css"; /* ปุ่มทุกแบบ            */
-@import "./components/form.css"; /* ฟอร์ม · อินพุต        */
-@import "./components/feedback.css"; /* กล่องแจ้งเตือน        */
-@import "./components/auth.css"; /* หน้า login           */
-@import "./components/shell.css"; /* โครงหน้าแดชบอร์ด      */
+/* ── 4. component ─────────────────────────────── */
+@import "./components/layout.css"; /* เมนูซ้าย · แถบบน · โครงหน้า */
+@import "./components/button.css"; /* ปุ่มทุกแบบ                */
+@import "./components/form.css"; /* ฟอร์ม · อินพุต            */
+@import "./components/table.css"; /* ตาราง · แบ่งหน้า          */
+@import "./components/card.css"; /* การ์ด · สถิติ · ไทม์ไลน์   */
+@import "./components/badge.css"; /* ป้ายสถานะ                 */
+@import "./components/feedback.css"; /* กล่องแจ้งเตือน            */
+@import "./components/auth.css"; /* หน้า login                */
+@import "./components/shell.css"; /* การ์ดต้อนรับ (เดิม)        */
 
-/* ── 4. ยังไม่ได้ใช้ — เปิดเมื่อสร้างหน้านั้น ──────
-   @import "./utilities.css";          tabular, line-2
-   @import "./components/layout.css";  เมนูซ้าย · โครงหน้าเต็ม
-   @import "./components/card.css";    การ์ด · การ์ดตัวเลขสรุป
-   @import "./components/badge.css";   ป้ายสถานะงาน
-   @import "./components/table.css";   ตาราง
-   @import "./components/modal.css";   modal
+/* ── 5. ยังไม่ได้ใช้ — เปิดเมื่อสร้างหน้านั้น ──────
+   @import "./components/modal.css";   กล่องยืนยัน
    ───────────────────────────────────────────── */
 
 /* ── โฟลเดอร์ที่ให้ Tailwind ไล่หา class ─────────
-   "../" = project/ → ครอบคลุม templates/ และ app ทุกตัว
-   (node_modules อยู่นอก project/ จึงไม่ถูกสแกนเลย)          */
+   "../" = project/ → ครอบคลุม templates/ และ app ทุกตัว     */
 @source "../";

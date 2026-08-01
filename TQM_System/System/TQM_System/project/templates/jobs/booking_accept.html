@@ -1,0 +1,47 @@
+{% extends "dashboard/_base.html" %}
+
+{% block title %}รับงาน {{ booking.booking_no }}{% endblock %}
+{% block page_heading %}รับงาน {{ booking.booking_no }}{% endblock %}
+
+{% block content %}
+
+  <div class="page-head">
+    <div>
+      <h1>รับงาน {{ booking.booking_no }}</h1>
+      <p class="page-sub">{{ booking.customer.name }} · นัด {{ booking.appointment_at|date:"j M Y H:i" }} น.</p>
+    </div>
+    <a href="{% url 'jobs:detail' booking.pk %}" class="btn btn-outline">← กลับ</a>
+  </div>
+
+  <div class="card max-w-2xl">
+    <div class="card-body">
+      <form method="post" class="space-y-5">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="alert alert-error">{% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}</div>
+        {% endif %}
+
+        <div class="form-grid">
+          {% for field in form %}
+            <div class="field {% if field.name == 'note' %}form-full{% endif %}">
+              <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% for e in field.errors %}<p class="error">{{ e }}</p>{% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="alert alert-warn">
+          <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg>
+          <span>เมื่อกดรับงาน คนขับที่เลือกจะถูกตั้งเป็น “ไม่ว่าง” จนกว่าจะปิดงาน</span>
+        </div>
+
+        <div class="flex justify-end gap-2">
+          <a href="{% url 'jobs:detail' booking.pk %}" class="btn btn-ghost">ยกเลิก</a>
+          <button type="submit" class="btn btn-primary">ยืนยันรับงาน</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+{% endblock %}

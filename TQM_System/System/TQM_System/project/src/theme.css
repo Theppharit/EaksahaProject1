@@ -9,15 +9,12 @@
   --font-thai: "Noto Sans Thai", sans-serif;
 
   /* ── สีแบรนด์ (ยืนยันกับลูกค้าแล้ว) ──────────── */
-  --color-brand: #ed1d26; /* แดง TQM   → text-brand, bg-brand */
-  --color-ink: #181818; /* ดำแบรนด์  → text-ink, bg-ink   */
+  --color-brand: #ed1d26; /* แดง TQM  → text-brand, bg-brand */
+  --color-ink: #181818; /* ดำแบรนด์ → text-ink, bg-ink   */
 
   /* ── สีหลักประจำตำแหน่ง ─────────────────────
-     ค่าเริ่มต้น = สีแบรนด์
      ค่าจริงถูกฉีดจากฐานข้อมูลที่ <body style="--color-accent: ...">
-     (แอดมินตั้งค่าได้เองที่หน้า Django Admin → สีประจำตำแหน่ง)
-     ทุก component ที่ใช้ var(--color-accent) เปลี่ยนสีตามทันที
-     โดยไม่ต้องแก้ CSS และไม่ต้อง build ใหม่                */
+     (แอดมินตั้งค่าเองได้ที่ /admin/ → สีประจำตำแหน่ง)          */
   --color-accent: var(--color-brand);
 
   /* ── สีพื้นผิว ─────────────────────────────── */
@@ -26,17 +23,25 @@
   --color-line: #e5e5e5;
   --color-ink-soft: #6b6b6b;
 
+  /* ── สีสถานะใบจอง (ใช้ทั้งระบบ ห้ามใช้สีดิบ) ─── */
+  --color-status-wait: #d97706; /* รอรับงาน · รออนุมัติ   */
+  --color-status-go: #2563eb; /* รับงานแล้ว · กำลังทำ  */
+  --color-status-review: #7c3aed; /* ผจก./บัญชีตรวจสอบ    */
+  --color-status-done: #059669; /* อนุมัติแล้ว           */
+  --color-status-cancel: #6b7280; /* ปิดงาน                */
+  --color-status-urgent: #dc2626; /* ยกเลิก · เกินกำหนด    */
+
   /* ── ความโค้ง ─────────────────────────────── */
   --radius-card: 1rem;
   --radius-field: 0.75rem;
 
   /* ── อนิเมชัน ─────────────────────────────── */
-  --animate-fadeup: fadeup 0.5s ease-out both;
+  --animate-fadeup: fadeup 0.4s ease-out both;
 
   @keyframes fadeup {
     0% {
       opacity: 0;
-      transform: translateY(14px);
+      transform: translateY(12px);
     }
     100% {
       opacity: 1;

@@ -1,5 +1,5 @@
 /* ============================================================
-   card.css — การ์ด และ การ์ดตัวเลขสรุป (stat)
+   card.css — การ์ด · ตัวเลขสรุป · รายการรายละเอียด · ไทม์ไลน์
    ============================================================ */
 
 @layer components {
@@ -21,10 +21,6 @@
   .card-body {
     @apply p-5;
   }
-  .card-foot {
-    border-top: 1px solid var(--color-line);
-    @apply flex items-center gap-2 px-5 py-3;
-  }
 
   /* ── การ์ดตัวเลขสรุป ─────────────────────── */
   .stat {
@@ -33,9 +29,9 @@
     @apply flex items-start gap-4 rounded-card p-5 shadow-xs;
   }
   .stat-icon {
-    @apply grid size-11 shrink-0 place-items-center rounded-xl;
     background-color: color-mix(in oklab, var(--color-accent) 12%, white);
     color: var(--color-accent);
+    @apply grid size-11 shrink-0 place-items-center rounded-xl;
   }
   .stat-icon svg {
     @apply size-5;
@@ -51,47 +47,72 @@
     color: var(--color-ink-soft);
     @apply ml-1 text-[13px] font-normal;
   }
-  .stat-delta {
-    @apply mt-0.5 inline-flex items-center gap-1 text-[12px] font-medium;
-  }
-  .stat-delta-up {
-    color: var(--color-status-done);
-  }
-  .stat-delta-down {
-    color: var(--color-status-urgent);
-  }
-
-  /* ── รายการแบบมีจุดสี (ใช้ในการ์ดข้างขวา) ─── */
-  .list-item {
-    @apply flex items-start gap-3 py-3;
-  }
-  .list-item + .list-item {
-    border-top: 1px solid var(--color-line);
-  }
-  .list-dot {
-    @apply mt-1.5 size-2 shrink-0 rounded-full;
-  }
-  .list-title {
-    @apply truncate text-[14px] font-medium;
-  }
-  .list-meta {
-    color: var(--color-ink-soft);
-    @apply text-[12px];
-  }
-
-  /* ── แถบความคืบหน้า ─────────────────────── */
-  .bar {
-    background-color: var(--color-surface-2);
-    @apply h-2 w-full overflow-hidden rounded-full;
-  }
-  .bar-fill {
-    background-color: var(--color-accent);
-    @apply h-full rounded-full transition-all;
-  }
 
   /* ── สถานะว่างเปล่า ─────────────────────── */
   .empty {
     color: var(--color-ink-soft);
-    @apply grid place-items-center gap-2 px-5 py-14 text-center text-sm;
+    @apply grid place-items-center gap-2 px-5 py-12 text-center text-sm;
+  }
+
+  /* ── รายการข้อมูลแบบ ป้ายกำกับ/ค่า ────────── */
+  .detail-grid {
+    @apply grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2;
+  }
+  .detail-grid dt {
+    color: var(--color-ink-soft);
+    @apply mb-0.5 text-[12px] font-medium uppercase tracking-wide;
+  }
+  .detail-grid dd {
+    @apply text-[15px];
+  }
+
+  /* ── ไทม์ไลน์ประวัติสถานะ ────────────────── */
+  .timeline {
+    @apply relative space-y-4 pl-5;
+  }
+  .timeline::before {
+    content: "";
+    background-color: var(--color-line);
+    @apply absolute bottom-2 left-[3px] top-2 w-px;
+  }
+  .timeline > li {
+    @apply relative;
+  }
+  .timeline > li::before {
+    content: "";
+    background-color: var(--color-accent);
+    @apply absolute -left-5 top-2 size-[7px] rounded-full;
+  }
+  .tl-title {
+    @apply text-[14px];
+  }
+  .tl-note {
+    background-color: var(--color-surface-2);
+    @apply mt-1.5 rounded-lg px-3 py-2 text-[13px];
+  }
+
+  /* ── 5 ขั้นตอนการดำเนินงาน ───────────────── */
+  .steps {
+    @apply space-y-3;
+  }
+  .step {
+    @apply flex items-start gap-3;
+  }
+  .step-dot {
+    border: 1px solid var(--color-line);
+    color: var(--color-ink-soft);
+    @apply grid size-7 shrink-0 place-items-center rounded-full
+           font-kanit text-[12px] font-semibold;
+  }
+  .step.is-done .step-dot {
+    background-color: var(--color-status-done);
+    border-color: var(--color-status-done);
+    @apply text-white;
+  }
+  .step-title {
+    @apply text-[14px] font-medium;
+  }
+  .step.is-done .step-title {
+    color: var(--color-status-done);
   }
 }

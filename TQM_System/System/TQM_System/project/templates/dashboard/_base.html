@@ -2,49 +2,108 @@
 {% load static %}
 
 {# ============================================================
-   โครงหน้าแดชบอร์ดที่ทั้ง 7 ตำแหน่งใช้ร่วมกัน
-   ตอนนี้มีแค่แถบบน + พื้นที่เนื้อหา + ปุ่มออกจากระบบ
-   เมนูซ้าย ตาราง กราฟ ค่อยเติมในรอบถัดไปตามเอกสารสเปก
+   โครงหน้าหลังบ้าน — เมนูซ้าย + แถบบน + พื้นที่เนื้อหา
+   ทั้ง 7 ตำแหน่งใช้ร่วมกัน ต่างกันแค่รายการเมนู (มาจาก nav_items)
    ============================================================ #}
 
 {% block body_attrs %}data-role="{{ user.role }}"{% endblock %}
 
 {% block body %}
-<div class="min-h-screen">
+<div class="app-shell">
 
-  <header class="shell-topbar">
-    <img src="{% static 'img/logo-04.png' %}" alt="" class="h-8 w-auto">
-    <div class="min-w-0">
-      <p class="shell-brand">TQM System</p>
-      <p class="shell-role">{{ user.get_role_display }}</p>
+  <!-- ══════════ เมนูซ้าย ══════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <img src="{% static 'img/logo-04.png' %}" alt="" class="h-8 w-auto">
+      <div class="min-w-0">
+        <p class="sidebar-brand-name">TQM System</p>
+        <p class="sidebar-brand-role">{{ user.get_role_display }}</p>
+      </div>
     </div>
 
-    <div class="ml-auto flex items-center gap-3">
-      <div class="hidden text-right leading-tight sm:block">
-        <p class="text-[13px] font-medium text-white">{{ user.get_full_name|default:user.username }}</p>
-        <p class="text-[11px] text-neutral-400">{{ user.username }}</p>
-      </div>
-      <span class="avatar">{{ user.initials }}</span>
+    <nav class="sidebar-nav">
+      <p class="sidebar-section">เมนูหลัก</p>
+      {% for item in nav_items %}
+        {% if item.url_name %}
+          <a href="{% url item.url_name %}" class="nav-link{% if request.resolver_match.view_name == item.url_name %} is-active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{{ item.icon|safe }}</svg>
+            <span>{{ item.label }}</span>
+          </a>
+        {% else %}
+          <span class="nav-link is-soon" title="อยู่ระหว่างพัฒนา">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{{ item.icon|safe }}</svg>
+            <span>{{ item.label }}</span>
+            <span class="nav-soon">เร็ว ๆ นี้</span>
+          </span>
+        {% endif %}
+      {% endfor %}
+    </nav>
 
+    <div class="sidebar-foot">
+      {% if user.is_staff %}
+        <a href="/admin/" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          <span>หลังบ้าน (Admin)</span>
+        </a>
+      {% endif %}
       <form method="post" action="{% url 'accounts:logout' %}">
         {% csrf_token %}
-        <button type="submit" class="btn btn-outline-dark btn-sm">
+        <button type="submit" class="nav-link w-full">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
-          <span class="hidden sm:inline">ออกจากระบบ</span>
+          <span>ออกจากระบบ</span>
         </button>
       </form>
     </div>
-  </header>
+  </aside>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
 
-  <main class="shell-page">
-    {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-warn">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
+  <!-- ══════════ ส่วนขวา ══════════ -->
+  <div class="app-main">
 
-    {% block dashboard %}{% endblock %}
-  </main>
+    <header class="topbar">
+      <button class="icon-btn lg:hidden" id="sidebarToggle" aria-label="เปิดเมนู">
+        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <h2 class="topbar-title">{% block page_heading %}{% endblock %}</h2>
 
+      <div class="topbar-spacer"></div>
+
+      <div class="flex items-center gap-2.5">
+        <div class="hidden text-right leading-tight sm:block">
+          <p class="text-[13px] font-medium">{{ user.get_full_name|default:user.username }}</p>
+          <p class="text-[11px] text-neutral-500">{{ user.username }}</p>
+        </div>
+        <span class="avatar">{{ user.initials }}</span>
+      </div>
+    </header>
+
+    <main class="page">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // เปิด/ปิดเมนูซ้ายบนมือถือ
+  (function () {
+    var sb = document.getElementById('sidebar'),
+        sc = document.getElementById('sidebarScrim'),
+        bt = document.getElementById('sidebarToggle');
+    if (!sb) return;
+    function close() { sb.classList.remove('is-open'); sc.classList.remove('is-open'); }
+    if (bt) bt.addEventListener('click', function () {
+      sb.classList.add('is-open'); sc.classList.add('is-open');
+    });
+    if (sc) sc.addEventListener('click', close);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+  })();
+</script>
 {% endblock %}

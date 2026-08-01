@@ -1,0 +1,75 @@
+{% extends "dashboard/_base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+{% block page_heading %}{{ page_title }}{% endblock %}
+
+{% block content %}
+
+  <div class="page-head">
+    <div>
+      <h1>{{ page_title }}</h1>
+      <p class="page-sub">แสดงเฉพาะใบจองที่ตำแหน่งของคุณมีสิทธิ์เห็น</p>
+    </div>
+    {% if can_create %}
+      <a href="{% url 'jobs:create' %}" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        สร้างใบจอง
+      </a>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    {# ── แถบค้นหาและตัวกรอง ── #}
+    <form method="get" class="table-toolbar">
+      <label class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
+        <input type="search" name="q" value="{{ keyword }}" placeholder="ค้นเลขที่ใบจอง หรือชื่อลูกค้า">
+      </label>
+
+      {% if statuses %}
+        <select name="status" class="select w-auto">
+          <option value="">— ทุกสถานะ —</option>
+          {% for value, label in statuses %}
+            <option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      {% endif %}
+
+      {% if is_history %}
+        <select name="limit" class="select w-auto">
+          {% for n in "50,100,200"|slice:":0" %}{% endfor %}
+          <option value="50" {% if limit == 50 %}selected{% endif %}>ย้อนหลัง 50 รายการ</option>
+          <option value="100" {% if limit == 100 %}selected{% endif %}>ย้อนหลัง 100 รายการ</option>
+          <option value="200" {% if limit == 200 %}selected{% endif %}>ย้อนหลัง 200 รายการ</option>
+        </select>
+      {% endif %}
+
+      <button type="submit" class="btn btn-primary btn-sm">ค้นหา</button>
+      {% if keyword or current_status %}
+        <a href="?" class="btn btn-ghost btn-sm">ล้างตัวกรอง</a>
+      {% endif %}
+    </form>
+
+    {% include "partials/_booking_table.html" with bookings=page_obj %}
+
+    {# ── แบ่งหน้า ── #}
+    {% if page_obj.paginator.num_pages > 1 %}
+      <div class="pagination">
+        <span>
+          แสดง {{ page_obj.start_index }}–{{ page_obj.end_index }}
+          จาก {{ page_obj.paginator.count }} รายการ
+        </span>
+        <div class="flex items-center gap-1.5">
+          {% if page_obj.has_previous %}
+            <a class="page-btn" href="?page={{ page_obj.previous_page_number }}{% if keyword %}&q={{ keyword }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">‹</a>
+          {% endif %}
+          <span class="page-btn is-active">{{ page_obj.number }}</span>
+          {% if page_obj.has_next %}
+            <a class="page-btn" href="?page={{ page_obj.next_page_number }}{% if keyword %}&q={{ keyword }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">›</a>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+{% endblock %}

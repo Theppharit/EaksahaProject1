@@ -1,0 +1,50 @@
+{% extends "dashboard/_base.html" %}
+
+{% block title %}{% if is_create %}สร้างใบจอง{% else %}แก้ไขใบจอง{% endif %}{% endblock %}
+{% block page_heading %}{% if is_create %}สร้างใบจองคิว{% else %}แก้ไขใบจอง {{ booking.booking_no }}{% endif %}{% endblock %}
+
+{% block content %}
+
+  <div class="page-head">
+    <div>
+      <h1>{% if is_create %}สร้างใบจองคิว{% else %}แก้ไขใบจอง {{ booking.booking_no }}{% endif %}</h1>
+      <p class="page-sub">กรอกข้อมูลให้ครบ ระบบจะออกเลขที่ใบจองให้อัตโนมัติ</p>
+    </div>
+    <a href="{% url 'jobs:list' %}" class="btn btn-outline">← ยกเลิก</a>
+  </div>
+
+  <div class="card max-w-3xl">
+    <div class="card-body">
+      <form method="post" class="space-y-5" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-error">
+            {% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="form-grid">
+          {% for field in form %}
+            <div class="field {% if field.name in 'pickup_address dropoff_address note' %}form-full{% endif %}">
+              <label class="label {% if field.field.required %}label-req{% endif %}" for="{{ field.id_for_label }}">
+                {{ field.label }}
+              </label>
+              {{ field }}
+              {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+              {% for e in field.errors %}<p class="error">{{ e }}</p>{% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="flex flex-wrap justify-end gap-2 border-t border-neutral-200 pt-4">
+          <a href="{% url 'jobs:list' %}" class="btn btn-ghost">ยกเลิก</a>
+          <button type="submit" class="btn btn-primary">
+            {% if is_create %}สร้างใบจอง{% else %}บันทึกการแก้ไข{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+{% endblock %}

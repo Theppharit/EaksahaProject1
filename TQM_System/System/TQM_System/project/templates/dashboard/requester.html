@@ -1,25 +1,9 @@
-{% extends "dashboard/_base.html" %}
+{% extends "dashboard/index.html" %}
 
 {% block title %}ผู้จองคิว{% endblock %}
+{% block page_heading %}ภาพรวมการจองคิว{% endblock %}
+{% block dash_title %}ภาพรวมการจองคิว{% endblock %}
+{% block dash_sub %}ติดตามคิวรถสไลด์และรถยกที่คุณจองไว้{% endblock %}
 
-{% block dashboard %}
-<div class="welcome">
-  <div class="welcome-badge">{{ user.get_role_display }}</div>
-
-  <h1 class="welcome-title">ยินดีต้อนรับ {{ user.get_full_name|default:user.username }}</h1>
-  <p class="welcome-sub">ระบบผู้จองคิว (พนักงานฝ่ายขาย) · ใช้ได้ทั้งคอมและมือถือ</p>
-
-  <div class="welcome-divider"></div>
-
-  <p class="welcome-label">เมนูที่จะมีในหน้านี้</p>
-  <ul class="welcome-list">
-    <li>Dashboard — ตารางคิวที่ยังไม่ปิดงาน · ปฏิทินวันนัดหมาย · กราฟสถิติภาพรวม</li>
-    <li>สร้างใบจอง — กรอกข้อมูลการจองคิว</li>
-    <li>ประวัติการจองคิว — ดูย้อนหลังได้ 50 รายการ (ปรับได้)</li>
-  </ul>
-
-  <p class="welcome-foot">
-    หน้านี้ยังเป็นโครงเปล่า — เนื้อหาจริงจะทยอยเพิ่มตามเอกสารสเปกที่ลูกค้าอนุมัติแล้ว
-  </p>
-</div>
-{% endblock %}
+{#  เนื้อหาเฉพาะของผู้จองคิว เพิ่มได้ที่นี่
+    {% block extra_bottom %} ... {% endblock %}  #}

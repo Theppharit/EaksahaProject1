@@ -1,26 +1,9 @@
-{% extends "dashboard/_base.html" %}
+{% extends "dashboard/index.html" %}
 
 {% block title %}งานบัญชี{% endblock %}
+{% block page_heading %}ภาพรวมการเงิน{% endblock %}
+{% block dash_title %}ภาพรวมการเงิน{% endblock %}
+{% block dash_sub %}ใบจองที่ผ่านการอนุมัติจาก ผจก.สาขาแล้ว{% endblock %}
 
-{% block dashboard %}
-<div class="welcome">
-  <div class="welcome-badge">{{ user.get_role_display }}</div>
-
-  <h1 class="welcome-title">ยินดีต้อนรับ {{ user.get_full_name|default:user.username }}</h1>
-  <p class="welcome-sub">ระบบงานบัญชี · ใช้คอมเป็นหลัก</p>
-
-  <div class="welcome-divider"></div>
-
-  <p class="welcome-label">เมนูที่จะมีในหน้านี้</p>
-  <ul class="welcome-list">
-    <li>Dashboard — คิวที่ผู้จัดการสาขาอนุมัติแล้วเป็นต้นไป · กราฟสถิติ</li>
-    <li>รออนุมัติ — อนุมัติใบจอง หรือตีกลับพร้อมระบุหมายเหตุ</li>
-    <li>ออกเลขบิล — ออกบิลชำระเงินผ่านระบบบริษัท ได้เลข PO</li>
-    <li>ประวัติการจ่ายเงิน — รายเดือน</li>
-  </ul>
-
-  <p class="welcome-foot">
-    หน้านี้ยังเป็นโครงเปล่า — เนื้อหาจริงจะทยอยเพิ่มตามเอกสารสเปกที่ลูกค้าอนุมัติแล้ว
-  </p>
-</div>
-{% endblock %}
+{#  เนื้อหาเฉพาะของงานบัญชี เพิ่มได้ที่นี่
+    {% block extra_bottom %} ... {% endblock %}  #}

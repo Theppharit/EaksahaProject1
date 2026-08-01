@@ -1,6 +1,10 @@
 /* ============================================================
    feedback.css — กล่องแจ้งเตือนแบบแถบ
    ใช้กับ error ตอน login และ messages ของ Django
+   ------------------------------------------------------------
+   ⚠ ชื่อคลาสต้องตรงกับ tag ของ Django messages เป๊ะ ๆ
+     Django ส่ง: debug · info · success · warning · error
+     (ระวัง "warning" ไม่ใช่ "warn")
    ============================================================ */
 
 @layer components {
@@ -11,18 +15,24 @@
     @apply size-5 shrink-0;
   }
 
-  .alert-info {
-    color: #1d4ed8;
-    background-color: #eff6ff;
+  .alert-info,
+  .alert-debug {
+    color: var(--color-status-go);
+    background-color: color-mix(in oklab, var(--color-status-go) 10%, white);
   }
+
   .alert-success {
-    color: #15803d;
-    background-color: #f0fdf4;
+    color: var(--color-status-done);
+    background-color: color-mix(in oklab, var(--color-status-done) 10%, white);
   }
+
+  /* รองรับทั้งสองชื่อ กันพลาดเวลาเรียกจาก template */
+  .alert-warning,
   .alert-warn {
     color: #92400e;
-    background-color: #fffbeb;
+    background-color: color-mix(in oklab, var(--color-status-wait) 16%, white);
   }
+
   .alert-error {
     color: var(--color-brand);
     background-color: color-mix(in oklab, var(--color-brand) 8%, white);

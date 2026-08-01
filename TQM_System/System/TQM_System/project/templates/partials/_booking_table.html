@@ -1,0 +1,62 @@
+{# ============================================================
+   ตารางใบจอง — ใช้ร่วมกันทั้งแดชบอร์ดและหน้ารายการ
+   รับตัวแปร: bookings
+   ============================================================ #}
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>เลขที่ใบจอง</th>
+        <th>ลูกค้า</th>
+        <th>วันเวลานัด</th>
+        <th>จุดรับ → จุดส่ง</th>
+        <th>ผู้รับงาน</th>
+        <th>สถานะ</th>
+        <th class="act"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in bookings %}
+        <tr>
+          <td>
+            <div class="cell-main">{{ b.booking_no }}</div>
+            <div class="cell-sub">โดย {{ b.created_by.get_full_name|default:b.created_by.username }}</div>
+          </td>
+          <td>
+            <div class="cell-main">{{ b.customer.name }}</div>
+            <div class="cell-sub">{{ b.customer.phone }}{% if b.vehicle %} · {{ b.vehicle.plate }}{% endif %}</div>
+          </td>
+          <td>
+            <div class="cell-main">{{ b.appointment_at|date:"j M y" }}</div>
+            <div class="cell-sub">{{ b.appointment_at|date:"H:i" }} น.</div>
+          </td>
+          <td>
+            <div class="line-2 max-w-[260px] text-[13px]">{{ b.pickup_address }}</div>
+            <div class="cell-sub line-2 max-w-[260px]">→ {{ b.dropoff_address }}</div>
+          </td>
+          <td>
+            {% if b.truck_owner %}
+              <div class="cell-main">{{ b.truck_owner.name }}</div>
+              <div class="cell-sub">{% if b.truck %}{{ b.truck.plate }}{% endif %}{% if b.driver %} · {{ b.driver.name }}{% endif %}</div>
+            {% else %}
+              <span class="cell-sub">— ยังไม่มีผู้รับ —</span>
+            {% endif %}
+          </td>
+          <td>{% include "partials/_status_badge.html" with status=b.status label=b.get_status_display %}</td>
+          <td class="act">
+            <a href="{% url 'jobs:detail' b.pk %}" class="btn btn-outline btn-sm">รายละเอียด</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="7">
+            <div class="empty">
+              <svg class="size-9 opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              <p>ยังไม่มีใบจองในเงื่อนไขนี้</p>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
