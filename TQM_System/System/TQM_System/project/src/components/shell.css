@@ -1,0 +1,73 @@
+/* ============================================================
+   shell.css — โครงหน้าแดชบอร์ด (แถบบน + พื้นที่เนื้อหา)
+   ใช้ร่วมกันทั้ง 7 ตำแหน่ง
+   เมนูซ้าย/การ์ด/ตาราง จะเพิ่มในไฟล์นี้และ layout.css รอบถัดไป
+   ============================================================ */
+
+@layer components {
+  /* ── แถบบน ───────────────────────────────── */
+  .shell-topbar {
+    background-color: var(--color-ink);
+    @apply sticky top-0 z-20 flex h-16 items-center gap-3 px-4 sm:px-6;
+  }
+  .shell-brand {
+    @apply font-kanit text-[15px] font-semibold leading-tight text-white;
+  }
+  .shell-role {
+    color: var(--color-accent);
+    @apply text-[11px] leading-tight;
+  }
+
+  .avatar {
+    background-color: var(--color-accent);
+    @apply grid size-9 shrink-0 place-items-center rounded-full
+           font-kanit text-sm font-semibold text-white;
+  }
+
+  /* ── พื้นที่เนื้อหา ─────────────────────────── */
+  .shell-page {
+    @apply mx-auto w-full max-w-5xl space-y-4 p-4 sm:p-8;
+  }
+
+  /* ── การ์ดต้อนรับ (ชั่วคราว จนกว่าจะทำหน้าจริง) ── */
+  .welcome {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-line);
+    @apply animate-fadeup rounded-card p-6 shadow-xs sm:p-8;
+  }
+  .welcome-badge {
+    background-color: var(--color-accent);
+    @apply mb-4 inline-flex rounded-full px-3 py-1
+           font-kanit text-[12px] font-medium text-white;
+  }
+  .welcome-title {
+    @apply font-kanit text-2xl font-bold sm:text-3xl;
+  }
+  .welcome-sub {
+    color: var(--color-ink-soft);
+    @apply mt-1 text-[15px];
+  }
+  .welcome-divider {
+    border-top: 1px solid var(--color-line);
+    @apply my-6;
+  }
+  .welcome-label {
+    color: var(--color-ink-soft);
+    @apply mb-2 text-[12px] font-semibold uppercase tracking-wider;
+  }
+  .welcome-list {
+    @apply space-y-2 text-[15px];
+  }
+  .welcome-list li {
+    @apply relative pl-5;
+  }
+  .welcome-list li::before {
+    content: "";
+    background-color: var(--color-accent);
+    @apply absolute left-0 top-2.5 size-1.5 rounded-full;
+  }
+  .welcome-foot {
+    color: var(--color-ink-soft);
+    @apply mt-6 text-[13px];
+  }
+}

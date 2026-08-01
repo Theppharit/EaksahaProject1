@@ -1,0 +1,26 @@
+{% extends "dashboard/_base.html" %}
+
+{% block title %}เจ้าของรถสไลด์{% endblock %}
+
+{% block dashboard %}
+<div class="welcome">
+  <div class="welcome-badge">{{ user.get_role_display }}</div>
+
+  <h1 class="welcome-title">ยินดีต้อนรับ {{ user.get_full_name|default:user.username }}</h1>
+  <p class="welcome-sub">ระบบเจ้าของรถสไลด์ · ส่วนใหญ่ใช้มือถือ</p>
+
+  <div class="welcome-divider"></div>
+
+  <p class="welcome-label">เมนูที่จะมีในหน้านี้</p>
+  <ul class="welcome-list">
+    <li>Dashboard — ยอดเงินรอบเดือน · ไอคอนรับคิวงาน · ตารางคิวที่ยังไม่ปิด</li>
+    <li>ดำเนินงาน 5 ขั้นตอน — ถ่ายภาพก่อนขึ้น · ขึ้นรถแล้ว · แผนที่ · ส่งมอบรถ · ปิดงาน</li>
+    <li>คนขับรถ — โปรไฟล์คนขับ · คนขับเสริม · สถานะว่าง/ไม่ว่าง</li>
+    <li>ประวัติการจองคิว</li>
+  </ul>
+
+  <p class="welcome-foot">
+    หน้านี้ยังเป็นโครงเปล่า — เนื้อหาจริงจะทยอยเพิ่มตามเอกสารสเปกที่ลูกค้าอนุมัติแล้ว
+  </p>
+</div>
+{% endblock %}

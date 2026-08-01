@@ -1,0 +1,24 @@
+{% extends "dashboard/_base.html" %}
+
+{% block title %}เซลล์{% endblock %}
+
+{% block dashboard %}
+<div class="welcome">
+  <div class="welcome-badge">{{ user.get_role_display }}</div>
+
+  <h1 class="welcome-title">ยินดีต้อนรับ {{ user.get_full_name|default:user.username }}</h1>
+  <p class="welcome-sub">ระบบเซลล์ · ส่วนใหญ่ใช้มือถือ</p>
+
+  <div class="welcome-divider"></div>
+
+  <p class="welcome-label">เมนูที่จะมีในหน้านี้</p>
+  <ul class="welcome-list">
+    <li>Dashboard — คิวที่ระบุชื่อเซลล์และยังไม่ปิดงาน · ปฏิทินนัดหมาย · กราฟสถิติ</li>
+    <li>ประวัติการจองคิว — กรองตามสถานะได้</li>
+  </ul>
+
+  <p class="welcome-foot">
+    หน้านี้ยังเป็นโครงเปล่า — เนื้อหาจริงจะทยอยเพิ่มตามเอกสารสเปกที่ลูกค้าอนุมัติแล้ว
+  </p>
+</div>
+{% endblock %}

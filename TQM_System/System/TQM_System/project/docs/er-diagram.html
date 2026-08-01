@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TQM System — โครงสร้างฐานข้อมูล</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js"></script>
+<style>
+  :root{--brand:#ED1D26;--ink:#181818;--line:#e5e5e5;--soft:#6b6b6b;--bg:#f5f5f5}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Noto Sans Thai",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+  h1,h2,h3{font-family:Kanit,sans-serif;font-weight:600}
+  header{background:var(--ink);color:#fff;padding:28px 24px}
+  header .wrap{max-width:1100px;margin:0 auto}
+  header h1{font-size:26px}
+  header p{color:#bbb;font-size:14px;margin-top:4px}
+  .bar{height:4px;background:var(--brand)}
+  main{max-width:1100px;margin:0 auto;padding:24px}
+  section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:20px}
+  section>h2{font-size:19px;margin-bottom:4px}
+  section>p.sub{color:var(--soft);font-size:14px;margin-bottom:18px}
+  .mermaid{background:#fafafa;border-radius:12px;padding:16px;overflow-x:auto;text-align:center}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+  th{background:#fafafa;color:var(--soft);text-align:left;font-size:12px;text-transform:uppercase;
+     letter-spacing:.04em;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+  td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  code{font-family:ui-monospace,Consolas,monospace;background:#f0f0f0;padding:1px 6px;
+       border-radius:5px;font-size:13px}
+  .tag{display:inline-block;background:var(--brand);color:#fff;font-family:Kanit,sans-serif;
+       font-size:11px;padding:2px 9px;border-radius:20px;margin-bottom:10px}
+  .note{background:#fff8f8;border-left:3px solid var(--brand);padding:12px 16px;
+        border-radius:0 8px 8px 0;font-size:14px;margin-top:16px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:14px}
+  .card{border:1px solid var(--line);border-radius:12px;padding:14px}
+  .card h3{font-size:15px;margin-bottom:6px}
+  .card p{font-size:13px;color:var(--soft)}
+  footer{text-align:center;color:var(--soft);font-size:13px;padding:20px}
+</style>
+</head>
+<body>
+
+<div class="bar"></div>
+<header>
+  <div class="wrap">
+    <h1>TQM System — โครงสร้างฐานข้อมูล</h1>
+    <p>ระบบจัดการรถสไลด์และจองคิวรถยก · EAKSAHA GROUP · 13 ตาราง / 5 app</p>
+  </div>
+</header>
+
+<main>
+
+  <section>
+    <span class="tag">ภาพรวม</span>
+    <h2>ความสัมพันธ์ระหว่างตาราง</h2>
+    <p class="sub">ใบจองคิว (Booking) คือแกนกลาง — ทุกตารางอื่นเชื่อมเข้าหาตัวนี้</p>
+    <div class="mermaid">
+erDiagram
+    User ||--o{ Booking : "สร้างใบจอง"
+    User ||--o| TruckOwner : "เป็นเจ้าของรถ"
+    User ||--|| RoleTheme : "สีตามตำแหน่ง"
+
+    Customer ||--o{ CustomerVehicle : "มีรถ"
+    Customer ||--o{ Booking : "จองคิว"
+    CustomerVehicle ||--o{ Booking : "รถที่ขน"
+
+    TruckOwner ||--o{ Truck : "มีรถสไลด์"
+    TruckOwner ||--o{ Driver : "มีคนขับ"
+    Truck ||--o{ Driver : "รับผิดชอบ"
+
+    TruckOwner ||--o{ Booking : "รับงาน"
+    Truck ||--o{ Booking : "ใช้ขน"
+    Driver ||--o{ Booking : "ขับ"
+
+    Booking ||--o{ BookingStatusLog : "ประวัติสถานะ"
+    Booking ||--o{ JobStep : "5 ขั้นตอน"
+    JobStep ||--o{ JobPhoto : "รูปถ่าย"
+
+    TruckOwner ||--o{ Bill : "วางบิล"
+    Bill ||--o{ BillItem : "รายการ"
+    Booking ||--o| BillItem : "คิดเงิน"
+    </div>
+    <div class="note">
+      <strong>Booking ↔ BillItem เป็นแบบ 1:1</strong> โดยตั้งใจ — กันไม่ให้งานเดียวถูกวางบิลซ้ำสองใบ
+      ฐานข้อมูลจะปฏิเสธเองถ้ามีคนพยายามทำ ไม่ต้องพึ่งการตรวจในโค้ด
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">หัวใจของระบบ</span>
+    <h2>สายสถานะใบจอง 9 ขั้น</h2>
+    <p class="sub">กฎนี้เขียนไว้ที่เดียวใน <code>jobs/models.py</code> → <code>ALLOWED_TRANSITIONS</code> ทุกหน้าจอใช้กฎชุดเดียวกัน</p>
+    <div class="mermaid">
+flowchart TD
+    A["รอรับงาน<br/><small>ผู้จองคิวสร้างใบ</small>"] --> B["รับงานแล้ว<br/><small>เจ้าของรถกดรับ</small>"]
+    B --> C["รออนุมัติ<br/><small>ส่งขออนุมัติ</small>"]
+    C --> D["ผจก.อนุมัติ<br/><small>SHR ยืนยันตัวตน</small>"]
+    C -.ตีกลับ.-> B
+    D --> E["งานบัญชีตรวจสอบ"]
+    E --> F["อนุมัติใบจอง"]
+    E -.ตีกลับ.-> D
+    F --> G["กำลังดำเนินงาน<br/><small>คนขับทำ 5 ขั้นตอน</small>"]
+    G --> H["ปิดงาน"]
+
+    A -.-> X["ยกเลิก"]
+    B -.-> X
+    C -.-> X
+    D -.-> X
+    E -.-> X
+    F -.-> X
+    G -.-> X
+
+    style A fill:#fef3c7,stroke:#f59e0b
+    style B fill:#dbeafe,stroke:#2563eb
+    style C fill:#fef3c7,stroke:#f59e0b
+    style D fill:#ede9fe,stroke:#7c3aed
+    style E fill:#cffafe,stroke:#0891b2
+    style F fill:#d1fae5,stroke:#059669
+    style G fill:#dbeafe,stroke:#2563eb
+    style H fill:#e5e7eb,stroke:#6b7280
+    style X fill:#fee2e2,stroke:#dc2626
+    </div>
+    <div class="note">
+      ทุกครั้งที่สถานะเปลี่ยน ระบบบันทึกลง <code>BookingStatusLog</code> อัตโนมัติ
+      ว่า <strong>ใครกด · จากสถานะไหนไปไหน · หมายเหตุอะไร</strong> — แก้ย้อนหลังไม่ได้
+      ใช้เป็นหลักฐานเวลามีข้อโต้แย้ง
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">สิทธิ์การมองเห็น</span>
+    <h2>แต่ละตำแหน่งเห็นใบจองไหนบ้าง</h2>
+    <p class="sub">กรองที่ฝั่งเซิร์ฟเวอร์ด้วย <code>Booking.objects.for_user(request.user)</code> — ไม่ใช่แค่ซ่อนเมนู</p>
+    <table>
+      <thead><tr><th>ตำแหน่ง</th><th>เห็นใบจอง</th><th>เหตุผล</th></tr></thead>
+      <tbody>
+        <tr><td><strong>ผู้จองคิว</strong></td><td>เฉพาะใบที่ตัวเองสร้าง</td><td>พนักงานเห็นงานของตัวเอง</td></tr>
+        <tr><td><strong>เซลล์</strong></td><td>เฉพาะใบที่ระบุชื่อตัวเอง</td><td>ตามที่ยืนยันไว้</td></tr>
+        <tr><td><strong>เจ้าของรถสไลด์</strong></td><td>เฉพาะงานที่ตัวเองรับ</td><td>ไม่เห็นงานของเจ้าอื่น</td></tr>
+        <tr><td><strong>งานบัญชี</strong></td><td>ตั้งแต่ ผจก.อนุมัติ เป็นต้นไป</td><td>ตามสเปกหน้าบัญชี</td></tr>
+        <tr><td><strong>ผจก.สาขา</strong></td><td>ทุกใบ</td><td>ต้องจ่ายงานและอนุมัติ</td></tr>
+        <tr><td><strong>ผู้บริหาร</strong></td><td>ทุกใบ</td><td>ดูภาพรวม</td></tr>
+        <tr><td><strong>แอดมิน</strong></td><td>ทุกใบ</td><td>ดูแลระบบ</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <span class="tag">รายละเอียด</span>
+    <h2>ตารางทั้งหมด</h2>
+    <table>
+      <thead><tr><th>App</th><th>ตาราง</th><th>เก็บอะไร</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="2"><code>accounts</code></td><td>User</td><td>ผู้ใช้ + ตำแหน่ง 7 โรล (รหัสพนักงานเก็บใน username)</td></tr>
+        <tr><td>RoleTheme</td><td>สีหลักประจำตำแหน่ง — แอดมินแก้เองได้</td></tr>
+
+        <tr><td rowspan="2"><code>customers</code></td><td>Customer</td><td>ลูกค้า · บุคคล/นิติบุคคล · เลขผู้เสียภาษี</td></tr>
+        <tr><td>CustomerVehicle</td><td>รถของลูกค้าที่ต้องขน (1 ลูกค้ามีหลายคันได้)</td></tr>
+
+        <tr><td rowspan="3"><code>fleet</code></td><td>TruckOwner</td><td>เจ้าของรถสไลด์ · ผูกกับบัญชี role=trailer · เลขบัญชีธนาคาร</td></tr>
+        <tr><td>Truck</td><td>รถสไลด์/รถยก · ทะเบียน · วันหมดอายุ พ.ร.บ./ภาษี</td></tr>
+        <tr><td>Driver</td><td>คนขับหลัก/เสริม · สถานะว่าง · สถานะอนุมัติ · รถที่รับผิดชอบ</td></tr>
+
+        <tr><td rowspan="4"><code>jobs</code></td><td><strong>Booking</strong></td><td>ใบจองคิว — แกนกลางของทั้งระบบ</td></tr>
+        <tr><td>BookingStatusLog</td><td>ประวัติการอนุมัติ/ตีกลับ (แก้ไม่ได้)</td></tr>
+        <tr><td>JobStep</td><td>5 ขั้นตอนของคนขับ + พิกัด GPS ตอนกดยืนยัน</td></tr>
+        <tr><td>JobPhoto</td><td>รูปถ่ายก่อน/หลังขึ้นรถสไลด์</td></tr>
+
+        <tr><td rowspan="4"><code>billing</code></td><td>PriceRate</td><td>เกณฑ์ค่าเดินทาง — เก็บหลายเวอร์ชันตามวันเริ่มใช้</td></tr>
+        <tr><td>PaymentCycle</td><td>รอบจ่ายเงิน (เดือนละ 1 หรือ 2 ครั้ง)</td></tr>
+        <tr><td>Bill</td><td>ใบวางบิลของเจ้าของรถ 1 ราย/รอบ + เลข PO</td></tr>
+        <tr><td>BillItem</td><td>1 บรรทัด = 1 งานที่ปิดแล้ว</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <span class="tag">การตัดสินใจสำคัญ</span>
+    <h2>ทำไมออกแบบแบบนี้</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>ไม่มีตาราง Branch</h3>
+        <p>ยืนยันแล้วว่าสาขาเดียว — ตัดออกลดความซับซ้อนไปมาก เพิ่มทีหลังได้ถ้าขยาย</p>
+      </div>
+      <div class="card">
+        <h3>เก็บเรทราคาหลายเวอร์ชัน</h3>
+        <p>มีวันเริ่มใช้ ทำให้ย้อนดูได้ว่างานเดือนก่อนคิดด้วยเรทไหน จำเป็นเวลาลูกค้าทักท้วง</p>
+      </div>
+      <div class="card">
+        <h3>PROTECT แทน CASCADE</h3>
+        <p>ลูกค้า/รถ/คนขับที่มีงานผูกอยู่จะลบไม่ได้ กันข้อมูลประวัติหายยกชุด</p>
+      </div>
+      <div class="card">
+        <h3>เปลี่ยนสถานะผ่านเมธอดเดียว</h3>
+        <p><code>transition_to()</code> ตรวจกฎ + เขียน log ให้เสมอ ไม่มีทางลืมบันทึกประวัติ</p>
+      </div>
+      <div class="card">
+        <h3>QuerySet กรองสิทธิ์ในตัว</h3>
+        <p><code>.for_user()</code> เขียนที่เดียว ทุกหน้าใช้ซ้ำ ลดโอกาสลืมกรองจนข้อมูลรั่ว</p>
+      </div>
+      <div class="card">
+        <h3>ใส่ index ตั้งแต่แรก</h3>
+        <p>บนคอลัมน์ที่กรองบ่อย (สถานะ · วันนัด · เจ้าของรถ) จะได้ไม่ต้องมาแก้ตอนข้อมูลเยอะ</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>TQM System · จัดทำเพื่อใช้อ้างอิงระหว่างพัฒนา</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      fontFamily: '"Noto Sans Thai", sans-serif',
+      primaryColor: '#fff',
+      primaryTextColor: '#181818',
+      primaryBorderColor: '#ED1D26',
+      lineColor: '#999'
+    },
+    er: { layoutDirection: 'TB', entityPadding: 12 }
+  });
+</script>
+</body>
+</html>

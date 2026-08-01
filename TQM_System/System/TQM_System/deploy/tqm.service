@@ -1,0 +1,51 @@
+# ============================================================
+# systemd service — ให้ gunicorn รันตลอดเวลาและรีสตาร์ตเองเมื่อล่ม
+# ------------------------------------------------------------
+# ติดตั้งบนเซิร์ฟ (Ubuntu/Debian):
+#   sudo cp deploy/tqm.service /etc/systemd/system/tqm.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now tqm
+#
+# คำสั่งที่ใช้บ่อย:
+#   sudo systemctl restart tqm      # รีสตาร์ตหลัง deploy โค้ดใหม่
+#   sudo systemctl status tqm       # ดูว่ารันอยู่มั้ย
+#   sudo journalctl -u tqm -f       # ดู log สด ๆ (ใช้ตอนหาสาเหตุที่พัง)
+#
+# ⚠ แก้ path และชื่อผู้ใช้ให้ตรงกับเซิร์ฟจริงก่อนใช้
+# ============================================================
+
+[Unit]
+Description=TQM System (Gunicorn)
+After=network.target postgresql.service
+
+[Service]
+Type=notify
+User=tqm
+Group=www-data
+WorkingDirectory=/srv/tqm
+
+# รัน gunicorn จาก virtualenv ของโปรเจกต์
+ExecStart=/srv/tqm/.venv/bin/gunicorn \
+    --workers 3 \
+    --bind unix:/run/tqm/gunicorn.sock \
+    --access-logfile /var/log/tqm/access.log \
+    --error-logfile /var/log/tqm/error.log \
+    project.config.wsgi:application
+
+# จำนวน worker ที่เหมาะสม = (จำนวน core × 2) + 1
+# เซิร์ฟ 1 core → 3, เซิร์ฟ 2 core → 5
+
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=always
+RestartSec=5
+
+# สร้างโฟลเดอร์ /run/tqm ให้อัตโนมัติทุกครั้งที่บูต
+RuntimeDirectory=tqm
+
+# ── ความปลอดภัยเพิ่มเติม ──────────────────────
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

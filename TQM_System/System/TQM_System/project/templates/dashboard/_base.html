@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+
+{# ============================================================
+   โครงหน้าแดชบอร์ดที่ทั้ง 7 ตำแหน่งใช้ร่วมกัน
+   ตอนนี้มีแค่แถบบน + พื้นที่เนื้อหา + ปุ่มออกจากระบบ
+   เมนูซ้าย ตาราง กราฟ ค่อยเติมในรอบถัดไปตามเอกสารสเปก
+   ============================================================ #}
+
+{% block body_attrs %}data-role="{{ user.role }}"{% endblock %}
+
+{% block body %}
+<div class="min-h-screen">
+
+  <header class="shell-topbar">
+    <img src="{% static 'img/logo-04.png' %}" alt="" class="h-8 w-auto">
+    <div class="min-w-0">
+      <p class="shell-brand">TQM System</p>
+      <p class="shell-role">{{ user.get_role_display }}</p>
+    </div>
+
+    <div class="ml-auto flex items-center gap-3">
+      <div class="hidden text-right leading-tight sm:block">
+        <p class="text-[13px] font-medium text-white">{{ user.get_full_name|default:user.username }}</p>
+        <p class="text-[11px] text-neutral-400">{{ user.username }}</p>
+      </div>
+      <span class="avatar">{{ user.initials }}</span>
+
+      <form method="post" action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-dark btn-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+          <span class="hidden sm:inline">ออกจากระบบ</span>
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <main class="shell-page">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-warn">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% block dashboard %}{% endblock %}
+  </main>
+
+</div>
+{% endblock %}

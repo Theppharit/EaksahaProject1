@@ -1,0 +1,127 @@
+/* ============================================================
+   layout.css — โครงหน้าจอ: sidebar + topbar + พื้นที่เนื้อหา
+   ทั้ง 7 ตำแหน่งใช้ร่วมกันหมด ต่างแค่รายการเมนูข้างใน
+   ============================================================ */
+
+@layer components {
+  /* ── โครงรวม ─────────────────────────────── */
+  .app-shell {
+    @apply flex min-h-screen;
+  }
+
+  /* ── แถบเมนูซ้าย ─────────────────────────── */
+  .sidebar {
+    background-color: var(--color-sidebar);
+    @apply fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col
+           text-neutral-300 transition-transform duration-200
+           lg:translate-x-0;
+  }
+  .sidebar.is-open {
+    @apply translate-x-0;
+  }
+
+  .sidebar-brand {
+    @apply flex h-16 shrink-0 items-center gap-2.5 px-5;
+    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  }
+  .sidebar-brand-name {
+    @apply font-kanit text-[15px] font-semibold leading-tight text-white;
+  }
+  .sidebar-brand-role {
+    @apply text-[11px] leading-tight;
+    color: var(--color-accent);
+  }
+
+  .sidebar-nav {
+    @apply flex-1 space-y-0.5 overflow-y-auto px-3 py-4;
+  }
+  .sidebar-section {
+    @apply px-2 pb-1.5 pt-4 text-[11px] font-semibold uppercase tracking-wider text-neutral-500;
+  }
+
+  .nav-link {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] transition;
+  }
+  .nav-link:hover {
+    background-color: var(--color-sidebar-2);
+    @apply text-white;
+  }
+  .nav-link svg {
+    @apply size-[18px] shrink-0;
+  }
+  .nav-link.is-active {
+    background-color: color-mix(in oklab, var(--color-accent) 18%, transparent);
+    color: #fff;
+    @apply font-medium;
+  }
+  .nav-link.is-active svg {
+    color: var(--color-accent);
+  }
+  .nav-badge {
+    @apply ml-auto rounded-full px-2 py-0.5 text-[11px] font-semibold text-white;
+    background-color: var(--color-accent);
+  }
+
+  .sidebar-foot {
+    @apply px-3 py-3;
+    border-top: 1px solid rgb(255 255 255 / 0.08);
+  }
+
+  /* ── ฉากมืดตอนเปิดเมนูบนมือถือ ────────────── */
+  .sidebar-scrim {
+    @apply fixed inset-0 z-30 hidden bg-black/50 lg:hidden;
+  }
+  .sidebar-scrim.is-open {
+    @apply block;
+  }
+
+  /* ── พื้นที่ขวา ───────────────────────────── */
+  .app-main {
+    @apply flex min-w-0 flex-1 flex-col lg:pl-64;
+  }
+
+  /* ── แถบบน ───────────────────────────────── */
+  .topbar {
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-line);
+    @apply sticky top-0 z-20 flex h-16 items-center gap-3 px-4 sm:px-6;
+  }
+  .topbar-title {
+    @apply truncate font-kanit text-[17px] font-semibold;
+  }
+  .topbar-spacer {
+    @apply ml-auto;
+  }
+
+  .icon-btn {
+    color: var(--color-ink-soft);
+    @apply grid size-10 shrink-0 place-items-center rounded-xl transition hover:bg-neutral-100;
+  }
+
+  .avatar {
+    @apply grid size-9 shrink-0 place-items-center rounded-full font-kanit text-sm font-semibold text-white;
+    background-color: var(--color-accent);
+  }
+
+  /* ── เนื้อหา ─────────────────────────────── */
+  .page {
+    @apply mx-auto w-full max-w-7xl flex-1 space-y-5 p-4 sm:p-6;
+  }
+  .page-head {
+    @apply flex flex-wrap items-end justify-between gap-3;
+  }
+  .page-sub {
+    color: var(--color-ink-soft);
+    @apply text-sm;
+  }
+
+  .grid-stats {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4;
+  }
+  .grid-main {
+    @apply grid grid-cols-1 gap-5 lg:grid-cols-3;
+  }
+  .col-wide {
+    @apply lg:col-span-2;
+  }
+}

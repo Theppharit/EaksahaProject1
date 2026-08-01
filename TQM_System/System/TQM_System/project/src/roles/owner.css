@@ -1,0 +1,20 @@
+/* ============================================================
+   owner.css — เจ้าของรถ (ดูรถของตัวเอง / รายได้)
+   ============================================================ */
+
+[data-role="owner"] {
+  --color-accent: #d97706; /* ส้มอำพัน */
+}
+
+@layer components {
+  /* การ์ดรถ 1 คัน */
+  [data-role="owner"] .truck-card {
+    border: 1px solid var(--color-line);
+    background-color: var(--color-surface);
+    @apply flex items-center gap-4 rounded-card p-4;
+  }
+  [data-role="owner"] .plate {
+    border: 1px solid var(--color-line);
+    @apply rounded-md bg-white px-2 py-1 font-kanit text-[13px] font-semibold tracking-wide;
+  }
+}

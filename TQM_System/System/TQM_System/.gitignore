@@ -1,0 +1,19 @@
+# ── Node / Tailwind ─────────────────────────
+node_modules/
+npm-debug.log*
+
+# ── Python / Django ─────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+db.sqlite3
+staticfiles/
+media/
+.env
+
+# ── OS / Editor ─────────────────────────────
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

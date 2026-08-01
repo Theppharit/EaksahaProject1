@@ -1,0 +1,24 @@
+{% load static %}<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}TQM System{% endblock %} · TQM System</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+{% block head %}{% endblock %}
+</head>
+
+{# --color-accent มาจากฐานข้อมูล (แอดมินตั้งค่าได้ที่หน้า Admin) #}
+{# ทุก component ที่ใช้ var(--color-accent) จะเปลี่ยนสีตามอัตโนมัติ #}
+<body style="--color-accent: {{ accent_color }}" {% block body_attrs %}{% endblock %}>
+
+{% block body %}{% endblock %}
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

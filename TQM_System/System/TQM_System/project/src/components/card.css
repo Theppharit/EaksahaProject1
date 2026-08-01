@@ -1,0 +1,97 @@
+/* ============================================================
+   card.css — การ์ด และ การ์ดตัวเลขสรุป (stat)
+   ============================================================ */
+
+@layer components {
+  .card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-line);
+    @apply rounded-card shadow-xs;
+  }
+  .card-head {
+    border-bottom: 1px solid var(--color-line);
+    @apply flex flex-wrap items-center gap-3 px-5 py-4;
+  }
+  .card-title {
+    @apply font-kanit text-[15px] font-semibold;
+  }
+  .card-tools {
+    @apply ml-auto flex items-center gap-2;
+  }
+  .card-body {
+    @apply p-5;
+  }
+  .card-foot {
+    border-top: 1px solid var(--color-line);
+    @apply flex items-center gap-2 px-5 py-3;
+  }
+
+  /* ── การ์ดตัวเลขสรุป ─────────────────────── */
+  .stat {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-line);
+    @apply flex items-start gap-4 rounded-card p-5 shadow-xs;
+  }
+  .stat-icon {
+    @apply grid size-11 shrink-0 place-items-center rounded-xl;
+    background-color: color-mix(in oklab, var(--color-accent) 12%, white);
+    color: var(--color-accent);
+  }
+  .stat-icon svg {
+    @apply size-5;
+  }
+  .stat-label {
+    color: var(--color-ink-soft);
+    @apply text-[13px];
+  }
+  .stat-value {
+    @apply font-kanit text-[26px] font-bold leading-tight tabular;
+  }
+  .stat-unit {
+    color: var(--color-ink-soft);
+    @apply ml-1 text-[13px] font-normal;
+  }
+  .stat-delta {
+    @apply mt-0.5 inline-flex items-center gap-1 text-[12px] font-medium;
+  }
+  .stat-delta-up {
+    color: var(--color-status-done);
+  }
+  .stat-delta-down {
+    color: var(--color-status-urgent);
+  }
+
+  /* ── รายการแบบมีจุดสี (ใช้ในการ์ดข้างขวา) ─── */
+  .list-item {
+    @apply flex items-start gap-3 py-3;
+  }
+  .list-item + .list-item {
+    border-top: 1px solid var(--color-line);
+  }
+  .list-dot {
+    @apply mt-1.5 size-2 shrink-0 rounded-full;
+  }
+  .list-title {
+    @apply truncate text-[14px] font-medium;
+  }
+  .list-meta {
+    color: var(--color-ink-soft);
+    @apply text-[12px];
+  }
+
+  /* ── แถบความคืบหน้า ─────────────────────── */
+  .bar {
+    background-color: var(--color-surface-2);
+    @apply h-2 w-full overflow-hidden rounded-full;
+  }
+  .bar-fill {
+    background-color: var(--color-accent);
+    @apply h-full rounded-full transition-all;
+  }
+
+  /* ── สถานะว่างเปล่า ─────────────────────── */
+  .empty {
+    color: var(--color-ink-soft);
+    @apply grid place-items-center gap-2 px-5 py-14 text-center text-sm;
+  }
+}

@@ -1,0 +1,77 @@
+/* ============================================================
+   table.css — ตารางรายการงาน / ใบแจ้งหนี้ / ผู้ใช้
+   ============================================================ */
+
+@layer components {
+  /* ครอบไว้เพื่อให้เลื่อนแนวนอนได้บนมือถือ */
+  .table-wrap {
+    @apply w-full overflow-x-auto;
+  }
+
+  .table {
+    @apply w-full min-w-[640px] border-collapse text-left text-[14px];
+  }
+
+  .table thead th {
+    background-color: var(--color-surface-2);
+    color: var(--color-ink-soft);
+    border-bottom: 1px solid var(--color-line);
+    @apply px-5 py-3 text-[12px] font-semibold uppercase tracking-wide whitespace-nowrap;
+  }
+
+  .table tbody td {
+    border-bottom: 1px solid var(--color-line);
+    @apply px-5 py-3.5 align-middle;
+  }
+
+  .table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .table tbody tr {
+    @apply transition;
+  }
+  .table tbody tr:hover {
+    background-color: var(--color-surface-2);
+  }
+
+  /* คอลัมน์ตัวเลข/เงิน ให้ชิดขวา */
+  .table .num {
+    @apply text-right tabular;
+  }
+
+  /* คอลัมน์ปุ่มจัดการ */
+  .table .act {
+    @apply w-px whitespace-nowrap text-right;
+  }
+
+  /* ข้อความรอง เช่น ทะเบียนรถใต้ชื่อลูกค้า */
+  .cell-main {
+    @apply font-medium;
+  }
+  .cell-sub {
+    color: var(--color-ink-soft);
+    @apply text-[12px];
+  }
+
+  /* แถบเครื่องมือเหนือตาราง */
+  .table-toolbar {
+    border-bottom: 1px solid var(--color-line);
+    @apply flex flex-wrap items-center gap-2 px-5 py-3;
+  }
+
+  /* แถบแบ่งหน้า */
+  .pagination {
+    color: var(--color-ink-soft);
+    @apply flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-[13px];
+  }
+  .page-btn {
+    border: 1px solid var(--color-line);
+    @apply grid size-8 place-items-center rounded-lg transition hover:bg-neutral-50;
+  }
+  .page-btn.is-active {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    @apply text-white;
+  }
+}

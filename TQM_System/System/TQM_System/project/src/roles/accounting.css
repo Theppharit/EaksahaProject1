@@ -1,0 +1,25 @@
+/* ============================================================
+   accounting.css — งานบัญชี (ใบแจ้งหนี้ / รับชำระ)
+   ============================================================ */
+
+[data-role="accounting"] {
+  --color-accent: #059669; /* เขียวมรกต */
+}
+
+@layer components {
+  /* ยอดเงิน — ตัวเลขต้องเรียงตรงคอลัมน์เสมอ */
+  [data-role="accounting"] .money {
+    @apply text-right font-kanit font-semibold tabular;
+  }
+  [data-role="accounting"] .money-in {
+    color: var(--color-status-done);
+  }
+  [data-role="accounting"] .money-out {
+    color: var(--color-status-urgent);
+  }
+  /* แถวรวมท้ายตาราง */
+  [data-role="accounting"] .table tfoot td {
+    background-color: var(--color-surface-2);
+    @apply px-5 py-3.5 font-kanit font-semibold;
+  }
+}

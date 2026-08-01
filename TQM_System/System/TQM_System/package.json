@@ -1,0 +1,16 @@
+{
+  "name": "tqm-system-tailwind",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tailwind CSS v4 build setup สำหรับ TQM System (Django)",
+  "scripts": {
+    "dev": "postcss project/src/input.css -o project/assets/css/tailwind.css --watch",
+    "build": "postcss project/src/input.css -o project/assets/css/tailwind.css --env production"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.0",
+    "postcss": "^8.5.15",
+    "postcss-cli": "^11.0.1",
+    "tailwindcss": "^4.3.0"
+  }
+}

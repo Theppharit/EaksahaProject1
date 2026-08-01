@@ -1,0 +1,30 @@
+/* ============================================================
+   feedback.css — กล่องแจ้งเตือนแบบแถบ
+   ใช้กับ error ตอน login และ messages ของ Django
+   ============================================================ */
+
+@layer components {
+  .alert {
+    @apply flex items-start gap-3 rounded-field px-4 py-3 text-[14px];
+  }
+  .alert svg {
+    @apply size-5 shrink-0;
+  }
+
+  .alert-info {
+    color: #1d4ed8;
+    background-color: #eff6ff;
+  }
+  .alert-success {
+    color: #15803d;
+    background-color: #f0fdf4;
+  }
+  .alert-warn {
+    color: #92400e;
+    background-color: #fffbeb;
+  }
+  .alert-error {
+    color: var(--color-brand);
+    background-color: color-mix(in oklab, var(--color-brand) 8%, white);
+  }
+}

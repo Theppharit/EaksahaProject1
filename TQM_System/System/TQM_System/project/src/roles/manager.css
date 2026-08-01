@@ -1,0 +1,20 @@
+/* ============================================================
+   manager.css — ผู้จัดการ (จ่ายงาน / คุมคิว)
+   ============================================================ */
+
+[data-role="manager"] {
+  --color-accent: #7c3aed; /* ม่วง */
+}
+
+@layer components {
+  /* กระดานจ่ายงาน — แถวงานด่วนให้เห็นเด่น */
+  [data-role="manager"] .row-urgent {
+    background-color: color-mix(in oklab, var(--color-status-urgent) 6%, white);
+    box-shadow: inset 3px 0 0 var(--color-status-urgent);
+  }
+  /* ชิปคนขับที่ว่างอยู่ ลากไปวางบนงานได้ (เผื่อทำ drag & drop ทีหลัง) */
+  [data-role="manager"] .driver-chip {
+    border: 1px solid var(--color-line);
+    @apply inline-flex items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[13px];
+  }
+}

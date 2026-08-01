@@ -1,0 +1,25 @@
+{% extends "dashboard/_base.html" %}
+
+{% block title %}ผู้บริหาร{% endblock %}
+
+{% block dashboard %}
+<div class="welcome">
+  <div class="welcome-badge">{{ user.get_role_display }}</div>
+
+  <h1 class="welcome-title">ยินดีต้อนรับ {{ user.get_full_name|default:user.username }}</h1>
+  <p class="welcome-sub">ระบบผู้บริหาร · ใช้ได้ทั้งคอมและมือถือ</p>
+
+  <div class="welcome-divider"></div>
+
+  <p class="welcome-label">เมนูที่จะมีในหน้านี้</p>
+  <ul class="welcome-list">
+    <li>Dashboard — กราฟสถิติภาพรวม (รายวัน/สัปดาห์/เดือน/3เดือน/6เดือน/ปี)</li>
+    <li>ตารางคิวแยกตามสถานะ — ดูย้อนหลังได้ 50 รายการ (ปรับได้)</li>
+    <li>รายงานเชิงลึก — กรองตามคนขับ ผู้จอง เซลล์ วันจ่ายเงิน สถานะ ช่วงวัน</li>
+  </ul>
+
+  <p class="welcome-foot">
+    หน้านี้ยังเป็นโครงเปล่า — เนื้อหาจริงจะทยอยเพิ่มตามเอกสารสเปกที่ลูกค้าอนุมัติแล้ว
+  </p>
+</div>
+{% endblock %}

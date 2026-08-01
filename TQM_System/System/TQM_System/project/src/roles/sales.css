@@ -1,0 +1,27 @@
+/* ============================================================
+   sales.css — เซลล์ (ลูกค้า / ดีล / เป้า)
+   ============================================================ */
+
+[data-role="sales"] {
+  --color-accent: #ea580c; /* ส้ม */
+}
+
+@layer components {
+  /* แถบความคืบหน้าเทียบเป้าเดือนนี้ */
+  [data-role="sales"] .target-bar {
+    @apply h-3 w-full overflow-hidden rounded-full bg-neutral-200;
+  }
+  [data-role="sales"] .target-fill {
+    background: linear-gradient(90deg, var(--color-accent), #fb923c);
+    @apply h-full rounded-full;
+  }
+  /* ขั้นตอนของดีล */
+  [data-role="sales"] .stage {
+    @apply inline-flex items-center gap-1.5 text-[12px] font-medium;
+  }
+  [data-role="sales"] .stage::before {
+    content: "";
+    background-color: var(--color-accent);
+    @apply size-2 rounded-full;
+  }
+}

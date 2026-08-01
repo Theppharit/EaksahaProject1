@@ -1,0 +1,46 @@
+/* ============================================================
+   theme.css — โทเคนกลางของ TQM System
+   แก้สี/ฟอนต์ที่ไฟล์นี้ไฟล์เดียว ทั้งระบบเปลี่ยนตาม
+   ============================================================ */
+
+@theme {
+  /* ── ฟอนต์ ────────────────────────────────── */
+  --font-kanit: "Kanit", sans-serif;
+  --font-thai: "Noto Sans Thai", sans-serif;
+
+  /* ── สีแบรนด์ (ยืนยันกับลูกค้าแล้ว) ──────────── */
+  --color-brand: #ed1d26; /* แดง TQM   → text-brand, bg-brand */
+  --color-ink: #181818; /* ดำแบรนด์  → text-ink, bg-ink   */
+
+  /* ── สีหลักประจำตำแหน่ง ─────────────────────
+     ค่าเริ่มต้น = สีแบรนด์
+     ค่าจริงถูกฉีดจากฐานข้อมูลที่ <body style="--color-accent: ...">
+     (แอดมินตั้งค่าได้เองที่หน้า Django Admin → สีประจำตำแหน่ง)
+     ทุก component ที่ใช้ var(--color-accent) เปลี่ยนสีตามทันที
+     โดยไม่ต้องแก้ CSS และไม่ต้อง build ใหม่                */
+  --color-accent: var(--color-brand);
+
+  /* ── สีพื้นผิว ─────────────────────────────── */
+  --color-surface: #ffffff;
+  --color-surface-2: #f5f5f5;
+  --color-line: #e5e5e5;
+  --color-ink-soft: #6b6b6b;
+
+  /* ── ความโค้ง ─────────────────────────────── */
+  --radius-card: 1rem;
+  --radius-field: 0.75rem;
+
+  /* ── อนิเมชัน ─────────────────────────────── */
+  --animate-fadeup: fadeup 0.5s ease-out both;
+
+  @keyframes fadeup {
+    0% {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

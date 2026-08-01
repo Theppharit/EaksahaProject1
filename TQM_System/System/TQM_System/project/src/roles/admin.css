@@ -1,0 +1,39 @@
+/* ============================================================
+   admin.css — แอดมิน (ผู้ใช้ / สิทธิ์ / ตั้งค่าระบบ)
+   ============================================================ */
+
+[data-role="admin"] {
+  --color-accent: #e11d2a; /* แดงแบรนด์ — แอดมินคือเจ้าของระบบ */
+}
+
+@layer components {
+  /* ป้ายบอกตำแหน่งของผู้ใช้ในตารางจัดการผู้ใช้ */
+  [data-role="admin"] .role-tag {
+    border: 1px solid var(--color-line);
+    color: var(--color-ink-soft);
+    @apply inline-flex rounded-md bg-white px-2 py-0.5 text-[12px];
+  }
+  /* สวิตช์เปิด/ปิดสิทธิ์ */
+  [data-role="admin"] .switch {
+    background-color: var(--color-line);
+    @apply relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition;
+  }
+  [data-role="admin"] .switch::after {
+    content: "";
+    @apply absolute left-0.5 top-0.5 size-5 rounded-full bg-white shadow transition;
+  }
+  [data-role="admin"] .switch.is-on {
+    background-color: var(--color-status-done);
+  }
+  [data-role="admin"] .switch.is-on::after {
+    @apply translate-x-5;
+  }
+  /* แถวบันทึกการใช้งาน (log) */
+  [data-role="admin"] .log-row {
+    @apply flex items-start gap-3 py-2.5 text-[13px];
+  }
+  [data-role="admin"] .log-time {
+    color: var(--color-ink-soft);
+    @apply w-28 shrink-0 tabular;
+  }
+}

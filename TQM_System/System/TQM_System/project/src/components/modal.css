@@ -1,0 +1,54 @@
+/* ============================================================
+   modal.css — กล่องยืนยัน / กล่องกรอกข้อมูล
+   ใช้ <dialog> ของ HTML มาตรฐาน ไม่ต้องพึ่ง JS library
+   ============================================================ */
+
+@layer components {
+  .modal {
+    background-color: var(--color-surface);
+    width: min(32rem, calc(100vw - 2rem));
+    @apply m-auto rounded-card p-0 shadow-2xl;
+  }
+  .modal::backdrop {
+    @apply bg-black/50;
+  }
+  .modal-head {
+    border-bottom: 1px solid var(--color-line);
+    @apply flex items-center gap-3 px-5 py-4;
+  }
+  .modal-title {
+    @apply font-kanit text-[16px] font-semibold;
+  }
+  .modal-body {
+    @apply space-y-4 px-5 py-5 text-[14px];
+  }
+  .modal-foot {
+    border-top: 1px solid var(--color-line);
+    background-color: var(--color-surface-2);
+    @apply flex justify-end gap-2 px-5 py-3.5;
+  }
+
+  /* ── กล่องแจ้งเตือนแบบแถบ (alert) ─────────── */
+  .alert {
+    @apply flex items-start gap-3 rounded-field px-4 py-3 text-[14px];
+  }
+  .alert svg {
+    @apply size-5 shrink-0;
+  }
+  .alert-info {
+    color: var(--color-status-go);
+    background-color: color-mix(in oklab, var(--color-status-go) 10%, white);
+  }
+  .alert-warn {
+    color: #92400e;
+    background-color: color-mix(in oklab, var(--color-status-wait) 16%, white);
+  }
+  .alert-error {
+    color: var(--color-status-urgent);
+    background-color: color-mix(in oklab, var(--color-status-urgent) 10%, white);
+  }
+  .alert-success {
+    color: var(--color-status-done);
+    background-color: color-mix(in oklab, var(--color-status-done) 10%, white);
+  }
+}

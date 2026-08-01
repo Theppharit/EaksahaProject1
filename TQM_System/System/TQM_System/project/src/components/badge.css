@@ -1,0 +1,54 @@
+/* ============================================================
+   badge.css — ป้ายสถานะงาน
+   ใช้ชื่อตามความหมาย ไม่ใช่ตามสี  เปลี่ยนสีทีหลังแก้ที่ theme.css
+   ============================================================ */
+
+@layer components {
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1
+           text-[12px] font-medium whitespace-nowrap;
+  }
+  .badge::before {
+    content: "";
+    @apply size-1.5 rounded-full bg-current;
+  }
+
+  /* รอยืนยัน / รอจ่ายงาน */
+  .badge-wait {
+    color: var(--color-status-wait);
+    background-color: color-mix(in oklab, var(--color-status-wait) 14%, white);
+  }
+
+  /* กำลังดำเนินการ / รถออกแล้ว */
+  .badge-go {
+    color: var(--color-status-go);
+    background-color: color-mix(in oklab, var(--color-status-go) 14%, white);
+  }
+
+  /* เสร็จสิ้น / ชำระแล้ว */
+  .badge-done {
+    color: var(--color-status-done);
+    background-color: color-mix(in oklab, var(--color-status-done) 14%, white);
+  }
+
+  /* ยกเลิก / ปิดงาน */
+  .badge-cancel {
+    color: var(--color-status-cancel);
+    background-color: color-mix(in oklab, var(--color-status-cancel) 14%, white);
+  }
+
+  /* ด่วน / เกินกำหนด */
+  .badge-urgent {
+    color: var(--color-status-urgent);
+    background-color: color-mix(in oklab, var(--color-status-urgent) 14%, white);
+  }
+
+  /* ป้ายกลาง ๆ ไม่สื่อสถานะ เช่น ประเภทรถ */
+  .badge-plain {
+    color: var(--color-ink-soft);
+    background-color: var(--color-surface-2);
+  }
+  .badge-plain::before {
+    display: none;
+  }
+}

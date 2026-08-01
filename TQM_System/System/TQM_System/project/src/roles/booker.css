@@ -1,0 +1,24 @@
+/* ============================================================
+   booker.css — ผู้จองคิว
+   ใส่ data-role="booker" ที่ <body> แล้ว accent ทั้งหน้าจะเปลี่ยนตาม
+   ============================================================ */
+
+[data-role="booker"] {
+  --color-accent: #0284c7; /* ฟ้า — สื่อถึงการจอง/นัดหมาย */
+}
+
+@layer components {
+  /* การ์ดเลือกประเภทรถตอนจองคิว */
+  [data-role="booker"] .pick-card {
+    border: 1px solid var(--color-line);
+    background-color: var(--color-surface);
+    @apply cursor-pointer rounded-field p-4 text-center transition;
+  }
+  [data-role="booker"] .pick-card:hover {
+    border-color: var(--color-accent);
+  }
+  [data-role="booker"] .pick-card.is-picked {
+    border-color: var(--color-accent);
+    background-color: color-mix(in oklab, var(--color-accent) 8%, white);
+  }
+}

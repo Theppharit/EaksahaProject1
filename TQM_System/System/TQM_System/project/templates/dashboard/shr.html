@@ -1,0 +1,28 @@
+{% extends "dashboard/_base.html" %}
+
+{% block title %}ผู้จัดการสาขา{% endblock %}
+
+{% block dashboard %}
+<div class="welcome">
+  <div class="welcome-badge">{{ user.get_role_display }}</div>
+
+  <h1 class="welcome-title">ยินดีต้อนรับ {{ user.get_full_name|default:user.username }}</h1>
+  <p class="welcome-sub">ระบบผู้จัดการสาขา (SHR) · ใช้ได้ทั้งคอมและมือถือ</p>
+
+  <div class="welcome-divider"></div>
+
+  <p class="welcome-label">เมนูที่จะมีในหน้านี้</p>
+  <ul class="welcome-list">
+    <li>Dashboard — ทุกคิวที่ยังไม่ปิดงาน · ปฏิทินของผู้จองทุกคน · กราฟสถิติ</li>
+    <li>สร้างใบจอง</li>
+    <li>รายการรออนุมัติ — ต้องยืนยันตัวตนทุกครั้งที่กดอนุมัติ</li>
+    <li>ประวัติการจองคิว</li>
+    <li>เกณฑ์ราคาและรอบจ่ายเงิน — ตั้งค่าเรทค่าเดินทางและวันจ่าย</li>
+    <li>คนขับรถ — ดูทุกกลุ่มแยกตามเจ้าของรถหลัก</li>
+  </ul>
+
+  <p class="welcome-foot">
+    หน้านี้ยังเป็นโครงเปล่า — เนื้อหาจริงจะทยอยเพิ่มตามเอกสารสเปกที่ลูกค้าอนุมัติแล้ว
+  </p>
+</div>
+{% endblock %}
