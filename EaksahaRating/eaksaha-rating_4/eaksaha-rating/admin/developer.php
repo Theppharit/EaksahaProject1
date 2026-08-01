@@ -76,73 +76,20 @@ HTML;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ผู้พัฒนาระบบ · <?= htmlspecialchars(ORG_NAME) ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800;900&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        // ใช้ธีมสีเดียวกับที่เลือกไว้ในระบบหลังบ้าน (กันจอกะพริบ)
-        (function () {
-            try {
-                var t = localStorage.getItem('eaksaha_theme');
-                if (t && ['fresh', 'soft', 'dark-red', 'midnight'].indexOf(t) !== -1 && t !== 'fresh') {
-                    document.documentElement.setAttribute('data-theme', t);
-                }
-            } catch (e) { }
-        })();
-    </script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        /* ── โทนสีเริ่มต้น: สดใส (ฟ้า-มิ้นต์) ── */
+        /* ── โทนสี: ดำ-แดง Eaksaha (ธีมเดียวถาวร) ── */
         :root {
-            --accent:#0EA5E9; --accent-deep:#0284C7; --mint:#10B981; --mint-deep:#059669;
-            --bg:#F2F9FE; --card:#FFFFFF; --line:#DCE9F2;
-            --text:#0F1F2E; --muted:#5C7186; --muted-2:#8CA0B3;
-            /* โทนหัวเรื่อง (hero) + เงา */
-            --h1:#075985; --h2:#0284C7; --h3:#0EA5E9; --h4:#10B981;
-            --orb1:#67E8F9; --orb2:#6EE7B7;
-            --hi1:#A5F3FC; --hi2:#D2FBE8;
-            --soft-1:#E8F5FC; --soft-2:#E7FBF3;
-            --row-line:#EDF4F9;
-            --glow:2,132,199; --glow2:16,185,129;
-            --scheme:light;
-        }
-
-        /* ── นุ่มสบายตา ── */
-        html[data-theme="soft"] {
-            --accent:#46698C; --accent-deep:#37536F; --mint:#7FA184; --mint-deep:#5F8266;
-            --bg:#F4F4F2; --card:#FFFFFF; --line:#E2E3DE;
-            --text:#2A333C; --muted:#68727C; --muted-2:#959EA7;
-            --h1:#2F4759; --h2:#37536F; --h3:#46698C; --h4:#7FA184;
-            --orb1:#A9C0D4; --orb2:#B6CDBA;
-            --hi1:#DCE8F1; --hi2:#DDEBE0;
-            --soft-1:#EEF1F4; --soft-2:#EDF2EE;
-            --row-line:#F0F1ED;
-            --glow:55,83,111; --glow2:95,130,102;
-            --scheme:light;
-        }
-
-        /* ── ดำ-แดง Eaksaha ── */
-        html[data-theme="dark-red"] {
             --accent:#FF3B3B; --accent-deep:#C10500; --mint:#FFB020; --mint-deep:#D98E0B;
             --bg:#12121B; --card:#1E1E29; --line:#363646;
             --text:#F6F7FB; --muted:#B0B2C2; --muted-2:#7E8091;
+            /* โทนหัวเรื่อง (hero) + เงา */
             --h1:#1A0A0C; --h2:#5E0B0B; --h3:#C10500; --h4:#FF6A2B;
             --orb1:#FF6A5A; --orb2:#FFB020;
             --hi1:#FFC9A8; --hi2:#FFD98A;
             --soft-1:#2A2A36; --soft-2:#33333F;
             --row-line:#2A2A36;
             --glow:225,6,0; --glow2:255,176,32;
-            --scheme:dark;
-        }
-
-        /* ── มืดน้ำเงิน ── */
-        html[data-theme="midnight"] {
-            --accent:#4C8DFF; --accent-deep:#2F6BDB; --mint:#22D3EE; --mint-deep:#0E9CB8;
-            --bg:#0D1420; --card:#16202E; --line:#2A394E;
-            --text:#EDF2F9; --muted:#96A5BA; --muted-2:#6E7E94;
-            --h1:#0A1730; --h2:#1E4695; --h3:#4C8DFF; --h4:#22D3EE;
-            --orb1:#74A8FF; --orb2:#67E8F9;
-            --hi1:#BFD8FF; --hi2:#B6F3FD;
-            --soft-1:#1F2C3D; --soft-2:#22303F;
-            --row-line:#1F2C3D;
-            --glow:47,107,219; --glow2:14,156,184;
             --scheme:dark;
         }
 
@@ -190,21 +137,6 @@ HTML;
             from { transform: translate(0,0) scale(1); }
             to   { transform: translate(26px,18px) scale(1.08); }
         }
-
-        /* ── ปุ่มเลือกธีมมุมขวาบน ── */
-        .hero-theme { position: absolute; top: 20px; right: 24px; z-index: 3; display: flex; align-items: center; gap: 9px; }
-        .hero-theme .ht-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; color: rgba(255,255,255,0.8); }
-        .hero-theme button {
-            width: 24px; height: 24px; border-radius: 50%; cursor: pointer; padding: 0;
-            border: 2px solid rgba(255,255,255,0.45); transition: transform .15s, box-shadow .15s;
-        }
-        .hero-theme button:hover { transform: scale(1.18); }
-        .hero-theme button.active { border-color: #FFF; box-shadow: 0 0 0 3px rgba(255,255,255,0.28); }
-        .ht-fresh    { background: linear-gradient(135deg, #0EA5E9 50%, #10B981 50%); }
-        .ht-soft     { background: linear-gradient(135deg, #46698C 50%, #7FA184 50%); }
-        .ht-dark-red { background: linear-gradient(135deg, #1E1E29 50%, #FF3B3B 50%); }
-        .ht-midnight { background: linear-gradient(135deg, #16202E 50%, #4C8DFF 50%); }
-        @media (max-width: 640px) { .hero-theme .ht-label { display: none; } }
 
         .hero-back { position: absolute; top: 20px; left: 24px; z-index: 2; }
         .hero-back a {
@@ -402,13 +334,6 @@ HTML;
     <div class="hero-orb hero-orb-1"></div>
     <div class="hero-orb hero-orb-2"></div>
     <div class="hero-back"><a href="login.php">← กลับหน้าเข้าสู่ระบบ</a></div>
-    <div class="hero-theme">
-        <span class="ht-label">ธีมสี</span>
-        <button type="button" class="ht-fresh"    data-theme-pick="fresh"    title="สดใส (ฟ้า-มิ้นต์)"></button>
-        <button type="button" class="ht-soft"     data-theme-pick="soft"     title="นุ่มสบายตา"></button>
-        <button type="button" class="ht-dark-red" data-theme-pick="dark-red" title="ดำ-แดง Eaksaha"></button>
-        <button type="button" class="ht-midnight" data-theme-pick="midnight" title="มืดน้ำเงิน"></button>
-    </div>
 
     <div class="hero-content">
         <div class="hero-logo">EAKSAHA<span>GROUP</span></div>
@@ -507,21 +432,6 @@ const countObs = new IntersectionObserver((entries) => {
     entries.forEach(e => { if (e.isIntersecting) { countUp(e.target); countObs.unobserve(e.target); } });
 }, { threshold: 0.4 });
 document.querySelectorAll('[data-count]').forEach(el => countObs.observe(el));
-
-// ── สลับธีมสี (ใช้ค่าเดียวกับหลังบ้าน) ──
-(function () {
-    const current = document.documentElement.getAttribute('data-theme') || 'fresh';
-    document.querySelectorAll('[data-theme-pick]').forEach(function (btn) {
-        const t = btn.getAttribute('data-theme-pick');
-        if (t === current) btn.classList.add('active');
-        btn.addEventListener('click', function () {
-            try { localStorage.setItem('eaksaha_theme', t); } catch (e) {}
-            if (t === 'fresh') document.documentElement.removeAttribute('data-theme');
-            else document.documentElement.setAttribute('data-theme', t);
-            document.querySelectorAll('[data-theme-pick]').forEach(b => b.classList.toggle('active', b === btn));
-        });
-    });
-})();
 </script>
 
 </body>

@@ -52,41 +52,10 @@ foreach (['logo.png', 'logo.jpg', 'logo.jpeg', 'logo.webp'] as $lf) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เข้าสู่ระบบ · <?= htmlspecialchars(ORG_NAME) ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script>
-        // ใช้ธีมสีที่เลือกไว้ (กันจอกะพริบ)
-        (function () {
-            try {
-                var t = localStorage.getItem('eaksaha_theme');
-                if (t && ['fresh', 'soft', 'dark-red', 'midnight'].indexOf(t) !== -1 && t !== 'fresh') {
-                    document.documentElement.setAttribute('data-theme', t);
-                }
-            } catch (e) { }
-        })();
-    </script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        /* ── โทนสีเริ่มต้น: สดใส (ฟ้า-มิ้นต์) ── */
+        /* ── โทนสี: ดำ-แดง Eaksaha (ธีมเดียวถาวร) ── */
         :root {
-            --accent:#0EA5E9; --accent-deep:#0284C7; --mint:#10B981; --mint-deep:#059669;
-            --line:#DCE9F2; --text:#0F1F2E; --muted:#5C7186;
-            --page:#F2F9FE; --card:#FFFFFF; --input-bg:#FBFDFF;
-            --v1:#0369A1; --v2:#0EA5E9; --v3:#10B981;
-            --v1r:3,105,161; --v2r:14,165,233; --v3r:16,185,129;
-            --hi:#D2FBE8; --hi2:#C9F3D9;
-            --glow:14,165,233;
-            --scheme:light;
-        }
-        html[data-theme="soft"] {
-            --accent:#46698C; --accent-deep:#37536F; --mint:#7FA184; --mint-deep:#5F8266;
-            --line:#E2E3DE; --text:#2A333C; --muted:#68727C;
-            --page:#F4F4F2; --card:#FFFFFF; --input-bg:#FAFAF8;
-            --v1:#2F4759; --v2:#46698C; --v3:#7FA184;
-            --v1r:47,71,89; --v2r:70,105,140; --v3r:127,161,132;
-            --hi:#DDEBE0; --hi2:#D3E4D7;
-            --glow:70,105,140;
-            --scheme:light;
-        }
-        html[data-theme="dark-red"] {
             --accent:#FF3B3B; --accent-deep:#C10500; --mint:#FFB020; --mint-deep:#D98E0B;
             --line:#363646; --text:#F6F7FB; --muted:#B0B2C2;
             --page:#12121B; --card:#1E1E29; --input-bg:#14141C;
@@ -94,16 +63,6 @@ foreach (['logo.png', 'logo.jpg', 'logo.jpeg', 'logo.webp'] as $lf) {
             --v1r:26,10,12; --v2r:193,5,0; --v3r:255,106,43;
             --hi:#FFD98A; --hi2:#FFC9A8;
             --glow:225,6,0;
-            --scheme:dark;
-        }
-        html[data-theme="midnight"] {
-            --accent:#4C8DFF; --accent-deep:#2F6BDB; --mint:#22D3EE; --mint-deep:#0E9CB8;
-            --line:#2A394E; --text:#EDF2F9; --muted:#96A5BA;
-            --page:#0D1420; --card:#16202E; --input-bg:#0E1724;
-            --v1:#0A1730; --v2:#2F6BDB; --v3:#22D3EE;
-            --v1r:10,23,48; --v2r:47,107,219; --v3r:34,211,238;
-            --hi:#B6F3FD; --hi2:#BFD8FF;
-            --glow:47,107,219;
             --scheme:dark;
         }
         html { color-scheme: var(--scheme, light); }
@@ -184,23 +143,6 @@ foreach (['logo.png', 'logo.jpg', 'logo.jpeg', 'logo.webp'] as $lf) {
         .login-links a:hover { text-decoration:underline; }
         .login-links .divider { height:1px; background:var(--line); margin:12px 0; }
 
-        /* ── ปุ่มเลือกธีมสี ── */
-        .login-theme {
-            margin-top:22px; padding-top:18px; border-top:1px solid var(--line);
-            display:flex; align-items:center; justify-content:center; gap:10px;
-        }
-        .login-theme .lt-label { font-size:11px; font-weight:700; letter-spacing:.08em; color:var(--muted); }
-        .login-theme button {
-            width:26px; height:26px; border-radius:50%; padding:0; cursor:pointer;
-            border:2px solid var(--line); transition:transform .15s, box-shadow .15s;
-        }
-        .login-theme button:hover { transform:scale(1.15); }
-        .login-theme button.active { border-color:var(--text); box-shadow:0 0 0 3px rgba(var(--glow),0.25); }
-        .lt-fresh    { background:linear-gradient(135deg,#0EA5E9 50%,#10B981 50%); }
-        .lt-soft     { background:linear-gradient(135deg,#46698C 50%,#7FA184 50%); }
-        .lt-dark-red { background:linear-gradient(135deg,#1E1E29 50%,#FF3B3B 50%); }
-        .lt-midnight { background:linear-gradient(135deg,#16202E 50%,#4C8DFF 50%); }
-
         @media (max-width: 860px) {
             .login-split { flex-direction:column; }
             .login-visual { min-height:220px; padding:32px; }
@@ -250,14 +192,6 @@ foreach (['logo.png', 'logo.jpg', 'logo.jpeg', 'logo.webp'] as $lf) {
                     <button type="submit" class="btn-login">เข้าสู่ระบบ</button>
                 </form>
 
-                <div class="login-theme">
-                    <span class="lt-label">ธีมสี</span>
-                    <button type="button" class="lt-fresh"    data-theme-pick="fresh"    title="สดใส (ฟ้า-มิ้นต์)"></button>
-                    <button type="button" class="lt-soft"     data-theme-pick="soft"     title="นุ่มสบายตา"></button>
-                    <button type="button" class="lt-dark-red" data-theme-pick="dark-red" title="ดำ-แดง Eaksaha"></button>
-                    <button type="button" class="lt-midnight" data-theme-pick="midnight" title="มืดน้ำเงิน"></button>
-                </div>
-
                 <!-- <div class="login-links">
                     <a href="developer.php">ทีมผู้พัฒนาระบบ</a>
                     <div class="divider"></div>
@@ -267,24 +201,5 @@ foreach (['logo.png', 'logo.jpg', 'logo.jpeg', 'logo.webp'] as $lf) {
             </div>
         </div>
     </div>
-
-    <script>
-        // สลับธีมสี — จำค่าไว้ใช้กับทุกหน้าในระบบ
-        (function () {
-            var current = document.documentElement.getAttribute('data-theme') || 'fresh';
-            document.querySelectorAll('[data-theme-pick]').forEach(function (btn) {
-                var t = btn.getAttribute('data-theme-pick');
-                if (t === current) btn.classList.add('active');
-                btn.addEventListener('click', function () {
-                    try { localStorage.setItem('eaksaha_theme', t); } catch (e) {}
-                    if (t === 'fresh') document.documentElement.removeAttribute('data-theme');
-                    else document.documentElement.setAttribute('data-theme', t);
-                    document.querySelectorAll('[data-theme-pick]').forEach(function (b) {
-                        b.classList.toggle('active', b === btn);
-                    });
-                });
-            });
-        })();
-    </script>
 </body>
 </html>

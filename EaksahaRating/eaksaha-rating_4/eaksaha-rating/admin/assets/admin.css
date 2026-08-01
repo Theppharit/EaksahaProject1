@@ -1,44 +1,44 @@
 @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* ── สีหลัก: ฟ้าสด + มิ้นต์ ── */
-  --accent:      #0EA5E9;   /* ฟ้า cyan สด */
-  --accent-deep: #0284C7;
-  --accent-soft: #38BDF8;
-  --mint:        #10B981;   /* เขียวมิ้นต์ */
-  --mint-deep:   #059669;
-  --mint-soft:   #34D399;
+  /* ── สีหลัก: ดำ-แดง Eaksaha (ธีมเดียวถาวรของระบบ) ── */
+  --accent:      #FF3B3B;
+  --accent-deep: #C10500;
+  --accent-soft: #FF6A5A;
+  --mint:        #FFB020;
+  --mint-deep:   #D98E0B;
+  --mint-soft:   #FFC24B;
 
-  /* ── พื้นผิว (โหมดสว่าง) ── */
-  --bg:      #F2F9FE;
-  --bg2:     #EAF4FB;
-  --panel:   #FFFFFF;
-  --panel-2: #FFFFFF;
-  --panel-3: #F1F7FC;
-  --line:    #DCE9F2;
-  --line-2:  #C6DAE8;
+  /* ── พื้นผิว (โหมดมืด) ── */
+  --bg:      #12121B;
+  --bg2:     #0C0C13;
+  --panel:   #1E1E29;
+  --panel-2: #232330;
+  --panel-3: #2E2E3C;
+  --line:    #363646;
+  --line-2:  #434353;
 
   /* ── ตัวอักษร ── */
-  --text:    #0F1F2E;
-  --muted:   #5C7186;
-  --muted-2: #8CA0B3;
+  --text:    #F6F7FB;
+  --muted:   #B0B2C2;
+  --muted-2: #7E8091;
 
   /* ── สถานะ ── */
   --good: #16A34A;
   --warn: #F59E0B;
   --bad:  #E11D48;
 
-  --grid: rgba(15,31,46,0.08);
+  --grid: rgba(255,255,255,0.09);
 
   /* token ประกอบธีม */
-  --glow: 2,132,199;          /* สีเงา/แสง (r,g,b) */
-  --glow2: 16,185,129;
-  --hover: #E7F2FA;
-  --row-line: #EDF4F9;
-  --input-bg: #FFFFFF;
-  --sidebar-bg: #FFFFFF;
-  --tooltip-bg: #0F1F2E;
-  --scheme: light;
+  --glow: 225,6,0;            /* สีเงา/แสง (r,g,b) */
+  --glow2: 255,176,32;
+  --hover: #33333F;
+  --row-line: #2A2A36;
+  --input-bg: #14141C;
+  --sidebar-bg: #16161F;
+  --tooltip-bg: #14141C;
+  --scheme: dark;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -529,126 +529,6 @@ input[type="date"] { color-scheme: var(--scheme, light); }
 }
 
 /* ═══════════════════════════════════════════════
-   ธีมทางเลือก — สลับได้จากปุ่ม "ธีมสี" ใน sidebar
-   (ค่าเริ่มต้นคือ "สดใส ฟ้า-มิ้นต์" ตาม :root ด้านบน)
+   ธีม "ดำ-แดง Eaksaha" ถูกกำหนดเป็นธีมเดียวถาวรแล้วใน :root ด้านบน
+   (เดิมมีระบบสลับธีมได้ 4 แบบ ถูกลบออกตามคำขอ)
    ═══════════════════════════════════════════════ */
-
-/* ── นุ่มสบายตา: โทนเทาอุ่น + น้ำเงินหม่น + เขียวเสจ ── */
-html[data-theme="soft"] {
-  --accent:      #46698C;
-  --accent-deep: #37536F;
-  --accent-soft: #6C8FAE;
-  --mint:        #7FA184;
-  --mint-deep:   #5F8266;
-  --mint-soft:   #9DBBA1;
-  --bg:      #F4F4F2;
-  --bg2:     #ECEDEA;
-  --panel:   #FFFFFF;
-  --panel-2: #FFFFFF;
-  --panel-3: #F1F1EE;
-  --line:    #E2E3DE;
-  --line-2:  #D2D4CD;
-  --text:    #2A333C;
-  --muted:   #68727C;
-  --muted-2: #959EA7;
-  --grid: rgba(42,51,60,0.08);
-  --glow: 55,83,111;
-  --glow2: 95,130,102;
-  --hover: #EAEBE7;
-  --row-line: #F0F1ED;
-  --input-bg: #FFFFFF;
-  --sidebar-bg: #FFFFFF;
-  --tooltip-bg: #2A333C;
-  --scheme: light;
-}
-
-/* ── ดำ-แดง Eaksaha: โทนมืดพรีเมียมสีแบรนด์ ── */
-html[data-theme="dark-red"] {
-  --accent:      #FF3B3B;
-  --accent-deep: #C10500;
-  --accent-soft: #FF6A5A;
-  --mint:        #FFB020;
-  --mint-deep:   #D98E0B;
-  --mint-soft:   #FFC24B;
-  --bg:      #12121B;
-  --bg2:     #0C0C13;
-  --panel:   #1E1E29;
-  --panel-2: #232330;
-  --panel-3: #2E2E3C;
-  --line:    #363646;
-  --line-2:  #434353;
-  --text:    #F6F7FB;
-  --muted:   #B0B2C2;
-  --muted-2: #7E8091;
-  --grid: rgba(255,255,255,0.09);
-  --glow: 225,6,0;
-  --glow2: 255,176,32;
-  --hover: #33333F;
-  --row-line: #2A2A36;
-  --input-bg: #14141C;
-  --sidebar-bg: #16161F;
-  --tooltip-bg: #14141C;
-  --scheme: dark;
-}
-
-/* ── มืดน้ำเงิน: โทนมืดสุขุม ฟ้าน้ำเงิน ── */
-html[data-theme="midnight"] {
-  --accent:      #4C8DFF;
-  --accent-deep: #2F6BDB;
-  --accent-soft: #74A8FF;
-  --mint:        #22D3EE;
-  --mint-deep:   #0E9CB8;
-  --mint-soft:   #67E8F9;
-  --bg:      #0D1420;
-  --bg2:     #0A101A;
-  --panel:   #16202E;
-  --panel-2: #1A2534;
-  --panel-3: #223042;
-  --line:    #2A394E;
-  --line-2:  #37495F;
-  --text:    #EDF2F9;
-  --muted:   #96A5BA;
-  --muted-2: #6E7E94;
-  --grid: rgba(255,255,255,0.08);
-  --glow: 47,107,219;
-  --glow2: 14,156,184;
-  --hover: #26364B;
-  --row-line: #1F2C3D;
-  --input-bg: #0E1724;
-  --sidebar-bg: #111A28;
-  --tooltip-bg: #0A101A;
-  --scheme: dark;
-}
-
-/* ═══════════ ปุ่มเลือกธีม (sidebar) ═══════════ */
-.theme-picker {
-  padding: 16px 8px 0;
-  border-top: 1px solid var(--line);
-  margin-top: 16px;
-}
-.theme-picker .tp-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted-2);
-  margin-bottom: 10px;
-}
-.tp-row { display: flex; gap: 10px; }
-.tp-dot {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid var(--line);
-  padding: 0;
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-.tp-dot:hover { transform: scale(1.15); }
-.tp-dot.active {
-  border-color: var(--text);
-  box-shadow: 0 0 0 3px rgba(var(--glow),0.25);
-}
-.tp-fresh    { background: linear-gradient(135deg, #0EA5E9 50%, #10B981 50%); }
-.tp-soft     { background: linear-gradient(135deg, #46698C 50%, #7FA184 50%); }
-.tp-dark-red { background: linear-gradient(135deg, #1E1E29 50%, #FF3B3B 50%); }
-.tp-midnight { background: linear-gradient(135deg, #16202E 50%, #4C8DFF 50%); }
