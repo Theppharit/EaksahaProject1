@@ -1,0 +1,13 @@
+{# ลิงก์เมนู 1 รายการ — รับตัวแปร item #}
+{% if item.url_name %}
+  <a href="{% url item.url_name %}" class="nav-link{% if request.resolver_match.view_name == item.url_name %} is-active{% endif %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{{ item.icon|safe }}</svg>
+    <span>{{ item.label }}</span>
+  </a>
+{% else %}
+  <span class="nav-link is-soon" title="อยู่ระหว่างพัฒนา">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{{ item.icon|safe }}</svg>
+    <span>{{ item.label }}</span>
+    <span class="nav-soon">เร็ว ๆ นี้</span>
+  </span>
+{% endif %}

@@ -159,3 +159,44 @@ def dashboard_stats(user):
         "in_progress": qs.filter(status=BookingStatus.IN_PROGRESS).count(),
         "closed": qs.filter(status=BookingStatus.CLOSED).count(),
     }
+
+# ============================================================
+
+
+# ============================================================
+# 5 ขั้นตอนการดำเนินงานของคนขับ
+# ============================================================
+def complete_step(booking, user, code, note="", photos=None):
+    """
+    ทำขั้นตอนหนึ่งให้เสร็จ — ต้องทำเรียงลำดับ ข้ามไม่ได้
+    (สเปกกำหนดว่าต้องถ่ายรูปครบก่อนถึงจะไปขั้นถัดไปได้)
+    """
+    from django.utils import timezone
+
+    from .models import JobPhoto, JobStep, JobStepCode
+
+    if booking.truck_owner and booking.truck_owner.user_id != user.id and not user.is_superuser:
+        raise PermissionDenied("งานนี้ไม่ใช่ของคุณ")
+
+    order = list(JobStepCode.values)
+    if code not in order:
+        raise ValidationError("ไม่รู้จักขั้นตอนนี้")
+
+    steps = {s.code: s for s in booking.steps.all()}
+    idx = order.index(code)
+
+    for prev in order[:idx]:
+        if not (prev in steps and steps[prev].is_done):
+            raise ValidationError("ต้องทำขั้นตอนก่อนหน้าให้เสร็จก่อน")
+
+    step = steps.get(code) or JobStep.objects.create(booking=booking, code=code)
+    step.is_done = True
+    step.done_at = timezone.now()
+    step.done_by = user
+    step.note = note[:300]
+    step.save()
+
+    for f in photos or []:
+        JobPhoto.objects.create(step=step, image=f)
+
+    return step

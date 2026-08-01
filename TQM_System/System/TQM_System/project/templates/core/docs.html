@@ -1,0 +1,35 @@
+{% extends "dashboard/_base.html" %}
+{% block title %}การใช้งานระบบ{% endblock %}
+{% block page_heading %}การใช้งานระบบ{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>การใช้งานระบบ</h1>
+    <p class="page-sub">คู่มือและเอกสารที่เกี่ยวข้องกับตำแหน่งของคุณ กดเพื่อเปิดหรือดาวน์โหลด</p>
+  </div>
+</div>
+
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+  {% for d in items %}
+    <a href="{{ d.file.url }}" target="_blank" class="doc-card">
+      <span class="doc-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      </span>
+      <div class="min-w-0">
+        <p class="doc-title">{{ d.title }}</p>
+        {% if d.description %}<p class="cell-sub">{{ d.description }}</p>{% endif %}
+        <p class="cell-sub mt-1">อัปโหลด {{ d.created_at|date:"j M Y" }}</p>
+      </div>
+    </a>
+  {% empty %}
+    <div class="card sm:col-span-2 xl:col-span-3">
+      <div class="empty">
+        <svg class="size-9 opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <p>ยังไม่มีเอกสารสำหรับตำแหน่งของคุณ</p>
+        <p class="cell-sub">แอดมินเป็นผู้อัปโหลดและกำหนดว่าตำแหน่งไหนเห็นเอกสารใด</p>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

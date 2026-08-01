@@ -1,0 +1,73 @@
+{% extends "dashboard/_base.html" %}
+{% block title %}ดำเนินงาน {{ booking.booking_no }}{% endblock %}
+{% block page_heading %}ดำเนินงาน{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>ดำเนินงาน {{ booking.booking_no }}</h1>
+    <p class="page-sub">{{ booking.customer.name }} · ทำทีละขั้น ข้ามขั้นไม่ได้</p>
+  </div>
+  <a href="{% url 'jobs:detail' booking.pk %}" class="btn btn-outline">← กลับ</a>
+</div>
+
+<div class="mx-auto max-w-2xl space-y-4">
+  {% for s in steps %}
+    <div class="work-step {% if s.is_done %}is-done{% elif s.code == next_code %}is-current{% else %}is-locked{% endif %}">
+      <div class="work-head">
+        <span class="work-num">
+          {% if s.is_done %}
+            <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+          {% else %}{{ forloop.counter }}{% endif %}
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="work-title">{{ s.get_code_display }}</p>
+          {% if s.is_done %}
+            <p class="cell-sub">เสร็จเมื่อ {{ s.done_at|date:"j M H:i" }} น. · {{ s.done_by.get_full_name|default:s.done_by.username }}</p>
+          {% elif s.code == next_code %}
+            <p class="cell-sub">ขั้นตอนที่ต้องทำตอนนี้</p>
+          {% else %}
+            <p class="cell-sub">รอทำขั้นก่อนหน้าให้เสร็จก่อน</p>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if s.code == next_code %}
+        <form method="post" action="{% url 'jobs:step_done' booking.pk s.code %}"
+              enctype="multipart/form-data" class="work-form">
+          {% csrf_token %}
+          <div class="field">
+            <label class="label" for="ph{{ forloop.counter }}">ถ่ายรูป / เลือกรูป (เลือกได้หลายรูป)</label>
+            <input type="file" name="photos" id="ph{{ forloop.counter }}" class="input"
+                   accept="image/*" capture="environment" multiple>
+            <p class="help">บนมือถือจะเปิดกล้องให้ทันที</p>
+          </div>
+          <div class="field">
+            <label class="label" for="nt{{ forloop.counter }}">หมายเหตุ (ถ้ามี)</label>
+            <textarea name="note" id="nt{{ forloop.counter }}" rows="2" class="textarea" placeholder="เช่น มีรอยขีดข่วนด้านซ้าย"></textarea>
+          </div>
+          <button class="btn btn-primary btn-lg" data-confirm="ยืนยันว่าทำขั้นตอนนี้เสร็จแล้ว?">
+            ยืนยันว่าทำเสร็จแล้ว
+          </button>
+        </form>
+      {% endif %}
+
+      {% if s.photos.exists %}
+        <div class="work-photos">
+          {% for p in s.photos.all %}<img src="{{ p.image.url }}" alt="">{% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  {% empty %}
+    <div class="card"><div class="empty"><p>งานนี้ยังไม่ได้เริ่มดำเนินการ</p></div></div>
+  {% endfor %}
+
+  {% if all_done %}
+    <div class="alert alert-success">
+      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+      <span>ทำครบทุกขั้นตอนแล้ว — กลับไปที่หน้ารายละเอียดเพื่อกดปิดงาน</span>
+    </div>
+    <a href="{% url 'jobs:detail' booking.pk %}" class="btn btn-primary btn-lg">ไปหน้าปิดงาน</a>
+  {% endif %}
+</div>
+{% endblock %}

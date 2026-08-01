@@ -1,0 +1,58 @@
+{% extends "dashboard/_base.html" %}
+{% block title %}อัพโหลดเอกสาร{% endblock %}
+{% block page_heading %}อัพโหลดเอกสารการใช้งานระบบ{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>เอกสารการใช้งานระบบ</h1>
+    <p class="page-sub">อัปโหลดคู่มือ แล้วติ๊กว่าตำแหน่งไหนเห็นเอกสารนี้ได้บ้าง</p>
+  </div>
+</div>
+
+<div class="grid-main">
+  <div class="card">
+    <div class="card-head"><h3 class="card-title">อัปโหลดเอกสารใหม่</h3></div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data" class="space-y-4">
+        {% csrf_token %}
+        {% for f in form %}
+          <div class="field">
+            <label class="label {% if f.field.required %}label-req{% endif %}">{{ f.label }}</label>
+            {% if f.name == "roles" %}
+              <div class="check-grid">
+                {% for c in f %}<label class="check-row">{{ c.tag }} {{ c.choice_label }}</label>{% endfor %}
+              </div>
+            {% else %}{{ f }}{% endif %}
+            {% if f.help_text %}<p class="help">{{ f.help_text }}</p>{% endif %}
+            {% for e in f.errors %}<p class="error">{{ e }}</p>{% endfor %}
+          </div>
+        {% endfor %}
+        <button class="btn btn-primary w-full">อัปโหลดเอกสาร</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-wide card">
+    <div class="card-head"><h3 class="card-title">เอกสารในระบบ</h3></div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>ชื่อเอกสาร</th><th>ตำแหน่งที่เห็น</th><th>ผู้อัปโหลด</th><th>เมื่อ</th><th class="act"></th></tr></thead>
+        <tbody>
+          {% for d in docs %}
+            <tr>
+              <td><p class="cell-main">{{ d.title }}</p><p class="cell-sub">{{ d.description }}</p></td>
+              <td class="cell-sub">{{ d.role_labels }}</td>
+              <td class="cell-sub">{{ d.uploaded_by.get_full_name|default:d.uploaded_by.username }}</td>
+              <td class="cell-sub">{{ d.created_at|date:"j M y" }}</td>
+              <td class="act"><a href="{{ d.file.url }}" target="_blank" class="btn btn-outline btn-sm">เปิด</a></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5"><div class="empty"><p>ยังไม่มีเอกสาร</p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

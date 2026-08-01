@@ -1,0 +1,40 @@
+{% extends "dashboard/_base.html" %}
+{% block title %}{% if driver %}แก้ไขคนขับ{% else %}เพิ่มคนขับ{% endif %}{% endblock %}
+{% block page_heading %}{% if driver %}แก้ไขข้อมูลคนขับ{% else %}เพิ่มคนขับ{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{% if driver %}แก้ไขข้อมูล {{ driver.name }}{% else %}เพิ่มคนขับใหม่{% endif %}</h1>
+    <p class="page-sub">กรอกชื่อและเบอร์โทรเป็นอย่างน้อย ที่เหลือเพิ่มทีหลังได้</p>
+  </div>
+  <a href="{% url 'fleet:driver_list' %}" class="btn btn-outline">← ยกเลิก</a>
+</div>
+
+<div class="card max-w-3xl">
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data" class="space-y-5">
+      {% csrf_token %}
+      <div class="form-grid">
+        {% for f in form %}
+          <div class="field {% if f.name == 'photo' %}form-full{% endif %}">
+            {% if f.field.widget.input_type == 'checkbox' %}
+              <label class="check-row">{{ f }} {{ f.label }}</label>
+              {% if f.help_text %}<p class="help">{{ f.help_text }}</p>{% endif %}
+            {% else %}
+              <label class="label {% if f.field.required %}label-req{% endif %}" for="{{ f.id_for_label }}">{{ f.label }}</label>
+              {{ f }}
+              {% if f.help_text %}<p class="help">{{ f.help_text }}</p>{% endif %}
+            {% endif %}
+            {% for e in f.errors %}<p class="error">{{ e }}</p>{% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+      <div class="flex flex-wrap justify-end gap-2 border-t border-neutral-200 pt-4">
+        <a href="{% url 'fleet:driver_list' %}" class="btn btn-ghost">ยกเลิก</a>
+        <button type="submit" class="btn btn-primary">บันทึกข้อมูล</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

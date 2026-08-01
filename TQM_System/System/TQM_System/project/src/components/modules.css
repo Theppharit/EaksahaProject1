@@ -1,0 +1,217 @@
+/* ============================================================
+   modules.css — ชิ้นส่วนเฉพาะบางหน้า
+   ------------------------------------------------------------
+   รวมของที่ใช้แค่ 1–2 หน้า ไม่ใช่ของกลางทั้งระบบ:
+     แจ้งเตือน · เอกสาร · การ์ดคนขับ · ออกบิล
+     การ์ดใบจอง (มือถือ) · 5 ขั้นตอนหน้างาน · ใบจองคิว
+   ============================================================ */
+
+@layer components {
+  /* ── รายการแจ้งเตือน ──────────────────────── */
+  .noti {
+    @apply flex flex-col gap-3 p-5 sm:flex-row sm:items-start;
+  }
+  .noti + .noti {
+    border-top: 1px solid var(--color-line);
+  }
+  .noti-dot {
+    @apply mt-1.5 hidden size-2 shrink-0 rounded-full bg-transparent sm:block;
+  }
+  .noti.is-unread {
+    background-color: color-mix(in oklab, var(--color-accent) 4%, white);
+  }
+  .noti.is-unread .noti-dot {
+    background-color: var(--color-accent);
+  }
+  .noti-title {
+    @apply text-[15px] font-medium;
+  }
+  .noti-body {
+    color: var(--color-ink-soft);
+    @apply text-[14px];
+  }
+
+  /* ── การ์ดเอกสาร ─────────────────────────── */
+  .doc-card {
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-card);
+    @apply flex items-start gap-4 rounded-card p-5 transition hover:shadow-lg;
+  }
+  .doc-icon {
+    background-color: color-mix(in oklab, var(--color-accent) 12%, white);
+    color: var(--color-accent);
+    @apply grid size-11 shrink-0 place-items-center rounded-2xl;
+  }
+  .doc-icon svg {
+    @apply size-5;
+  }
+  .doc-title {
+    @apply font-kanit text-[15px] font-semibold;
+  }
+
+  /* ── การ์ดคนขับ ──────────────────────────── */
+  .person-card {
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-card);
+    @apply flex items-center gap-3 rounded-card p-4 transition hover:shadow-lg;
+  }
+  .person-name {
+    @apply font-kanit text-[15px] font-semibold;
+  }
+
+  /* ── แถวออกบิล ───────────────────────────── */
+  .bill-group {
+    background-color: var(--color-surface-2);
+    @apply flex flex-col gap-3 rounded-card p-4 sm:flex-row sm:items-center sm:gap-5;
+  }
+  .bill-group > .btn {
+    @apply w-full sm:ml-auto sm:w-auto;
+  }
+
+  /* ── การ์ดใบจองสำหรับมือถือ (แทนตาราง) ────── */
+  .job-card {
+    background-color: var(--color-surface);
+    @apply mx-4 mb-3 block space-y-1 rounded-card p-4 first:mt-2 last:mb-5;
+    box-shadow: var(--shadow-card);
+  }
+  .job-no {
+    @apply font-kanit text-[15px] font-semibold;
+  }
+  .job-cust {
+    @apply text-[14px] font-medium;
+  }
+
+  /* ── 5 ขั้นตอนการทำงานหน้างาน ─────────────── */
+  .work-step {
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-card);
+    @apply space-y-4 rounded-card p-5;
+  }
+  .work-head {
+    @apply flex items-start gap-3;
+  }
+  .work-num {
+    background-color: var(--color-surface-2);
+    color: var(--color-ink-soft);
+    @apply grid size-10 shrink-0 place-items-center rounded-full font-kanit font-bold;
+  }
+  .work-title {
+    @apply font-kanit text-[16px] font-semibold;
+  }
+
+  .work-step.is-done {
+    background-color: color-mix(in oklab, var(--color-status-done) 5%, white);
+  }
+  .work-step.is-done .work-num {
+    background-color: var(--color-status-done);
+    @apply text-white;
+  }
+
+  .work-step.is-current {
+    box-shadow: var(--shadow-pop), 0 0 0 2px var(--color-accent);
+  }
+  .work-step.is-current .work-num {
+    background-color: var(--color-accent);
+    @apply text-white;
+  }
+
+  .work-step.is-locked {
+    @apply opacity-50;
+  }
+
+  .work-form {
+    border-top: 1px solid var(--color-line);
+    @apply space-y-4 pt-4;
+  }
+  .work-photos {
+    @apply flex flex-wrap gap-2;
+  }
+  .work-photos img {
+    @apply size-20 rounded-xl object-cover;
+  }
+
+  /* ── ใบจองคิว (พิมพ์ได้) ─────────────────── */
+  .slip {
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-card);
+    @apply mx-auto max-w-3xl rounded-card;
+  }
+  .slip-head {
+    border-bottom: 3px solid var(--color-brand);
+    @apply flex flex-wrap items-start justify-between gap-3 p-6;
+  }
+  .slip-brand {
+    @apply font-kanit text-2xl font-bold;
+  }
+  .slip-sub {
+    color: var(--color-ink-soft);
+    @apply text-[13px];
+  }
+  .slip-no {
+    @apply font-kanit text-xl font-bold;
+  }
+  .slip-body {
+    @apply space-y-6 p-6;
+  }
+  .slip-h {
+    border-bottom: 1px solid var(--color-line);
+    @apply mb-3 pb-1.5 font-kanit text-[15px] font-semibold;
+  }
+  .slip-total {
+    background-color: var(--color-surface-2);
+    @apply flex items-center justify-between rounded-card px-5 py-4
+           font-kanit text-lg font-bold;
+  }
+  .slip-sign {
+    @apply grid grid-cols-1 gap-8 pt-10 sm:grid-cols-3;
+  }
+  .slip-sign p {
+    color: var(--color-ink-soft);
+    @apply mt-2 text-center text-[13px];
+  }
+  .sign-line {
+    border-bottom: 1px dotted #999;
+  }
+  .slip-foot {
+    color: var(--color-ink-soft);
+    border-top: 1px solid var(--color-line);
+    @apply p-4 text-center text-[12px];
+  }
+}
+
+/* ============================================================
+   สไตล์ตอนพิมพ์ — ซ่อนเมนูและปุ่ม เหลือแต่เนื้อหา
+   ============================================================ */
+@media print {
+  .sidebar,
+  .sidebar-scrim,
+  .topbar,
+  .bottom-nav,
+  .no-print,
+  .page-head {
+    display: none !important;
+  }
+  /* ปลดล็อกความสูง/การสกรอลล์ ไม่งั้นพิมพ์ออกมาได้แค่หน้าจอเดียว */
+  .app-frame,
+  .app-window,
+  .app-main {
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .page {
+    padding: 0 !important;
+  }
+  .slip {
+    box-shadow: none;
+    max-width: 100%;
+  }
+  body {
+    background: #fff;
+  }
+}

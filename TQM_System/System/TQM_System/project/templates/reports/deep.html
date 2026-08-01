@@ -1,0 +1,85 @@
+{% extends "dashboard/_base.html" %}
+{% block title %}รายงานเชิงลึก{% endblock %}
+{% block page_heading %}รายงานเชิงลึก{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>รายงานเชิงลึก</h1>
+    <p class="page-sub">เลือกเงื่อนไขที่ต้องการก่อน แล้วกดแสดงผล — เลือกได้หลายเงื่อนไขพร้อมกัน</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head"><h3 class="card-title">1. เลือกเงื่อนไข</h3></div>
+  <div class="card-body">
+    <form method="get" class="space-y-5">
+      <div class="form-grid">
+        <div class="field">
+          <label class="label" for="days">ช่วงเวลา</label>
+          <select name="days" id="days" class="select">
+            {% for v, l in ranges %}<option value="{{ v }}" {% if days == v %}selected{% endif %}>{{ l }}ล่าสุด</option>{% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="status">สถานะงาน</label>
+          <select name="status" id="status" class="select">
+            <option value="">ทุกสถานะ</option>
+            {% for v, l in statuses %}<option value="{{ v }}" {% if status == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="driver">คนขับ</label>
+          <select name="driver" id="driver" class="select">
+            <option value="">ทุกคน</option>
+            {% for d in drivers %}<option value="{{ d.pk }}" {% if driver_id == d.pk|stringformat:"s" %}selected{% endif %}>{{ d.name }} ({{ d.owner.name }})</option>{% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="sales">เซลล์</label>
+          <select name="sales" id="sales" class="select">
+            <option value="">ทุกคน</option>
+            {% for s in sales_users %}<option value="{{ s.pk }}" {% if sales_id == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.get_full_name|default:s.username }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <button name="go" value="1" class="btn btn-primary btn-lg sm:w-auto sm:px-8">แสดงผลรายงาน</button>
+    </form>
+  </div>
+</div>
+
+{% if submitted and result %}
+  <div class="grid-stats">
+    <div class="stat"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg></div>
+      <div><p class="stat-label">จำนวนงานทั้งหมด</p><p class="stat-value">{{ result.count }}<span class="stat-unit">งาน</span></p></div></div>
+    <div class="stat"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></div>
+      <div><p class="stat-label">มูลค่ารวม</p><p class="stat-value">{{ result.revenue|floatformat:0 }}<span class="stat-unit">บาท</span></p></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3 class="card-title">2. สรุปตามสถานะ</h3></div>
+    <div class="card-body space-y-3">
+      {% for row in result.by_status %}
+        <div class="bar-row">
+          <span class="bar-label">{{ row.label }}</span>
+          <div class="bar"><div class="bar-fill" style="width: {% widthratio row.n result.count 100 %}%"></div></div>
+          <span class="bar-value tabular">{{ row.n }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3 class="card-title">3. รายการงาน</h3></div>
+    {% include "partials/_booking_table.html" with bookings=result.rows %}
+  </div>
+{% elif submitted %}
+  <div class="card"><div class="empty"><p>ไม่พบข้อมูลตามเงื่อนไขที่เลือก</p></div></div>
+{% else %}
+  <div class="card"><div class="empty">
+    <svg class="size-10 opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+    <p>เลือกเงื่อนไขด้านบนแล้วกด <strong>แสดงผลรายงาน</strong></p>
+    <p class="cell-sub">ระบบจะไม่ดึงข้อมูลจนกว่าคุณจะเลือกเงื่อนไข เพื่อให้แสดงผลเร็ว</p>
+  </div></div>
+{% endif %}
+{% endblock %}

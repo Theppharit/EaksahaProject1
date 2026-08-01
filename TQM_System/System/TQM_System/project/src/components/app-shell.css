@@ -1,0 +1,215 @@
+/* ============================================================
+   app-shell.css — โครงหน้าจอทั้งระบบ
+   ------------------------------------------------------------
+   แนวคิด "กระดาษ 2 แผ่น" — เต็มหน้าจอ 100% ไม่มีขอบเหลือ
+     แผ่นที่ 1  พื้นดำเต็มจอ = เมนูซ้าย (.app-frame + .sidebar)
+     แผ่นที่ 2  พื้นเนื้อหาขอบมนด้านซ้าย วางทับแผ่นแรกอยู่ (.app-main)
+
+   โครง: app-frame → app-window → (sidebar + app-main)
+                                    app-main = topbar + page
+
+   จอเล็ก: เมนูซ้ายเลื่อนทับ / แผ่นที่ 2 เต็มจอ ไม่มีขอบมน / เลื่อนทั้งหน้า
+   จอใหญ่: เมนูซ้ายค้างอยู่กับที่ / แผ่นที่ 2 มนด้านซ้าย + เลื่อนข้างในตัวเอง
+   ============================================================ */
+
+@layer components {
+  /* ── แผ่นที่ 1: พื้นดำเต็มจอ ─────────────────── */
+  /* จอใหญ่ล็อกความสูงไว้ที่ 1 หน้าจอ แล้วให้เลื่อนข้างในแผ่นที่ 2 แทน
+     → มุมมนของแผ่นที่ 2 อยู่กับที่ ไม่เลื่อนตามตอนสกรอลล์            */
+  .app-frame {
+    background-color: var(--color-ink);
+    @apply min-h-screen w-full lg:h-screen lg:overflow-hidden;
+  }
+
+  /* ตัวจัดแถว ไม่มีหน้าตาของตัวเอง — ปล่อยให้สีดำข้างหลังทะลุมา */
+  .app-window {
+    @apply relative flex min-h-screen w-full lg:h-full lg:min-h-0;
+  }
+
+  /* ══════════ เมนูซ้าย (ส่วนที่เห็นของแผ่นแรก) ══════════ */
+  .sidebar {
+    background-color: var(--color-ink);
+    @apply fixed inset-y-0 left-0 z-40 flex w-[268px] -translate-x-full flex-col
+           text-neutral-400 transition-transform duration-200
+           lg:static lg:h-full lg:shrink-0 lg:translate-x-0;
+  }
+  .sidebar.is-open {
+    @apply translate-x-0;
+  }
+
+  .sidebar-brand {
+    @apply flex h-20 shrink-0 items-center gap-3 px-6;
+  }
+  .sidebar-brand-name {
+    @apply font-kanit text-[17px] font-semibold leading-tight text-white;
+  }
+  .sidebar-brand-role {
+    color: var(--color-accent);
+    @apply text-[12px] leading-tight;
+  }
+
+  .sidebar-nav {
+    @apply flex-1 space-y-1 overflow-y-auto px-4 py-3;
+  }
+  .sidebar-section {
+    @apply px-3 pb-1 pt-5 text-[11px] font-semibold uppercase tracking-widest text-neutral-600;
+  }
+
+  /* ลิงก์เมนู — ไม่มีกล่อง ใช้จุดเล็กบอกหน้าที่เปิดอยู่ */
+  .nav-link {
+    @apply relative flex w-full items-center gap-3.5 rounded-xl px-3 py-3
+           text-left text-[14.5px] transition;
+  }
+  .nav-link svg {
+    @apply size-[20px] shrink-0;
+  }
+  .nav-link:hover {
+    @apply text-white;
+  }
+  .nav-link.is-active {
+    @apply font-medium text-white;
+  }
+  .nav-link.is-active::after {
+    content: "";
+    background-color: var(--color-accent);
+    @apply absolute right-3 size-2 rounded-full;
+  }
+
+  /* เมนูที่ยังไม่ได้ทำ */
+  .nav-link.is-soon {
+    @apply cursor-default text-neutral-600;
+  }
+  .nav-link.is-soon:hover {
+    @apply text-neutral-600;
+  }
+  .nav-soon {
+    @apply ml-auto rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-neutral-500;
+  }
+
+  /* ปุ่มออกจากระบบ — แคปซูลขาวท้ายเมนู */
+  .sidebar-foot {
+    @apply space-y-2 px-4 pb-6 pt-3;
+  }
+  .btn-logout {
+    @apply flex w-full items-center justify-center gap-2.5 rounded-pill
+           bg-white px-4 py-3 text-[14.5px] font-medium text-neutral-900
+           transition hover:bg-neutral-100;
+  }
+  .btn-logout svg {
+    @apply size-[18px];
+  }
+
+  .sidebar-scrim {
+    @apply fixed inset-0 z-30 hidden bg-black/50 lg:hidden;
+  }
+  .sidebar-scrim.is-open {
+    @apply block;
+  }
+
+  /* ══════════ แผ่นที่ 2: พื้นเนื้อหาวางทับ ══════════ */
+  /* จอใหญ่: ตัวนี้คือกล่องที่สกรอลล์ ไม่ใช่ทั้งหน้า
+     ตัวกล่องจึงอยู่นิ่ง มุมมนบน-ล่างเลยไม่ขยับ                     */
+  .app-main {
+    background-color: var(--color-canvas);
+    @apply flex min-h-screen min-w-0 flex-1 flex-col
+           lg:h-full lg:min-h-0 lg:overflow-y-auto;
+  }
+
+  /* ── แถบบน: สีเดียวกับแผ่นที่ 2 ไม่มีเส้นคั่น ── */
+  .topbar {
+    background-color: var(--color-canvas);
+    @apply sticky top-0 z-20 flex items-center gap-3 px-4 py-4 sm:px-6;
+  }
+  .topbar-title {
+    @apply truncate font-kanit text-[18px] font-semibold;
+  }
+  .topbar-spacer {
+    @apply ml-auto;
+  }
+
+  /* ปุ่มไอคอนทรงกลม */
+  .icon-btn {
+    background-color: var(--color-surface);
+    color: var(--color-ink-soft);
+    @apply relative grid size-11 shrink-0 place-items-center rounded-pill
+           transition hover:text-neutral-900;
+  }
+
+  .avatar {
+    background-color: var(--color-accent);
+    @apply grid size-10 shrink-0 place-items-center rounded-pill
+           font-kanit text-sm font-semibold text-white;
+  }
+
+  /* กลุ่มปุ่มขวาบนแบบแคปซูลเดียว */
+  .topbar-actions {
+    background-color: var(--color-surface);
+    @apply flex items-center gap-1 rounded-pill p-1.5;
+  }
+
+  /* ── พื้นที่เนื้อหา ──────────────────────────── */
+  .page {
+    @apply w-full flex-1 space-y-5 px-4 pb-6 sm:px-6;
+  }
+  .page-head {
+    @apply flex flex-wrap items-end justify-between gap-3;
+  }
+  .page-sub {
+    color: var(--color-ink-soft);
+    @apply text-sm;
+  }
+
+  .grid-stats {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4;
+  }
+  .grid-main {
+    @apply grid grid-cols-1 gap-5 lg:grid-cols-3;
+  }
+  .col-wide {
+    @apply lg:col-span-2;
+  }
+
+  /* ══════════ แถบเมนูล่าง (มือถือ) ══════════ */
+  .bottom-nav {
+    background-color: var(--color-surface);
+    box-shadow: 0 -4px 20px -8px rgb(0 0 0 / 0.15);
+    padding-bottom: env(safe-area-inset-bottom);
+    @apply fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 lg:hidden;
+  }
+  .bn-item {
+    color: var(--color-ink-soft);
+    /* สูง 60px = แตะง่ายด้วยนิ้วโป้ง */
+    @apply flex min-h-[60px] flex-col items-center justify-center gap-1 px-1 text-[11px];
+  }
+  .bn-item svg {
+    @apply size-6;
+  }
+  .bn-item.is-active {
+    color: var(--color-accent);
+    @apply font-medium;
+  }
+  .page.has-bottom-nav {
+    @apply pb-24 lg:pb-6;
+  }
+}
+
+/* ============================================================
+   ขอบมนของแผ่นที่ 2 — เปิดเฉพาะจอใหญ่
+   ------------------------------------------------------------
+   มนแค่ด้านซ้าย ส่วนบน/ขวา/ล่างชิดขอบจอ → ยังเต็มหน้าจอ 100%
+   ตรงมุมที่เว้าเข้าไปจะเห็นสีดำของแผ่นแรก = เหมือนกระดาษวางทับกัน
+   เงาด้านซ้ายช่วยให้ดูเป็นคนละแผ่นจริง ๆ
+   ============================================================ */
+@media (min-width: 1024px) {
+  .app-main {
+    border-top-left-radius: var(--radius-window);
+    border-bottom-left-radius: var(--radius-window);
+    box-shadow: var(--shadow-window);
+  }
+
+  /* แถบบนมีพื้นหลังของตัวเอง (ต้องทึบเวลาเนื้อหาเลื่อนลอดข้างใต้)
+     ถ้าไม่มนตาม จะไปทับมุมบนซ้ายของแผ่นที่ 2 ให้กลายเป็นมุมเหลี่ยม */
+  .topbar {
+    border-top-left-radius: var(--radius-window);
+  }
+}

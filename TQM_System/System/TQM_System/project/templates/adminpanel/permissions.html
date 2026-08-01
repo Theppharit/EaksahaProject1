@@ -1,0 +1,49 @@
+{% extends "dashboard/_base.html" %}
+{% block title %}สิทธิ์การเข้าถึง{% endblock %}
+{% block page_heading %}สิทธิ์การเข้าถึง{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>สิทธิ์การเข้าถึง</h1>
+    <p class="page-sub">เปลี่ยนตำแหน่งของผู้ใช้ — ระบบจะส่งแจ้งเตือนให้เจ้าของบัญชีกดยืนยันรับทราบโดยอัตโนมัติ</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>ผู้ใช้</th><th>รหัสพนักงาน</th><th>ตำแหน่ง</th><th>เปิดใช้งาน</th><th>ยืนยันตัวตน</th><th class="act"></th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="user_id" value="{{ r.user.pk }}">
+              <td>
+                <div class="flex items-center gap-3">
+                  <span class="avatar size-8 text-[12px]">{{ r.user.initials }}</span>
+                  <div class="min-w-0">
+                    <p class="cell-main">{{ r.user.get_full_name|default:r.user.username }}</p>
+                    <p class="cell-sub">{{ r.user.email|default:"—" }}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="cell-main">{{ r.user.username }}</td>
+              <td>{{ r.form.role }}</td>
+              <td class="text-center">{{ r.form.is_active }}</td>
+              <td class="text-center">{{ r.form.id_verified }}</td>
+              <td class="act"><button class="btn btn-primary btn-sm" data-confirm="ยืนยันเปลี่ยนสิทธิ์ของ {{ r.user.username }}?">บันทึก</button></td>
+            </form>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="alert alert-warning">
+  <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg>
+  <span>การเปลี่ยนตำแหน่งมีผลทันที ผู้ใช้จะเห็นเมนูและข้อมูลชุดใหม่ในการเข้าใช้ครั้งถัดไป</span>
+</div>
+{% endblock %}

@@ -12,7 +12,13 @@
       </h1>
       <p class="page-sub">สร้างเมื่อ {{ booking.created_at|date:"j M Y H:i" }} น. โดย {{ booking.created_by.get_full_name|default:booking.created_by.username }}</p>
     </div>
-    <a href="{% url 'jobs:list' %}" class="btn btn-outline">← กลับรายการ</a>
+    <div class="flex flex-wrap gap-2">
+      <a href="{% url 'jobs:slip' booking.pk %}" class="btn btn-outline">ใบจองคิว</a>
+      {% if booking.status == "in_progress" and user.role == "trailer" %}
+        <a href="{% url 'jobs:work' booking.pk %}" class="btn btn-primary">ดำเนินงาน 5 ขั้นตอน</a>
+      {% endif %}
+      <a href="{% url 'jobs:list' %}" class="btn btn-ghost">← กลับ</a>
+    </div>
   </div>
 
   <div class="grid-main">
@@ -84,6 +90,9 @@
         <div class="card">
           <div class="card-head"><h3 class="card-title">ขั้นตอนการดำเนินงาน</h3></div>
           <div class="card-body">
+            {% if user.role == "trailer" %}
+              <a href="{% url 'jobs:work' booking.pk %}" class="btn btn-primary mb-4 w-full">เปิดหน้าดำเนินงาน</a>
+            {% endif %}
             <ol class="steps">
               {% for s in steps %}
                 <li class="step {% if s.is_done %}is-done{% endif %}">

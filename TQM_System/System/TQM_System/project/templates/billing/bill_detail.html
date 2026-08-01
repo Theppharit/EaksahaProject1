@@ -1,0 +1,66 @@
+{% extends "dashboard/_base.html" %}
+{% block title %}{{ bill.bill_no }}{% endblock %}
+{% block page_heading %}บิล {{ bill.bill_no }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ bill.bill_no }}
+      {% if bill.status == "paid" %}<span class="badge badge-done">จ่ายแล้ว</span>{% else %}<span class="badge badge-wait">รอชำระ</span>{% endif %}
+    </h1>
+    <p class="page-sub">{{ bill.truck_owner.name }} · รอบ {{ bill.period_start|date:"j M" }} – {{ bill.period_end|date:"j M Y" }}</p>
+  </div>
+  <div class="flex gap-2">
+    <button onclick="window.print()" class="btn btn-outline">พิมพ์</button>
+    <a href="{% url 'billing:bill_list' %}" class="btn btn-ghost">← กลับ</a>
+  </div>
+</div>
+
+<div class="grid-main">
+  <div class="col-wide card">
+    <div class="card-head"><h3 class="card-title">รายการในบิล</h3></div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>เลขที่งาน</th><th>ลูกค้า</th><th>คนขับ</th><th class="num">จำนวนเงิน</th></tr></thead>
+        <tbody>
+          {% for i in items %}
+            <tr>
+              <td class="cell-main"><a href="{% url 'jobs:detail' i.booking.pk %}" class="text-brand">{{ i.booking.booking_no }}</a></td>
+              <td>{{ i.booking.customer.name }}</td>
+              <td>{{ i.booking.driver.name|default:"—" }}</td>
+              <td class="num">{{ i.amount|floatformat:2 }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot><tr><td colspan="3" class="px-5 py-3 font-kanit font-semibold">ยอดรวม</td><td class="num px-5 py-3 font-kanit font-semibold">{{ bill.total_amount|floatformat:2 }}</td></tr></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3 class="card-title">การชำระเงิน</h3></div>
+    <div class="card-body space-y-4">
+      <dl class="space-y-3">
+        <div><dt class="cell-sub">ผู้ออกบิล</dt><dd>{{ bill.issued_by.get_full_name|default:bill.issued_by.username }}</dd></div>
+        <div><dt class="cell-sub">ออกเมื่อ</dt><dd>{{ bill.issued_at|date:"j M Y H:i"|default:"—" }}</dd></div>
+        <div><dt class="cell-sub">จ่ายเมื่อ</dt><dd>{{ bill.paid_at|date:"j M Y H:i"|default:"— ยังไม่จ่าย —" }}</dd></div>
+      </dl>
+      {% if can_edit %}
+        <form method="post" class="space-y-3 border-t border-neutral-200 pt-4">
+          {% csrf_token %}
+          {% for f in form %}
+            <div class="field">
+              <label class="label" for="{{ f.id_for_label }}">{{ f.label }}</label>{{ f }}
+              {% for e in f.errors %}<p class="error">{{ e }}</p>{% endfor %}
+            </div>
+          {% endfor %}
+          <p class="help">กรอกเลข PO แล้วบันทึก ระบบจะถือว่าบิลนี้จ่ายเงินเรียบร้อยแล้ว</p>
+          <button class="btn btn-primary w-full">บันทึกเลข PO</button>
+        </form>
+      {% else %}
+        <div><p class="cell-sub">เลข PO</p><p class="font-kanit text-lg">{{ bill.po_no|default:"— ยังไม่มี —" }}</p></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

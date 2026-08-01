@@ -1,8 +1,8 @@
-{# ============================================================
+{% comment %} ============================================================
    ตารางใบจอง — ใช้ร่วมกันทั้งแดชบอร์ดและหน้ารายการ
    รับตัวแปร: bookings
-   ============================================================ #}
-<div class="table-wrap">
+   ============================================================ {% endcomment %}
+<div class="table-wrap hidden md:block">
   <table class="table">
     <thead>
       <tr>
@@ -45,6 +45,7 @@
           <td>{% include "partials/_status_badge.html" with status=b.status label=b.get_status_display %}</td>
           <td class="act">
             <a href="{% url 'jobs:detail' b.pk %}" class="btn btn-outline btn-sm">รายละเอียด</a>
+            <a href="{% url 'jobs:slip' b.pk %}" class="btn btn-ghost btn-sm">ใบจองคิว</a>
           </td>
         </tr>
       {% empty %}
@@ -59,4 +60,22 @@
       {% endfor %}
     </tbody>
   </table>
+</div>
+
+{# ── มือถือ: แสดงเป็นการ์ดแทนตาราง อ่านง่ายกว่ามาก ── #}
+<div class="md:hidden">
+  {% for b in bookings %}
+    <a href="{% url 'jobs:detail' b.pk %}" class="job-card">
+      <div class="flex items-start justify-between gap-2">
+        <p class="job-no">{{ b.booking_no }}</p>
+        {% include "partials/_status_badge.html" with status=b.status label=b.get_status_display %}
+      </div>
+      <p class="job-cust">{{ b.customer.name }}</p>
+      <p class="cell-sub">{{ b.appointment_at|date:"j M y H:i" }} น.</p>
+      <p class="cell-sub line-2">{{ b.pickup_address }} → {{ b.dropoff_address }}</p>
+      {% if b.driver %}<p class="cell-sub">คนขับ: {{ b.driver.name }}</p>{% endif %}
+    </a>
+  {% empty %}
+    <div class="empty"><p>ยังไม่มีใบจองในเงื่อนไขนี้</p></div>
+  {% endfor %}
 </div>

@@ -1,0 +1,30 @@
+{% extends "dashboard/_base.html" %}
+{% block title %}ยืนยันตัวตน{% endblock %}
+{% block page_heading %}ยืนยันตัวตน{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-md">
+  <div class="card">
+    <div class="card-body space-y-5 text-center">
+      <div class="mx-auto grid size-14 place-items-center rounded-full" style="background:color-mix(in oklab, var(--color-accent) 12%, white); color:var(--color-accent)">
+        <svg class="size-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4" stroke-linecap="round"/></svg>
+      </div>
+      <div>
+        <h1 class="text-xl">ยืนยันว่าเป็นคุณจริง</h1>
+        <p class="page-sub mt-1">กรอกรหัสผ่านของคุณอีกครั้งเพื่อความปลอดภัย</p>
+      </div>
+
+      <form method="post" class="space-y-4 text-left">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        <div class="field">
+          <label class="label" for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+          {{ form.password }}
+          {% for e in form.password.errors %}<p class="error">{{ e }}</p>{% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">ยืนยันตัวตน</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
 /* ============================================================
-   auth.css — หน้า login / ลืมรหัสผ่าน
+   auth.css — หน้า login · ลืมรหัสผ่าน
    แยกไฟล์เพราะหน้าตาไม่เหมือนหน้าอื่นในระบบเลย
    ============================================================ */
 
@@ -7,10 +7,8 @@
   /* พื้นหลังหน้า login
      ------------------------------------------------------------
      ⚠ ห้ามใส่ url("...") ตรงนี้
-     Tailwind v4 คำนวณ path ใน url() ใหม่ตอน build โดยอิงตำแหน่ง
-     ของ src/input.css ทำให้ path เพี้ยน
-
-     วิธีที่ถูกคือส่งรูปเข้ามาทางตัวแปร --auth-image จากฝั่ง template:
+     Tailwind v4 คำนวณ path ใน url() ใหม่ตอน build ทำให้ path เพี้ยน
+     ให้ส่งรูปเข้ามาทางตัวแปร --auth-image จากฝั่ง template แทน:
          <div class="auth-bg"
               style="--auth-image: url('{% static 'img/bg-login.png' %}')">
      ------------------------------------------------------------ */
@@ -33,20 +31,16 @@
   .auth-main {
     @apply relative flex flex-1 items-center justify-center px-4 py-10;
   }
-
   .auth-box {
     @apply w-full max-w-md animate-fadeup;
   }
-
   .auth-logo {
     @apply mb-6 flex flex-col items-center text-center;
   }
 
   .auth-card {
-    @apply overflow-hidden rounded-3xl border border-black/5 bg-white
-           shadow-2xl shadow-black/50;
+    @apply overflow-hidden rounded-[1.75rem] bg-white shadow-2xl shadow-black/50;
   }
-  /* แถบสีแดงบางด้านบนการ์ด */
   .auth-card-stripe {
     background-color: var(--color-brand);
     @apply h-1 w-full;
@@ -54,7 +48,6 @@
   .auth-card-body {
     @apply p-7 sm:p-8;
   }
-
   .auth-title {
     @apply font-kanit text-3xl font-bold text-neutral-900;
   }

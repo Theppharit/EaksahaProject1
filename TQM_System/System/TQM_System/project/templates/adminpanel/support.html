@@ -1,0 +1,44 @@
+{% extends "dashboard/_base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block page_heading %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ page_title }}</h1>
+    <p class="page-sub">ดูสถานะการใช้งานของผู้ใช้ตำแหน่ง{{ role_label }} เพื่อช่วยแก้ปัญหาให้เขาได้</p>
+  </div>
+</div>
+
+{% if stuck %}
+  <div class="alert alert-warning">
+    <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg>
+    <span>มี {{ stuck }} งานที่ค้างอยู่ในขั้นตอนของตำแหน่งนี้ — อาจต้องเข้าไปช่วยดู</span>
+  </div>
+{% endif %}
+
+<div class="grid-main">
+  <div class="card">
+    <div class="card-head"><h3 class="card-title">ผู้ใช้ตำแหน่งนี้</h3></div>
+    <div class="card-body space-y-0 divide-y divide-neutral-200">
+      {% for u in users %}
+        <div class="flex items-center gap-3 py-3">
+          <span class="avatar">{{ u.initials }}</span>
+          <div class="min-w-0 flex-1">
+            <p class="cell-main">{{ u.get_full_name|default:u.username }}</p>
+            <p class="cell-sub">{{ u.username }} · เข้าใช้ล่าสุด {{ u.last_login|date:"j M H:i"|default:"ยังไม่เคย" }}</p>
+          </div>
+          {% if u.is_active %}<span class="badge badge-done">ใช้งานอยู่</span>{% else %}<span class="badge badge-urgent">ถูกระงับ</span>{% endif %}
+        </div>
+      {% empty %}
+        <div class="empty"><p>ยังไม่มีผู้ใช้ในตำแหน่งนี้</p></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="col-wide card">
+    <div class="card-head"><h3 class="card-title">งานที่เกี่ยวข้องล่าสุด</h3></div>
+    {% include "partials/_booking_table.html" with bookings=bookings %}
+  </div>
+</div>
+{% endblock %}

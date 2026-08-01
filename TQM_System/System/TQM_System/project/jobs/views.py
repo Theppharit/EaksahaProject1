@@ -220,3 +220,49 @@ def booking_edit(request, pk):
         return redirect("jobs:detail", pk=pk)
 
     return render(request, "jobs/booking_form.html", {"form": form, "booking": booking})
+
+
+# ============================================================
+# ใบจองคิว (พิมพ์ได้) และ 5 ขั้นตอนการดำเนินงาน
+# ============================================================
+@login_required
+def booking_slip(request, pk):
+    """ใบจองคิว — หน้าสำหรับดู/พิมพ์ ตามที่สเปกเรียกว่า 'ใบจองคิว'"""
+    booking = get_object_or_404(_visible(request.user), pk=pk)
+    return render(request, "jobs/booking_slip.html", {"booking": booking})
+
+
+@login_required
+def job_work(request, pk):
+    """หน้าดำเนินงาน 5 ขั้นตอน — ออกแบบให้กดง่ายบนมือถือหน้างาน"""
+    booking = get_object_or_404(_visible(request.user), pk=pk)
+
+    if request.user.role != Role.TRAILER and not request.user.is_superuser:
+        raise PermissionDenied("เฉพาะเจ้าของรถสไลด์เท่านั้น")
+
+    steps = list(booking.steps.all())
+    done = {s.code for s in steps if s.is_done}
+    order = [s.code for s in steps]
+    next_code = next((c for c in order if c not in done), None)
+
+    return render(request, "jobs/job_work.html", {
+        "booking": booking, "steps": steps, "next_code": next_code,
+        "all_done": bool(steps) and len(done) == len(steps),
+    })
+
+
+@login_required
+def job_step_done(request, pk, code):
+    booking = get_object_or_404(_visible(request.user), pk=pk)
+    if request.method != "POST":
+        return redirect("jobs:work", pk=pk)
+    try:
+        services.complete_step(
+            booking, request.user, code,
+            note=request.POST.get("note", ""),
+            photos=request.FILES.getlist("photos"),
+        )
+        messages.success(request, "บันทึกขั้นตอนเรียบร้อย")
+    except (PermissionDenied, ValidationError) as e:
+        messages.error(request, "; ".join(e.messages) if hasattr(e, "messages") else str(e))
+    return redirect("jobs:work", pk=pk)

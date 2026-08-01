@@ -1,0 +1,45 @@
+{% extends "dashboard/_base.html" %}
+{% block title %}การแจ้งเตือน{% endblock %}
+{% block page_heading %}การแจ้งเตือน{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>การแจ้งเตือน</h1>
+    <p class="page-sub">เรื่องที่ระบบแจ้งให้คุณทราบ เรียงจากใหม่ไปเก่า</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="?{% if only_unread %}{% else %}filter=unread{% endif %}" class="btn btn-outline">
+      {% if only_unread %}ดูทั้งหมด{% else %}เฉพาะที่ยังไม่อ่าน{% endif %}
+    </a>
+    <a href="{% url 'core:notifications_read_all' %}" class="btn btn-ghost">อ่านทั้งหมดแล้ว</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="divide-y divide-neutral-200">
+    {% for n in items %}
+      <div class="noti {% if not n.is_read %}is-unread{% endif %}">
+        <span class="noti-dot"></span>
+        <div class="min-w-0 flex-1">
+          <p class="noti-title">{{ n.title }}</p>
+          {% if n.body %}<p class="noti-body">{{ n.body }}</p>{% endif %}
+          <p class="cell-sub">{{ n.created_at|date:"j M Y H:i" }} น. · {{ n.get_kind_display }}</p>
+        </div>
+        <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
+          {% if n.need_ack and not n.acked_at %}
+            <a href="{% url 'core:notification_ack' n.pk %}" class="btn btn-primary btn-sm">กดยืนยันรับทราบ</a>
+          {% elif n.link %}
+            <a href="{% url 'core:notification_open' n.pk %}" class="btn btn-outline btn-sm">เปิดดู</a>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty">
+        <svg class="size-9 opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
+        <p>ยังไม่มีการแจ้งเตือน</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

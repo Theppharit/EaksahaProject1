@@ -1,0 +1,81 @@
+{% extends "dashboard/_base.html" %}
+{% block title %}ใบจองคิว {{ booking.booking_no }}{% endblock %}
+{% block page_heading %}ใบจองคิว{% endblock %}
+
+{% block content %}
+<div class="page-head no-print">
+  <div>
+    <h1>ใบจองคิว</h1>
+    <p class="page-sub">กดปุ่มพิมพ์เพื่อพิมพ์หรือบันทึกเป็น PDF</p>
+  </div>
+  <div class="flex gap-2">
+    <button onclick="window.print()" class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+      พิมพ์ใบจอง
+    </button>
+    <a href="{% url 'jobs:detail' booking.pk %}" class="btn btn-outline">← กลับ</a>
+  </div>
+</div>
+
+<div class="slip">
+  <div class="slip-head">
+    <div>
+      <p class="slip-brand">TQM System</p>
+      <p class="slip-sub">ระบบจัดการรถสไลด์และจองคิวรถยก · EAKSAHA GROUP</p>
+    </div>
+    <div class="text-right">
+      <p class="slip-no">{{ booking.booking_no }}</p>
+      <p class="slip-sub">{% include "partials/_status_badge.html" with status=booking.status label=booking.get_status_display %}</p>
+    </div>
+  </div>
+
+  <div class="slip-body">
+    <section>
+      <h3 class="slip-h">ข้อมูลลูกค้า</h3>
+      <dl class="detail-grid">
+        <div><dt>ชื่อลูกค้า</dt><dd>{{ booking.customer.name }}</dd></div>
+        <div><dt>เบอร์ติดต่อ</dt><dd>{{ booking.customer.phone }}</dd></div>
+        <div><dt>รถที่ขนย้าย</dt><dd>{{ booking.vehicle|default:"—" }}</dd></div>
+        <div><dt>เซลล์ผู้ดูแล</dt><dd>{{ booking.sales.get_full_name|default:"— ไม่ระบุ —" }}</dd></div>
+      </dl>
+    </section>
+
+    <section>
+      <h3 class="slip-h">รายละเอียดการเดินทาง</h3>
+      <dl class="detail-grid">
+        <div class="col-span-full"><dt>จุดรับรถ</dt><dd>{{ booking.pickup_address }}</dd></div>
+        <div class="col-span-full"><dt>จุดส่งรถ</dt><dd>{{ booking.dropoff_address }}</dd></div>
+        <div><dt>วันเวลานัดหมาย</dt><dd>{{ booking.appointment_at|date:"j F Y H:i" }} น.</dd></div>
+        <div><dt>ระยะทาง</dt><dd>{% if booking.distance_km %}{{ booking.distance_km }} กม.{% else %}—{% endif %}</dd></div>
+      </dl>
+    </section>
+
+    <section>
+      <h3 class="slip-h">ผู้ให้บริการ</h3>
+      <dl class="detail-grid">
+        <div><dt>เจ้าของรถ</dt><dd>{{ booking.truck_owner.name|default:"— ยังไม่มีผู้รับงาน —" }}</dd></div>
+        <div><dt>ทะเบียนรถสไลด์</dt><dd>{{ booking.truck.plate|default:"—" }}</dd></div>
+        <div><dt>คนขับ</dt><dd>{{ booking.driver.name|default:"—" }}</dd></div>
+        <div><dt>เบอร์คนขับ</dt><dd>{{ booking.driver.phone|default:"—" }}</dd></div>
+      </dl>
+    </section>
+
+    <section class="slip-total">
+      <span>ค่าบริการรวม</span>
+      <span class="tabular">{{ booking.total_price|floatformat:2 }} บาท</span>
+    </section>
+
+    {% if booking.note %}
+      <section><h3 class="slip-h">หมายเหตุ</h3><p>{{ booking.note|linebreaksbr }}</p></section>
+    {% endif %}
+
+    <div class="slip-sign">
+      <div><div class="sign-line"></div><p>ผู้จอง</p></div>
+      <div><div class="sign-line"></div><p>ผู้รับงาน</p></div>
+      <div><div class="sign-line"></div><p>ผู้อนุมัติ</p></div>
+    </div>
+  </div>
+
+  <p class="slip-foot">ออกเอกสารเมื่อ {{ booking.created_at|date:"j F Y H:i" }} น. · เอกสารนี้สร้างจากระบบอัตโนมัติ</p>
+</div>
+{% endblock %}

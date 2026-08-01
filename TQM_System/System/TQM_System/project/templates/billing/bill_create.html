@@ -1,0 +1,43 @@
+{% extends "dashboard/_base.html" %}
+{% block title %}ออกบิล{% endblock %}
+{% block page_heading %}ออกบิล — {{ owner.name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>ยืนยันการออกบิล</h1>
+    <p class="page-sub">ตรวจรายการให้ครบก่อนกดออกบิล — ออกแล้วงานเหล่านี้จะถูกผูกกับบิลใบนี้</p>
+  </div>
+  <a href="{% url 'billing:bill_list' %}" class="btn btn-outline">← กลับ</a>
+</div>
+
+<div class="card max-w-4xl">
+  <div class="card-head">
+    <h3 class="card-title">{{ owner.name }} — {{ jobs|length }} งาน</h3>
+    <div class="card-tools"><span class="font-kanit text-lg font-bold tabular">{{ total|floatformat:2 }} บาท</span></div>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>เลขที่งาน</th><th>ลูกค้า</th><th>คนขับ</th><th>ปิดงานเมื่อ</th><th class="num">จำนวนเงิน</th></tr></thead>
+      <tbody>
+        {% for j in jobs %}
+          <tr>
+            <td class="cell-main">{{ j.booking_no }}</td>
+            <td>{{ j.customer.name }}</td>
+            <td>{{ j.driver.name|default:"—" }}</td>
+            <td>{{ j.closed_at|date:"j M y" }}</td>
+            <td class="num">{{ j.total_price|floatformat:2 }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot><tr><td colspan="4" class="px-5 py-3 font-kanit font-semibold">รวมทั้งสิ้น</td><td class="num px-5 py-3 font-kanit font-semibold">{{ total|floatformat:2 }}</td></tr></tfoot>
+    </table>
+  </div>
+  <div class="card-body border-t border-neutral-200">
+    <form method="post">
+      {% csrf_token %}
+      <button class="btn btn-primary btn-lg" data-confirm="ยืนยันออกบิลรวม {{ jobs|length }} งาน?">ยืนยันออกบิล</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -7,34 +7,48 @@
    คำสั่ง   → npm run dev (ระหว่างทำงาน) / npm run build (ก่อน deploy)
 
    ⚠ ไฟล์ที่ไม่ได้ @import ตรงนี้ จะไม่ถูกรวมเข้าไฟล์ผลลัพธ์เลย
+   ============================================================
+
+   โครงไฟล์ใน src/
+   ├─ theme.css        โทเคน: สี ฟอนต์ ความโค้ง เงา   ← แก้ธีมที่นี่
+   ├─ utilities.css    utility ที่สร้างเพิ่มเอง
+   ├─ base.css         สไตล์เริ่มต้นของ tag
+   └─ components/
+      ├─ app-shell.css โครงหน้าจอ: หน้าต่าง · เมนูซ้าย · แถบบน · แถบล่าง
+      ├─ button.css    ปุ่ม
+      ├─ form.css      ฟอร์ม · อินพุต · ช่องค้นหา · ตัวกรอง
+      ├─ table.css     ตาราง · แบ่งหน้า
+      ├─ card.css      การ์ด · สถิติ · ไทม์ไลน์ · แถบสัดส่วน
+      ├─ badge.css     ป้ายสถานะ · กล่องแจ้งเตือน
+      ├─ auth.css      หน้า login
+      └─ modules.css   ชิ้นส่วนเฉพาะหน้า + สไตล์ตอนพิมพ์
    ============================================================ */
 
 @import "tailwindcss";
 
-/* ── 1. โทเคนกลาง: สี ฟอนต์ ความโค้ง ─────────── */
+/* ── 1. โทเคนกลาง ─────────────────────────────── */
 @import "./theme.css";
 
-/* ── 2. utility ที่สร้างเพิ่มเอง ───────────────── */
+/* ── 2. utility ที่สร้างเพิ่มเอง ─────────────────── */
 @import "./utilities.css";
 
-/* ── 3. สไตล์เริ่มต้นของ tag ─────────────────── */
+/* ── 3. สไตล์เริ่มต้นของ tag ─────────────────────── */
 @import "./base.css";
 
-/* ── 4. component ─────────────────────────────── */
-@import "./components/layout.css"; /* เมนูซ้าย · แถบบน · โครงหน้า */
-@import "./components/button.css"; /* ปุ่มทุกแบบ                */
-@import "./components/form.css"; /* ฟอร์ม · อินพุต            */
-@import "./components/table.css"; /* ตาราง · แบ่งหน้า          */
-@import "./components/card.css"; /* การ์ด · สถิติ · ไทม์ไลน์   */
-@import "./components/badge.css"; /* ป้ายสถานะ                 */
-@import "./components/feedback.css"; /* กล่องแจ้งเตือน            */
-@import "./components/auth.css"; /* หน้า login                */
-@import "./components/shell.css"; /* การ์ดต้อนรับ (เดิม)        */
+/* ── 4. โครงหน้าจอ ──────────────────────────────── */
+@import "./components/app-shell.css";
 
-/* ── 5. ยังไม่ได้ใช้ — เปิดเมื่อสร้างหน้านั้น ──────
-   @import "./components/modal.css";   กล่องยืนยัน
-   ───────────────────────────────────────────── */
+/* ── 5. ชิ้นส่วนพื้นฐาน ─────────────────────────── */
+@import "./components/button.css";
+@import "./components/form.css";
+@import "./components/table.css";
+@import "./components/card.css";
+@import "./components/badge.css";
 
-/* ── โฟลเดอร์ที่ให้ Tailwind ไล่หา class ─────────
-   "../" = project/ → ครอบคลุม templates/ และ app ทุกตัว     */
+/* ── 6. เฉพาะบางหน้า ───────────────────────────── */
+@import "./components/auth.css";
+@import "./components/modules.css";
+
+/* ── โฟลเดอร์ที่ให้ Tailwind ไล่หา class ───────────
+   "../" = project/ → ครอบคลุม templates/ และ app ทุกตัว        */
 @source "../";

@@ -1,11 +1,12 @@
 /* ============================================================
-   button.css — ปุ่มทุกแบบในระบบ
+   button.css — ปุ่มทุกแบบ
+   สไตล์ตามแบบ: ทรงแคปซูล ไม่มีเส้นขอบหนา
    ============================================================ */
 
 @layer components {
   .btn {
-    @apply inline-flex shrink-0 items-center justify-center gap-2 rounded-field
-           px-4 py-2.5 font-kanit text-[14px] font-medium transition
+    @apply inline-flex shrink-0 items-center justify-center gap-2 rounded-pill
+           px-5 py-2.5 font-kanit text-[14px] font-medium transition
            disabled:pointer-events-none disabled:opacity-50;
   }
   .btn svg {
@@ -18,38 +19,39 @@
     @apply text-white hover:brightness-110 active:brightness-95;
   }
 
-  /* ปุ่มแบรนด์ — แดง TQM คงที่ ไม่เปลี่ยนตามตำแหน่ง (หน้า login) */
+  /* ปุ่มแบรนด์ — แดง TQM คงที่ (หน้า login) */
   .btn-brand {
     background-color: var(--color-brand);
     @apply text-white hover:brightness-110 active:brightness-95;
   }
 
+  /* ปุ่มรอง — พื้นขาวบนพื้นหลังสีนวล */
   .btn-outline {
-    border: 1px solid var(--color-line);
     background-color: var(--color-surface);
-    @apply text-neutral-700 hover:bg-neutral-50;
+    color: var(--color-ink);
+    @apply hover:bg-neutral-50;
   }
 
-  /* ปุ่มเส้นขอบบนพื้นเข้ม */
-  .btn-outline-dark {
-    border: 1px solid rgb(255 255 255 / 0.25);
-    @apply text-neutral-200 hover:bg-white/10 hover:text-white;
+  /* ปุ่มรองบนพื้นการ์ดสีขาว */
+  .btn-soft {
+    background-color: var(--color-surface-2);
+    color: var(--color-ink);
+    @apply hover:brightness-95;
   }
 
   .btn-ghost {
     color: var(--color-ink-soft);
-    @apply hover:bg-neutral-100 hover:text-neutral-900;
+    @apply hover:bg-black/5 hover:text-neutral-900;
   }
 
-  /* ปุ่มอันตราย — ยกเลิกงาน · ลบ */
   .btn-danger {
     background-color: var(--color-status-urgent);
-    @apply text-white hover:brightness-110 active:brightness-95;
+    @apply text-white hover:brightness-110;
   }
 
   /* ขนาด */
   .btn-sm {
-    @apply rounded-lg px-3 py-1.5 text-[13px];
+    @apply px-4 py-2 text-[13px];
   }
   .btn-sm svg {
     @apply size-4;

@@ -1,5 +1,5 @@
 /* ============================================================
-   base.css — สไตล์เริ่มต้นของ tag ต่าง ๆ
+   base.css — สไตล์เริ่มต้นของ tag
    ใส่เฉพาะสิ่งที่ "ทุกหน้าเหมือนกัน" จะได้ไม่ต้องพิมพ์ซ้ำใน HTML
    ============================================================ */
 
@@ -10,7 +10,7 @@
 
   body {
     font-family: var(--font-thai);
-    background-color: var(--color-surface-2);
+    background-color: var(--color-canvas);
     color: var(--color-ink);
     -webkit-font-smoothing: antialiased;
   }
@@ -23,7 +23,6 @@
     font-family: var(--font-kanit);
     font-weight: 600;
   }
-
   h1 {
     font-size: 1.5rem;
   }
@@ -34,7 +33,7 @@
     font-size: 1.0625rem;
   }
 
-  /* ตัวเลขให้เรียงตรงคอลัมน์ในตาราง (สำคัญมากกับหน้าบัญชี) */
+  /* ตัวเลขเรียงตรงคอลัมน์ (สำคัญกับหน้าบัญชี) */
   td {
     font-variant-numeric: tabular-nums;
   }

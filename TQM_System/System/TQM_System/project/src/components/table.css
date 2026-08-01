@@ -1,9 +1,10 @@
 /* ============================================================
-   table.css — ตารางใบจอง · แถบเครื่องมือ · แบ่งหน้า
+   table.css — ตาราง แถบเครื่องมือ และแบ่งหน้า
+   สไตล์ตามแบบ: ไม่มีเส้นตาราง ใช้ช่องไฟและพื้นสลับแทน
    ============================================================ */
 
 @layer components {
-  /* ครอบไว้ให้เลื่อนแนวนอนได้บนมือถือ */
+  /* ครอบไว้ให้เลื่อนแนวนอนได้บนจอเล็ก */
   .table-wrap {
     @apply w-full overflow-x-auto;
   }
@@ -13,27 +14,29 @@
   }
 
   .table thead th {
-    background-color: var(--color-surface-2);
     color: var(--color-ink-soft);
-    border-bottom: 1px solid var(--color-line);
-    @apply whitespace-nowrap px-5 py-3 text-[12px] font-semibold uppercase tracking-wide;
+    @apply whitespace-nowrap px-5 pb-2 pt-3 text-[12px] font-semibold uppercase tracking-wide;
   }
 
   .table tbody td {
-    border-bottom: 1px solid var(--color-line);
-    @apply px-5 py-3.5 align-middle;
+    @apply px-5 py-4 align-middle;
   }
-  .table tbody tr:last-child td {
-    border-bottom: 0;
+  /* เส้นคั่นบางเฉพาะระหว่างแถว ไม่มีเส้นรอบตาราง */
+  .table tbody tr + tr td {
+    border-top: 1px solid var(--color-line);
   }
   .table tbody tr {
     @apply transition;
   }
-  .table tbody tr:hover {
+  .table tbody tr:hover td {
     background-color: var(--color-surface-2);
   }
 
-  /* คอลัมน์ปุ่มจัดการ — บีบให้แคบที่สุด */
+  .table tfoot td {
+    background-color: var(--color-surface-2);
+    @apply px-5 py-3.5 font-kanit font-semibold;
+  }
+
   .table .act {
     @apply w-px whitespace-nowrap text-right;
   }
@@ -51,25 +54,27 @@
 
   /* แถบค้นหา/ตัวกรองเหนือตาราง */
   .table-toolbar {
-    border-bottom: 1px solid var(--color-line);
-    @apply flex flex-wrap items-center gap-2 px-5 py-3;
+    @apply flex flex-wrap items-center gap-2 px-5 pb-3 pt-4;
+  }
+  .table-toolbar .search {
+    background-color: var(--color-surface-2);
+    @apply max-w-sm flex-1;
   }
   .table-toolbar .select {
-    @apply w-auto py-2 text-[14px];
+    @apply w-auto py-2.5 text-[14px];
   }
 
   /* แบ่งหน้า */
   .pagination {
     color: var(--color-ink-soft);
-    @apply flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-[13px];
+    @apply flex flex-wrap items-center justify-between gap-3 px-5 py-4 text-[13px];
   }
   .page-btn {
-    border: 1px solid var(--color-line);
-    @apply grid size-8 place-items-center rounded-lg transition hover:bg-neutral-50;
+    background-color: var(--color-surface-2);
+    @apply grid size-9 place-items-center rounded-pill transition hover:brightness-95;
   }
   .page-btn.is-active {
     background-color: var(--color-accent);
-    border-color: var(--color-accent);
     @apply text-white;
   }
 }

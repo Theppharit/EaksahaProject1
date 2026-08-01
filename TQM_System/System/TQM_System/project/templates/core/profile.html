@@ -1,0 +1,65 @@
+{% extends "dashboard/_base.html" %}
+{% block title %}โปรไฟล์{% endblock %}
+{% block page_heading %}โปรไฟล์ · ยืนยันตัวตน{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>โปรไฟล์ของฉัน</h1>
+    <p class="page-sub">แก้ไขข้อมูลส่วนตัวของคุณ — ถ้าต้องการเปลี่ยนตำแหน่งงาน กรุณาแจ้งแอดมิน</p>
+  </div>
+</div>
+
+<div class="grid-main">
+  <div class="col-wide">
+    <div class="card">
+      <div class="card-head"><h3 class="card-title">ข้อมูลส่วนตัว</h3></div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data" class="space-y-5">
+          {% csrf_token %}
+          <div class="form-grid">
+            {% for f in form %}
+              <div class="field {% if f.name == 'avatar' %}form-full{% endif %}">
+                <label class="label" for="{{ f.id_for_label }}">{{ f.label }}</label>
+                {{ f }}
+                {% for e in f.errors %}<p class="error">{{ e }}</p>{% endfor %}
+              </div>
+            {% endfor %}
+          </div>
+          <div class="flex justify-end">
+            <button type="submit" class="btn btn-primary">บันทึกข้อมูล</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="space-y-5">
+    <div class="card">
+      <div class="card-head"><h3 class="card-title">บัญชีของคุณ</h3></div>
+      <div class="card-body space-y-3">
+        <div><p class="cell-sub">รหัสพนักงาน</p><p class="font-kanit text-lg font-semibold">{{ user.username }}</p></div>
+        <div><p class="cell-sub">ตำแหน่ง</p><p class="text-[15px]">{{ user.get_role_display }}</p></div>
+        <div>
+          <p class="cell-sub">สถานะยืนยันตัวตน</p>
+          {% if user.id_verified %}
+            <span class="badge badge-done">ยืนยันแล้ว</span>
+          {% else %}
+            <span class="badge badge-wait">ยังไม่ยืนยัน</span>
+            <p class="help mt-1">ติดต่อแอดมินเพื่อยืนยันตัวตนของคุณ</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3 class="card-title">ความปลอดภัย</h3></div>
+      <div class="card-body space-y-3">
+        <p class="text-[14px] text-neutral-600">ทดสอบยืนยันตัวตนด้วยรหัสผ่าน — ระบบจะขอยืนยันทุกครั้งก่อนทำรายการสำคัญ เช่น การอนุมัติใบจอง</p>
+        <a href="{% url 'core:verify_identity' %}" class="btn btn-outline w-full">ยืนยันตัวตน</a>
+        <a href="{% url 'accounts:password_reset' %}" class="btn btn-ghost w-full">เปลี่ยน / ลืมรหัสผ่าน</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

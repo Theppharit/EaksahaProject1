@@ -1,19 +1,22 @@
 /* ============================================================
-   card.css — การ์ด · ตัวเลขสรุป · รายการรายละเอียด · ไทม์ไลน์
+   card.css — การ์ดทุกแบบ
+   ------------------------------------------------------------
+   สไตล์ตามแบบ: พื้นขาว มุมมนมาก ไม่มีเส้นขอบ ใช้เงานุ่มแทน
+   รวม: card · stat · empty · detail-grid · timeline · steps
    ============================================================ */
 
 @layer components {
+  /* ── การ์ดพื้นฐาน ─────────────────────────── */
   .card {
     background-color: var(--color-surface);
-    border: 1px solid var(--color-line);
-    @apply rounded-card shadow-xs;
+    box-shadow: var(--shadow-card);
+    @apply overflow-hidden rounded-card;
   }
   .card-head {
-    border-bottom: 1px solid var(--color-line);
-    @apply flex flex-wrap items-center gap-3 px-5 py-4;
+    @apply flex flex-wrap items-center gap-3 px-5 pb-1 pt-5;
   }
   .card-title {
-    @apply font-kanit text-[15px] font-semibold;
+    @apply font-kanit text-[16px] font-semibold;
   }
   .card-tools {
     @apply ml-auto flex items-center gap-2;
@@ -22,16 +25,16 @@
     @apply p-5;
   }
 
-  /* ── การ์ดตัวเลขสรุป ─────────────────────── */
+  /* ── การ์ดตัวเลขสรุป ──────────────────────── */
   .stat {
     background-color: var(--color-surface);
-    border: 1px solid var(--color-line);
-    @apply flex items-start gap-4 rounded-card p-5 shadow-xs;
+    box-shadow: var(--shadow-card);
+    @apply flex items-start gap-4 rounded-card p-5;
   }
   .stat-icon {
     background-color: color-mix(in oklab, var(--color-accent) 12%, white);
     color: var(--color-accent);
-    @apply grid size-11 shrink-0 place-items-center rounded-xl;
+    @apply grid size-12 shrink-0 place-items-center rounded-2xl;
   }
   .stat-icon svg {
     @apply size-5;
@@ -41,20 +44,20 @@
     @apply text-[13px];
   }
   .stat-value {
-    @apply font-kanit text-[26px] font-bold leading-tight tabular;
+    @apply font-kanit text-[27px] font-bold leading-tight tabular;
   }
   .stat-unit {
     color: var(--color-ink-soft);
     @apply ml-1 text-[13px] font-normal;
   }
 
-  /* ── สถานะว่างเปล่า ─────────────────────── */
+  /* ── สถานะว่างเปล่า ──────────────────────── */
   .empty {
     color: var(--color-ink-soft);
-    @apply grid place-items-center gap-2 px-5 py-12 text-center text-sm;
+    @apply grid place-items-center gap-2 px-5 py-14 text-center text-sm;
   }
 
-  /* ── รายการข้อมูลแบบ ป้ายกำกับ/ค่า ────────── */
+  /* ── รายการ ป้ายกำกับ/ค่า ────────────────── */
   .detail-grid {
     @apply grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2;
   }
@@ -66,7 +69,7 @@
     @apply text-[15px];
   }
 
-  /* ── ไทม์ไลน์ประวัติสถานะ ────────────────── */
+  /* ── ไทม์ไลน์ประวัติสถานะ ─────────────────── */
   .timeline {
     @apply relative space-y-4 pl-5;
   }
@@ -88,10 +91,10 @@
   }
   .tl-note {
     background-color: var(--color-surface-2);
-    @apply mt-1.5 rounded-lg px-3 py-2 text-[13px];
+    @apply mt-1.5 rounded-xl px-3 py-2 text-[13px];
   }
 
-  /* ── 5 ขั้นตอนการดำเนินงาน ───────────────── */
+  /* ── ขั้นตอนแบบย่อ (ในหน้ารายละเอียด) ─────── */
   .steps {
     @apply space-y-3;
   }
@@ -99,14 +102,13 @@
     @apply flex items-start gap-3;
   }
   .step-dot {
-    border: 1px solid var(--color-line);
+    background-color: var(--color-surface-2);
     color: var(--color-ink-soft);
     @apply grid size-7 shrink-0 place-items-center rounded-full
            font-kanit text-[12px] font-semibold;
   }
   .step.is-done .step-dot {
     background-color: var(--color-status-done);
-    border-color: var(--color-status-done);
     @apply text-white;
   }
   .step-title {
@@ -114,5 +116,30 @@
   }
   .step.is-done .step-title {
     color: var(--color-status-done);
+  }
+
+  /* ── แถบสัดส่วน (ใช้ในรายงาน) ─────────────── */
+  .bar-row {
+    @apply flex items-center gap-3 text-[14px];
+  }
+  .bar-label {
+    @apply w-36 shrink-0 truncate;
+  }
+  .bar {
+    background-color: var(--color-surface-2);
+    @apply h-2.5 flex-1 overflow-hidden rounded-pill;
+  }
+  .bar-fill {
+    background-color: var(--color-accent);
+    @apply h-full rounded-pill;
+  }
+  .bar-value {
+    @apply w-10 shrink-0 text-right font-medium;
+  }
+
+  /* ── การ์ดเน้นค่าปัจจุบัน ─────────────────── */
+  .highlight-card {
+    background-color: color-mix(in oklab, var(--color-accent) 8%, white);
+    @apply space-y-1 rounded-card p-5;
   }
 }

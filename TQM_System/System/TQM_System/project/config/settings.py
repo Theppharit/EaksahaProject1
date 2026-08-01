@@ -59,7 +59,9 @@ INSTALLED_APPS = [
     "project.fleet",      # เจ้าของรถ · รถสไลด์ · คนขับ
     "project.jobs",       # ใบจองคิว · สถานะงาน · 5 ขั้นตอน · รูปถ่าย
     "project.billing",    # เกณฑ์ราคา · รอบจ่ายเงิน · ใบวางบิล
-    # "project.core",     ของกลางที่ทุก app ใช้
+    "project.core",       # แจ้งเตือน · เอกสารการใช้งานระบบ
+    "project.reports",    # รายงานเชิงลึกผู้บริหาร
+    "project.adminpanel", # ซัพพอร์ต · สิทธิ์ · อัปโหลดเอกสาร
 ]
 
 MIDDLEWARE = [
@@ -89,6 +91,8 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 # ฉีดสีประจำตำแหน่งเข้าไปในทุกหน้า → ตัวแปร {{ accent_color }}
                 "project.accounts.context_processors.role_theme",
+                # จำนวนแจ้งเตือนที่ยังไม่อ่าน → {{ unread_notifications }}
+                "project.core.context_processors.unread_count",
             ],
         },
     },
