@@ -102,3 +102,36 @@ class SystemDoc(models.Model):
             return "ทุกตำแหน่ง"
         names = dict(Role.choices)
         return " · ".join(names.get(r, r) for r in self.visible_roles)
+
+
+class ImpersonationLog(models.Model):
+    """
+    บันทึกการที่แอดมิน "เข้าใช้งานระบบแทนผู้ใช้คนอื่น"
+    ------------------------------------------------------------
+    หน้าซัพพอร์ตให้แอดมินสวมสิทธิ์เข้าไปใช้ระบบของผู้ใช้ได้จริง
+    ซึ่งเป็นอำนาจที่สูงมาก จึงต้องมีร่องรอยว่าใครเข้าไปแทนใคร เมื่อไร
+    ตารางนี้แก้ไม่ได้จากหน้าเว็บ มีไว้ตรวจย้อนหลังอย่างเดียว
+    """
+
+    admin = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="แอดมิน",
+        on_delete=models.PROTECT,
+        related_name="impersonations_made",
+    )
+    target = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="ผู้ใช้ที่ถูกสวมสิทธิ์",
+        on_delete=models.PROTECT,
+        related_name="impersonations_received",
+    )
+    started_at = models.DateTimeField("เริ่มเมื่อ", auto_now_add=True, db_index=True)
+    ended_at = models.DateTimeField("ออกเมื่อ", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "ประวัติการสวมสิทธิ์"
+        verbose_name_plural = "ประวัติการสวมสิทธิ์"
+        ordering = ["-started_at"]
+
+    def __str__(self):
+        return f"{self.admin} → {self.target}"

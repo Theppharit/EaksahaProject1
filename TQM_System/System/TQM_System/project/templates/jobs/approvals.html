@@ -1,0 +1,120 @@
+{% extends "dashboard/_base.html" %}
+
+{% block title %}{{ config.title }}{% endblock %}
+{% block page_heading %}{{ config.title }}{% endblock %}
+
+{% comment %} ============================================================
+   หน้ารออนุมัติ — ใช้ร่วมกันทั้งผู้จัดการสาขาและงานบัญชี
+   ทุกอย่างที่ต้องตัดสินใจอยู่ในการ์ดเดียว ไม่ต้องเปิดหน้าอื่นไปดู:
+     ข้อมูลใบจอง · คนขับ + รถที่รับผิดชอบ · ปุ่มอนุมัติ/ตีกลับ
+   ============================================================ {% endcomment %}
+
+{% block content %}
+
+  <div class="page-head">
+    <div>
+      <h1>{{ config.title }}</h1>
+      <p class="page-sub">{{ config.subtitle }}</p>
+    </div>
+    <a href="{% url 'jobs:list' %}" class="btn btn-soft">ดูใบจองทั้งหมด</a>
+  </div>
+
+  {% comment %} ── ใบจองที่รอการอนุมัติ ── {% endcomment %}
+  {% for b in bookings %}
+    <div class="card">
+      <div class="card-head">
+        <h3 class="card-title">{{ b.booking_no }} · {{ b.customer.name }}</h3>
+        <div class="card-tools">
+          {% include "partials/_status_badge.html" with status=b.status label=b.get_status_display %}
+          <a href="{% url 'jobs:detail' b.pk %}" class="btn btn-ghost btn-sm">เปิดใบเต็ม</a>
+        </div>
+      </div>
+
+      <div class="card-body space-y-5">
+        <dl class="detail-grid">
+          <div><dt>วันเวลานัดหมาย</dt><dd>{{ b.appointment_at|date:"j F Y" }} เวลา {{ b.appointment_at|date:"H:i" }} น.</dd></div>
+          <div><dt>ลูกค้า</dt><dd>{{ b.customer.name }}<span class="cell-sub"> · {{ b.customer.phone }}</span></dd></div>
+          <div class="col-span-full"><dt>จุดรับรถ</dt><dd>{{ b.pickup_address }}</dd></div>
+          <div class="col-span-full"><dt>จุดส่งรถ</dt><dd>{{ b.dropoff_address }}</dd></div>
+          <div><dt>ระยะทาง</dt><dd>{% if b.distance_km %}{{ b.distance_km }} กม.{% else %}— ไม่ระบุ —{% endif %}</dd></div>
+          <div><dt>ค่าบริการรวม</dt><dd class="tabular font-kanit font-semibold">{{ b.total_price|floatformat:2 }} บาท</dd></div>
+          <div><dt>ผู้สร้างใบจอง</dt><dd>{{ b.created_by.get_full_name|default:b.created_by.username }}</dd></div>
+          <div><dt>เซลล์ผู้ดูแล</dt><dd>{% if b.sales %}{{ b.sales.get_full_name|default:b.sales.username }}{% else %}— ไม่ระบุ —{% endif %}</dd></div>
+          {% if b.note %}<div class="col-span-full"><dt>หมายเหตุ</dt><dd>{{ b.note|linebreaksbr }}</dd></div>{% endif %}
+        </dl>
+
+        {% comment %} ── ผู้รับงาน: คนขับ + รถ อยู่ตรงนี้เลย จะได้ตรวจครบในที่เดียว ── {% endcomment %}
+        <div class="bill-group">
+          {% if b.driver %}
+            {% if b.driver.photo %}
+              <img src="{{ b.driver.photo.url }}" alt="" class="size-14 shrink-0 rounded-2xl object-cover">
+            {% else %}
+              <span class="avatar size-14 shrink-0 text-base">{{ b.driver.name|slice:":2" }}</span>
+            {% endif %}
+            <div class="min-w-0 flex-1">
+              <p class="person-name">{{ b.driver.name }}{% if b.driver.is_backup %} <span class="badge badge-plain">คนขับเสริม</span>{% endif %}</p>
+              <p class="cell-sub">
+                {{ b.driver.phone }}
+                {% if b.driver.license_no %} · ใบขับขี่ {{ b.driver.license_no }}{% endif %}
+                {% if b.driver.license_expiry %} (หมดอายุ {{ b.driver.license_expiry|date:"j M y" }}){% endif %}
+              </p>
+              <p class="cell-sub">
+                สังกัด {{ b.truck_owner.name }}
+                {% if b.truck %} · รถ {{ b.truck.plate }} ({{ b.truck.get_type_display }}){% endif %}
+                {% if b.truck.insurance_expiry %} · ประกันถึง {{ b.truck.insurance_expiry|date:"j M y" }}{% endif %}
+              </p>
+            </div>
+          {% else %}
+            <p class="cell-sub">— ยังไม่มีคนขับผูกกับใบจองนี้ —</p>
+          {% endif %}
+        </div>
+
+        {% comment %} ── ปุ่มตัดสินใจ ── {% endcomment %}
+        <div class="approve-row">
+          {% if b.ui_actions.approve %}
+            <form method="post" action="{% url 'jobs:approval_action' b.pk %}" class="approve-form">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <input type="hidden" name="target" value="{{ b.ui_actions.approve.target }}">
+
+              <label class="label" for="pw-{{ b.pk }}">ยืนยันตัวตนก่อนอนุมัติ</label>
+              <input id="pw-{{ b.pk }}" type="password" name="password" class="input" required
+                     autocomplete="current-password" placeholder="กรอกรหัสผ่านของคุณ">
+              <p class="help">ต้องกรอกทุกครั้งที่อนุมัติ เพื่อยืนยันว่าเป็นคุณจริง ๆ</p>
+
+              <button type="submit" class="btn btn-primary w-full">{{ b.ui_actions.approve.label }}</button>
+            </form>
+          {% endif %}
+
+          {% if b.ui_actions.send_back %}
+            <form method="post" action="{% url 'jobs:approval_action' b.pk %}" class="approve-form">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <input type="hidden" name="target" value="{{ b.ui_actions.send_back.target }}">
+
+              <label class="label" for="back-{{ b.pk }}">ตีกลับให้แก้ไข</label>
+              <textarea id="back-{{ b.pk }}" name="note" rows="3" class="textarea" required
+                        placeholder="ระบุว่าต้องแก้อะไร เช่น ที่อยู่จุดส่งไม่ครบ"></textarea>
+              <p class="help">หมายเหตุจะถูกส่งกลับไปให้ผู้รับงานเห็น และบันทึกไว้ในประวัติ</p>
+
+              <button type="submit" class="btn btn-outline w-full">{{ b.ui_actions.send_back.label }}</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="card">
+      <div class="empty">
+        <svg class="size-9 opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+        <p>ไม่มีใบจองรอคุณอนุมัติในตอนนี้</p>
+      </div>
+    </div>
+  {% endfor %}
+
+  {% comment %} ── คำขอแก้ไข / ยกเลิก (เฉพาะผู้จัดการและแอดมิน) ── {% endcomment %}
+  {% if config.show_requests %}
+    {% include "partials/_requests_panel.html" %}
+  {% endif %}
+
+{% endblock %}

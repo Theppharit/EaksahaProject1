@@ -16,6 +16,43 @@
   </div>
 </div>
 
+{% comment %} ============================================================
+   คำขอเปลี่ยนสิทธิ์ที่รอคุณตัดสิน — ดันไว้บนสุด
+   สิทธิ์ยังไม่เปลี่ยนจนกว่าคุณจะกดยอมรับที่นี่
+   ============================================================ {% endcomment %}
+{% for r in role_changes %}
+  <div class="card">
+    <div class="card-head">
+      <h3 class="card-title">มีการขอเปลี่ยนสิทธิ์การเข้าถึงของคุณ</h3>
+      <div class="card-tools"><span class="badge badge-wait">รอคุณตัดสิน</span></div>
+    </div>
+    <div class="card-body space-y-4">
+      <p class="text-[15px]">
+        จาก <strong>{{ r.get_from_role_display }}</strong>
+        เป็น <strong>{{ r.get_to_role_display }}</strong>
+      </p>
+      <p class="cell-sub">
+        ขอโดย {{ r.requested_by.get_full_name|default:r.requested_by.username }}
+        · {{ r.created_at|date:"j M y H:i" }} น.
+      </p>
+      {% if r.reason %}<p class="tl-note">{{ r.reason }}</p>{% endif %}
+
+      <div class="alert alert-info">
+        <span>ตำแหน่งของคุณยังไม่เปลี่ยน จนกว่าจะกด “ยอมรับ” ที่ปุ่มด้านล่าง</span>
+      </div>
+
+      <form method="post" action="{% url 'core:role_change_decide' r.pk %}" class="flex flex-wrap gap-2">
+        {% csrf_token %}
+        <button type="submit" name="decision" value="accept" class="btn btn-primary"
+                data-confirm="ยอมรับการเปลี่ยนเป็น {{ r.get_to_role_display }} ใช่ไหม? เมนูและหน้าจอจะเปลี่ยนทันที">
+          ยอมรับ
+        </button>
+        <button type="submit" name="decision" value="reject" class="btn btn-outline">ปฏิเสธ</button>
+      </form>
+    </div>
+  </div>
+{% endfor %}
+
 <div class="card">
   <div class="divide-y divide-neutral-200">
     {% for n in items %}

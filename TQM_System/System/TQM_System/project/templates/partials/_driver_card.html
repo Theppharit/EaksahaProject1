@@ -1,0 +1,66 @@
+{% comment %} ============================================================
+   การ์ดคนขับ 1 คน — รับตัวแปร: d (Driver)
+
+   ตัวการ์ดเป็น <div> ไม่ใช่ <a> เพราะข้างในมีปุ่มและฟอร์ม
+   (ซ้อน <form> ไว้ใน <a> เป็น HTML ที่ผิด เบราว์เซอร์จะเดาเอง)
+   → ทำลิงก์ไว้ที่ชื่อคนขับกับปุ่มด้านล่างแทน
+
+   d.ui_manage = เจ้าของรถกำลังดูกลุ่มตัวเอง → เห็นปุ่มจัดการ
+   d.ui_locked = ยังมีงานค้างอยู่ → เปลี่ยนเป็น "ว่าง" เองไม่ได้
+   ============================================================ {% endcomment %}
+
+<div class="driver-card">
+  {% if d.photo %}
+    <img src="{{ d.photo.url }}" alt="" class="driver-photo">
+  {% else %}
+    <span class="driver-photo grid place-items-center font-kanit text-lg font-semibold">{{ d.name|slice:":2" }}</span>
+  {% endif %}
+
+  <div class="min-w-0 flex-1 space-y-0.5">
+    <p class="person-name">
+      <a href="{% url 'fleet:driver_detail' d.pk %}" class="hover:underline">{{ d.name }}</a>
+    </p>
+    <p class="cell-sub">{{ d.phone }}</p>
+
+    {% if d.truck %}
+      <p class="cell-sub">รถ {{ d.truck.plate }} · {{ d.truck.get_type_display }}</p>
+    {% else %}
+      <p class="cell-sub">— ยังไม่กำหนดรถ —</p>
+    {% endif %}
+
+    {% comment %} ── ป้ายสถานะ ── {% endcomment %}
+    <div class="flex flex-wrap gap-1.5 pt-1.5">
+      {% if d.is_available %}
+        <span class="badge badge-done">ว่าง</span>
+      {% else %}
+        <span class="badge badge-cancel">ไม่ว่าง</span>
+      {% endif %}
+
+      {% if d.approval_status == "approved" %}<span class="badge badge-go">อนุมัติแล้ว</span>
+      {% elif d.approval_status == "pending" %}<span class="badge badge-wait">รออนุมัติ</span>
+      {% elif d.approval_status == "rejected" %}<span class="badge badge-urgent">ไม่อนุมัติ</span>{% endif %}
+
+      {% if d.is_backup %}<span class="badge badge-plain">คนขับเสริม</span>{% endif %}
+    </div>
+
+    {% comment %} ── ปุ่มจัดการ (เจ้าของรถเท่านั้น) ── {% endcomment %}
+    <div class="driver-actions">
+      {% if d.ui_manage %}
+        {% if d.ui_locked %}
+          <span class="badge badge-go">กำลังรับงานอยู่</span>
+        {% else %}
+          <form method="post" action="{% url 'fleet:driver_toggle' d.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-soft btn-sm">
+              เปลี่ยนเป็น{% if d.is_available %}ไม่ว่าง{% else %}ว่าง{% endif %}
+            </button>
+          </form>
+        {% endif %}
+        <a href="{% url 'fleet:driver_edit' d.pk %}" class="btn btn-outline btn-sm">แก้ไข</a>
+        <a href="{% url 'fleet:driver_detail' d.pk %}" class="btn btn-ghost btn-sm">รายละเอียด</a>
+      {% else %}
+        <a href="{% url 'fleet:driver_detail' d.pk %}" class="btn btn-outline btn-sm">ดูรายละเอียด</a>
+      {% endif %}
+    </div>
+  </div>
+</div>

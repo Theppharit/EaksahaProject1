@@ -78,3 +78,61 @@ class RoleTheme(models.Model):
             cls.objects.filter(role=role).values_list("accent_color", flat=True).first()
             or BRAND_COLOR
         )
+
+
+class RoleChangeStatus(models.TextChoices):
+    PENDING = "pending", "รอเจ้าของบัญชียืนยัน"
+    ACCEPTED = "accepted", "ยอมรับแล้ว"
+    REJECTED = "rejected", "ปฏิเสธ"
+    CANCELLED = "cancelled", "ยกเลิก"
+
+
+class RoleChangeRequest(models.Model):
+    """
+    คำขอเปลี่ยนสิทธิ์การเข้าถึง
+    ------------------------------------------------------------
+    ตามสเปก: แอดมินเปลี่ยนสิทธิ์ของใคร ต้องส่งแจ้งเตือนให้เจ้าของบัญชี
+    กดยอมรับหรือปฏิเสธก่อน
+
+    → สิทธิ์ยังไม่เปลี่ยนทันทีที่แอดมินกด ต้องรอเจ้าของบัญชีกดยอมรับ
+      ป้องกันคนโดนย้ายตำแหน่งกลางคันโดยไม่รู้ตัว แล้วเข้าหน้าเดิมไม่ได้
+    """
+
+    user = models.ForeignKey(
+        "accounts.User",
+        verbose_name="เจ้าของบัญชี",
+        on_delete=models.CASCADE,
+        related_name="role_changes",
+    )
+    from_role = models.CharField("จากตำแหน่ง", max_length=20, choices=Role.choices)
+    to_role = models.CharField("เป็นตำแหน่ง", max_length=20, choices=Role.choices)
+
+    status = models.CharField(
+        "สถานะ",
+        max_length=10,
+        choices=RoleChangeStatus.choices,
+        default=RoleChangeStatus.PENDING,
+        db_index=True,
+    )
+    reason = models.CharField("เหตุผลจากแอดมิน", max_length=300, blank=True)
+
+    requested_by = models.ForeignKey(
+        "accounts.User",
+        verbose_name="แอดมินผู้ขอ",
+        on_delete=models.PROTECT,
+        related_name="role_changes_requested",
+    )
+    created_at = models.DateTimeField("ขอเมื่อ", auto_now_add=True, db_index=True)
+    decided_at = models.DateTimeField("ตัดสินเมื่อ", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "คำขอเปลี่ยนสิทธิ์"
+        verbose_name_plural = "คำขอเปลี่ยนสิทธิ์"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user} : {self.get_from_role_display()} → {self.get_to_role_display()}"
+
+    @property
+    def is_pending(self):
+        return self.status == RoleChangeStatus.PENDING

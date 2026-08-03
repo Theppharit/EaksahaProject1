@@ -73,6 +73,9 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # โหมดสวมสิทธิ์ของแอดมิน (หน้าซัพพอร์ต) — ต้องอยู่หลัง AuthenticationMiddleware
+    # เพราะต้องมี request.user ก่อนถึงจะสลับตัวผู้ใช้ได้
+    "project.accounts.middleware.ImpersonationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -217,3 +220,12 @@ if not DEBUG:
         },
         "root": {"handlers": ["file"], "level": "ERROR"},
     }
+
+
+# ============================================================
+# รหัสผ่านเริ่มต้น — ใช้ตอนแอดมินกด "รีเซตรหัสผ่าน"
+# ------------------------------------------------------------
+# ตั้งค่าจริงผ่านไฟล์ .env ได้ (DEFAULT_USER_PASSWORD=...)
+# ผู้ใช้ควรเปลี่ยนรหัสผ่านทันทีหลังเข้าระบบครั้งแรก
+# ============================================================
+DEFAULT_USER_PASSWORD = env.str("DEFAULT_USER_PASSWORD", default="Tqm@2569")

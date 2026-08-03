@@ -1,0 +1,26 @@
+{% comment %} ============================================================
+   ปุ่มเลือกช่วงเวลาของกราฟ + ช่องเลือกวันเอง
+   รับตัวแปร: period · period_choices (มาจาก jobs/stats)
+
+   ส่งค่าผ่าน querystring ทั้งหมด → กด "ย้อนกลับ" ของเบราว์เซอร์ได้
+   และก๊อปลิงก์ส่งให้คนอื่นดูช่วงเดียวกันได้เลย
+   ============================================================ {% endcomment %}
+
+<div class="flex flex-wrap items-center gap-2">
+  <div class="seg">
+    {% for value, label in period_choices %}
+      <a href="?period={{ value }}{% if cal %}&amp;y={{ cal.year }}&amp;m={{ cal.month }}{% endif %}"
+         class="seg-item{% if period.key == value %} is-active{% endif %}">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  <form method="get" class="flex flex-wrap items-center gap-2">
+    {% if cal %}<input type="hidden" name="y" value="{{ cal.year }}"><input type="hidden" name="m" value="{{ cal.month }}">{% endif %}
+    <label class="sr-label" for="periodFrom">ตั้งแต่วันที่</label>
+    <input id="periodFrom" type="date" name="from" value="{{ period.from }}" class="input w-auto">
+    <span class="cell-sub">ถึง</span>
+    <label class="sr-label" for="periodTo">ถึงวันที่</label>
+    <input id="periodTo" type="date" name="to" value="{{ period.to }}" class="input w-auto">
+    <button type="submit" class="btn btn-soft btn-sm">ดูช่วงนี้</button>
+  </form>
+</div>

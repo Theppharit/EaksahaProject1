@@ -1,0 +1,17 @@
+{% comment %} ============================================================
+   แท็บกรองสถานะ + ตัวเลือกจำนวนย้อนหลัง
+   รับตัวแปร: tabs · current_status · limit · limit_choices
+
+   ส่งค่าผ่าน querystring ทั้งหมด → กดย้อนกลับได้ ก๊อปลิงก์ส่งต่อได้
+   ============================================================ {% endcomment %}
+
+<div class="card-body space-y-3 pb-2 pt-3">
+  <div class="seg">
+    {% for t in tabs %}
+      <a class="seg-item{% if current_status == t.value %} is-active{% endif %}"
+         href="?status={{ t.value }}&amp;limit={{ limit }}">
+        {{ t.label }} <span class="tabular">({{ t.count }})</span>
+      </a>
+    {% endfor %}
+  </div>
+</div>

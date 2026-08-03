@@ -1,0 +1,111 @@
+/* ============================================================
+   calendar.css — ปฏิทินวันนัดหมาย
+   ------------------------------------------------------------
+   จอใหญ่: ตาราง 7 ช่อง เห็นทั้งเดือน มีชื่อคิวย่อในแต่ละวัน
+   จอเล็ก: ช่องเล็กลง เหลือแค่ "จุด" บอกว่าวันนั้นมีงาน
+           แตะวันแล้วรายละเอียดจะกางออกด้านล่าง (ไม่โหลดหน้าใหม่)
+   ============================================================ */
+
+@layer components {
+  /* หมายเหตุ: ตัวเลขกลางวงแหวนอยู่ใน chart.css (.ch-center) */
+  .cal-head {
+    @apply flex items-center gap-2;
+  }
+  .cal-title {
+    @apply font-kanit text-[15px] font-semibold;
+  }
+  .cal-nav {
+    background-color: var(--color-surface-2);
+    color: var(--color-ink-soft);
+    @apply grid size-9 shrink-0 place-items-center rounded-pill transition
+           hover:text-neutral-900;
+  }
+  .cal-nav svg {
+    @apply size-4;
+  }
+
+  /* ── ตารางเดือน ───────────────────────────── */
+  .cal-grid {
+    @apply grid grid-cols-7 gap-1;
+  }
+  .cal-dow {
+    color: var(--color-ink-soft);
+    @apply pb-1 text-center text-[11.5px] font-medium;
+  }
+
+  /* 1 ช่อง = 1 วัน — เป็นปุ่มเสมอ จะได้กดด้วยคีย์บอร์ดได้ */
+  .cal-day {
+    background-color: var(--color-surface-2);
+    @apply flex min-h-[46px] w-full flex-col items-stretch gap-1 rounded-xl p-1.5
+           text-left transition sm:min-h-[86px];
+  }
+  .cal-day:hover {
+    box-shadow: var(--shadow-card);
+  }
+  .cal-num {
+    @apply text-center text-[12.5px] font-medium sm:text-left;
+  }
+
+  /* วันของเดือนอื่นที่ล้นมาเติมหัว-ท้ายตาราง */
+  .cal-day.is-out {
+    @apply bg-transparent opacity-35;
+  }
+
+  /* วันนี้ — วงกลมสีแบรนด์รอบตัวเลข */
+  .cal-day.is-today .cal-num {
+    background-color: var(--color-accent);
+    @apply mx-auto grid size-[22px] place-items-center rounded-full text-white sm:mx-0;
+  }
+
+  /* วันที่มีงาน */
+  .cal-day.has-items {
+    background-color: color-mix(in oklab, var(--color-accent) 7%, white);
+  }
+
+  /* ชื่อคิวย่อ — จอเล็กซ่อนไว้ เหลือแค่จุด */
+  .cal-chip {
+    background-color: var(--color-surface);
+    @apply hidden truncate rounded-md px-1.5 py-0.5 text-[11px] sm:block;
+  }
+  .cal-more {
+    color: var(--color-ink-soft);
+    @apply hidden pl-1 text-[10.5px] sm:block;
+  }
+  .cal-dots {
+    @apply flex justify-center gap-0.5 sm:hidden;
+  }
+  .cal-dot {
+    background-color: var(--color-accent);
+    @apply size-1.5 rounded-full;
+  }
+
+  /* ── แผงรายละเอียดของวันที่กด ─────────────── */
+  .cal-panel {
+    border-top: 1px solid var(--color-line);
+    @apply mt-4 hidden space-y-2 pt-4;
+  }
+  .cal-panel.is-open {
+    @apply block;
+  }
+  .cal-panel-title {
+    @apply font-kanit text-[14.5px] font-semibold;
+  }
+  .cal-item {
+    background-color: var(--color-surface-2);
+    @apply flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl px-3.5 py-3
+           text-[13.5px] transition;
+  }
+  .cal-item:hover {
+    box-shadow: var(--shadow-card);
+  }
+  .cal-time {
+    @apply w-12 shrink-0 font-medium tabular;
+  }
+  .cal-name {
+    @apply min-w-0 flex-1 truncate font-medium;
+  }
+  .cal-sub {
+    color: var(--color-ink-soft);
+    @apply w-full truncate text-[12.5px] sm:w-auto;
+  }
+}

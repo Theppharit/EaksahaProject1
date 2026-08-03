@@ -55,6 +55,12 @@
     @apply px-3 pb-1 pt-5 text-[11px] font-semibold uppercase tracking-widest text-neutral-600;
   }
 
+  /* เส้นคั่นกลุ่มเมนู — ใช้แทนหัวข้อ เวลาไม่อยากมีตัวหนังสือมาคั่น */
+  .sidebar-sep {
+    background-color: rgb(255 255 255 / 0.08);
+    @apply mx-3 my-4 h-px;
+  }
+
   /* ลิงก์เมนู — ไม่มีกล่อง ใช้จุดเล็กบอกหน้าที่เปิดอยู่ */
   .nav-link {
     @apply relative flex w-full items-center gap-3.5 rounded-xl px-3 py-3

@@ -20,16 +20,30 @@ class PriceRateForm(forms.ModelForm):
 
 
 class PaymentCycleForm(forms.ModelForm):
+    """
+    รอบจ่ายเงิน — ตกลงกับลูกค้าแล้วว่าจ่ายเดือนละครั้ง
+    จึงล็อก times_per_month = 1 ไว้ ไม่ต้องให้ผู้ใช้เลือก และซ่อนช่องวันจ่ายครั้งที่ 2
+    (ยังเก็บฟิลด์ไว้ในโมเดล เผื่อวันหน้าลูกค้าขอเป็นเดือนละ 2 ครั้ง)
+    """
+
     class Meta:
         model = PaymentCycle
-        fields = ["name", "times_per_month", "pay_day_1", "pay_day_2", "is_active"]
+        fields = ["name", "pay_day_1", "is_active"]
+        labels = {"pay_day_1": "จ่ายเงินทุกวันที่"}
+        help_texts = {"pay_day_1": "ใส่ 31 = สิ้นเดือน (เดือนที่ไม่มีวันที่ 31 ระบบจะใช้วันสุดท้ายของเดือนแทน)"}
         widgets = {
-            "name": forms.TextInput(attrs={**I, "placeholder": "เช่น รอบปกติ"}),
-            "times_per_month": forms.Select(attrs={"class": "select"}),
+            "name": forms.TextInput(attrs={**I, "placeholder": "เช่น รอบจ่ายปกติ"}),
             "pay_day_1": forms.NumberInput(attrs={**I, "min": 1, "max": 31}),
-            "pay_day_2": forms.NumberInput(attrs={**I, "min": 1, "max": 31}),
             "is_active": forms.CheckboxInput(attrs={"class": "check"}),
         }
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        obj.times_per_month = 1
+        obj.pay_day_2 = None
+        if commit:
+            obj.save()
+        return obj
 
 
 class BillForm(forms.ModelForm):

@@ -130,6 +130,135 @@
     @apply size-20 rounded-xl object-cover;
   }
 
+
+  /* ── กล่องขอแก้ไข/ขอยกเลิก (กางลงมาจากปุ่ม) ── */
+  .req {
+    @apply relative inline-block;
+  }
+  .req > summary {
+    @apply cursor-pointer list-none;
+  }
+  .req > summary::-webkit-details-marker {
+    display: none;
+  }
+  .req-pop {
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-pop);
+    @apply absolute right-0 z-30 mt-2 w-[min(320px,78vw)] rounded-card p-4 text-left;
+  }
+
+  /* ── รายการคำขอที่รอพิจารณา (ฝั่ง ผจก./แอดมิน) ── */
+  .req-item {
+    background-color: var(--color-surface-2);
+    @apply flex flex-col gap-4 rounded-card p-4 lg:flex-row lg:items-start;
+  }
+  .req-item-title {
+    @apply flex flex-wrap items-center gap-2 text-[14.5px] font-medium;
+  }
+  .req-item-act {
+    @apply w-full shrink-0 space-y-2 lg:w-72;
+  }
+
+  /* ── แถบแจ้งเตือนงานด่วนบนสุด (เจ้าของรถสไลด์) ── */
+  .banner {
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-pop);
+    @apply flex flex-col gap-4 rounded-card p-5 sm:flex-row sm:items-center;
+  }
+  .banner.is-now {
+    box-shadow: var(--shadow-pop), 0 0 0 2px var(--color-accent);
+  }
+  .banner-icon {
+    background-color: color-mix(in oklab, var(--color-accent) 12%, white);
+    color: var(--color-accent);
+    @apply grid size-12 shrink-0 place-items-center rounded-2xl;
+  }
+  .banner-icon svg {
+    @apply size-6;
+  }
+  .banner-title {
+    @apply font-kanit text-[17px] font-semibold;
+  }
+  .banner-sub {
+    color: var(--color-ink-soft);
+    @apply text-[13.5px];
+  }
+  .banner .btn {
+    @apply w-full sm:ml-auto sm:w-auto;
+  }
+
+  /* ── บล็อกคิวรอรับ (ตัวเลขใหญ่ กดได้ทั้งบล็อก) ── */
+  .tile-link {
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-card);
+    @apply flex h-full items-center gap-4 rounded-card p-5 transition hover:shadow-lg;
+  }
+  .tile-num {
+    @apply font-kanit text-[34px] font-bold leading-none tabular;
+  }
+
+
+  /* ── แถบเตือนโหมดซัพพอร์ต (แอดมินสวมสิทธิ์) ── */
+  .impersonate-bar {
+    background-color: var(--color-status-urgent);
+    @apply sticky top-0 z-30 flex flex-wrap items-center gap-3 px-4 py-3
+           text-[13.5px] text-white sm:px-6;
+  }
+  .impersonate-bar svg {
+    @apply size-5 shrink-0;
+  }
+
+  /* ── ปุ่มตัดสินใจบนหน้ารออนุมัติ ── */
+  .approve-row {
+    @apply grid grid-cols-1 gap-4 lg:grid-cols-2;
+  }
+  .approve-form {
+    background-color: var(--color-surface-2);
+    @apply space-y-2 rounded-card p-4;
+  }
+
+  /* ── การ์ดคนขับ ── */
+  .driver-grid {
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3;
+  }
+  .driver-card {
+    background-color: var(--color-surface-2);
+    @apply flex items-start gap-3.5 rounded-card p-4 transition;
+  }
+  .driver-card:hover {
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-card);
+  }
+  .driver-photo {
+    background-color: color-mix(in oklab, var(--color-accent) 12%, white);
+    color: var(--color-accent);
+    @apply size-14 shrink-0 rounded-2xl object-cover;
+  }
+
+
+  /* ── ปุ่มจัดการในการ์ดคนขับ ── */
+  .driver-actions {
+    @apply flex flex-wrap items-center gap-2 pt-2.5;
+  }
+
+  /* ── กล่องพับ/กาง (ใช้ <details> ไม่ต้องพึ่ง JS) ── */
+  .fold {
+    border-top: 1px solid var(--color-line);
+    @apply pt-4;
+  }
+  .fold-head {
+    @apply flex cursor-pointer list-none items-center gap-2 text-[14px] font-medium;
+  }
+  .fold-head::-webkit-details-marker {
+    display: none;
+  }
+  .fold-arrow {
+    @apply size-4 transition-transform;
+  }
+  .fold[open] .fold-arrow {
+    @apply rotate-180;
+  }
+
   /* ── ใบจองคิว (พิมพ์ได้) ─────────────────── */
   .slip {
     background-color: var(--color-surface);
@@ -188,6 +317,7 @@
   .topbar,
   .bottom-nav,
   .no-print,
+  .impersonate-bar,
   .page-head {
     display: none !important;
   }

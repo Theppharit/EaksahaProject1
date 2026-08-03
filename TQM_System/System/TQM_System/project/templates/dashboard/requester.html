@@ -3,7 +3,22 @@
 {% block title %}ผู้จองคิว{% endblock %}
 {% block page_heading %}ภาพรวมการจองคิว{% endblock %}
 {% block dash_title %}ภาพรวมการจองคิว{% endblock %}
-{% block dash_sub %}ติดตามคิวรถสไลด์และรถยกที่คุณจองไว้{% endblock %}
+{% block dash_sub %}กราฟ ปฏิทินนัดหมาย และคิวของคุณที่ยังไม่ปิดงาน{% endblock %}
 
-{#  เนื้อหาเฉพาะของผู้จองคิว เพิ่มได้ที่นี่
-    {% block extra_bottom %} ... {% endblock %}  #}
+{% block dash_body %}
+
+  {% include "partials/_stat_cards.html" %}
+  {% include "partials/_dash_charts.html" %}
+  {% include "partials/_calendar.html" %}
+
+  <div class="card">
+    <div class="card-head">
+      <h3 class="card-title">คิวของฉันที่ยังไม่ปิดงาน</h3>
+      <div class="card-tools">
+        <a href="{% url 'jobs:list' %}" class="btn btn-outline btn-sm">ดูทั้งหมด</a>
+      </div>
+    </div>
+    {% include "partials/_booking_table.html" %}
+  </div>
+
+{% endblock %}

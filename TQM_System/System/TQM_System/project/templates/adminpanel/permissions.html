@@ -1,49 +1,144 @@
 {% extends "dashboard/_base.html" %}
-{% block title %}สิทธิ์การเข้าถึง{% endblock %}
-{% block page_heading %}สิทธิ์การเข้าถึง{% endblock %}
+
+{% block title %}สิทธิ์และรหัสผ่าน{% endblock %}
+{% block page_heading %}สิทธิ์และรหัสผ่าน{% endblock %}
+
+{% comment %} ============================================================
+   เปลี่ยนสิทธิ์ = ส่ง "คำขอ" ให้เจ้าของบัญชีกดยอมรับก่อน
+   สิทธิ์ยังไม่เปลี่ยนจนกว่าเจ้าตัวจะกดยอมรับในหน้าแจ้งเตือนของเขา
+   ============================================================ {% endcomment %}
 
 {% block content %}
-<div class="page-head">
-  <div>
-    <h1>สิทธิ์การเข้าถึง</h1>
-    <p class="page-sub">เปลี่ยนตำแหน่งของผู้ใช้ — ระบบจะส่งแจ้งเตือนให้เจ้าของบัญชีกดยืนยันรับทราบโดยอัตโนมัติ</p>
-  </div>
-</div>
 
-<div class="card">
-  <div class="table-wrap">
-    <table class="table">
-      <thead><tr><th>ผู้ใช้</th><th>รหัสพนักงาน</th><th>ตำแหน่ง</th><th>เปิดใช้งาน</th><th>ยืนยันตัวตน</th><th class="act"></th></tr></thead>
-      <tbody>
-        {% for r in rows %}
-          <tr>
-            <form method="post">
-              {% csrf_token %}
-              <input type="hidden" name="user_id" value="{{ r.user.pk }}">
-              <td>
-                <div class="flex items-center gap-3">
-                  <span class="avatar size-8 text-[12px]">{{ r.user.initials }}</span>
-                  <div class="min-w-0">
-                    <p class="cell-main">{{ r.user.get_full_name|default:r.user.username }}</p>
-                    <p class="cell-sub">{{ r.user.email|default:"—" }}</p>
-                  </div>
-                </div>
-              </td>
-              <td class="cell-main">{{ r.user.username }}</td>
-              <td>{{ r.form.role }}</td>
-              <td class="text-center">{{ r.form.is_active }}</td>
-              <td class="text-center">{{ r.form.id_verified }}</td>
-              <td class="act"><button class="btn btn-primary btn-sm" data-confirm="ยืนยันเปลี่ยนสิทธิ์ของ {{ r.user.username }}?">บันทึก</button></td>
-            </form>
-          </tr>
+  <div class="page-head">
+    <div>
+      <h1>สิทธิ์และรหัสผ่าน</h1>
+      <p class="page-sub">เปลี่ยนตำแหน่ง เปิด/ปิดบัญชี และรีเซตรหัสผ่าน</p>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <span>
+      เปลี่ยนตำแหน่งแล้ว <strong>สิทธิ์ยังไม่เปลี่ยนทันที</strong> —
+      ระบบจะส่งแจ้งเตือนให้เจ้าของบัญชีกดยอมรับก่อน ป้องกันคนโดนย้ายตำแหน่งกลางคันโดยไม่รู้ตัว
+    </span>
+  </div>
+
+  {% comment %} ── คำขอที่รอเจ้าของบัญชีตัดสิน ── {% endcomment %}
+  {% if pending %}
+    <div class="card">
+      <div class="card-head">
+        <h3 class="card-title">คำขอที่รอเจ้าของบัญชียืนยัน</h3>
+        <div class="card-tools"><span class="badge badge-wait">{{ pending|length }} รายการ</span></div>
+      </div>
+      <div class="card-body space-y-2">
+        {% for r in pending %}
+          <p class="tl-note">
+            <strong>{{ r.user.get_full_name|default:r.user.username }}</strong>
+            — {{ r.get_from_role_display }} → {{ r.get_to_role_display }}
+            <span class="cell-sub">
+              (ขอโดย {{ r.requested_by.username }} เมื่อ {{ r.created_at|date:"j M y H:i" }} น.)
+            </span>
+          </p>
         {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+      </div>
+    </div>
+  {% endif %}
 
-<div class="alert alert-warning">
-  <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg>
-  <span>การเปลี่ยนตำแหน่งมีผลทันที ผู้ใช้จะเห็นเมนูและข้อมูลชุดใหม่ในการเข้าใช้ครั้งถัดไป</span>
-</div>
+  {% comment %} ── ตารางผู้ใช้ทั้งหมด ── {% endcomment %}
+  <div class="card">
+    <div class="card-head">
+      <h3 class="card-title">ผู้ใช้ทั้งหมด</h3>
+      <div class="card-tools">
+        <span class="cell-sub">รหัสผ่านเริ่มต้น: <strong>{{ default_password }}</strong></span>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>ผู้ใช้</th><th>ตำแหน่งปัจจุบัน</th><th>สถานะ</th><th>เปลี่ยนตำแหน่งเป็น</th><th class="act">รหัสผ่าน</th></tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+            <tr>
+              <td>
+                <div class="cell-main">{{ u.get_full_name|default:u.username }}</div>
+                <div class="cell-sub">{{ u.username }}{% if u.email %} · {{ u.email }}{% endif %}</div>
+              </td>
+              <td><span class="badge badge-plain">{{ u.get_role_display }}</span></td>
+              <td>
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="toggle_active">
+                  <input type="hidden" name="user_id" value="{{ u.pk }}">
+                  {% if u.is_active %}
+                    <button type="submit" class="btn btn-ghost btn-sm"
+                            data-confirm="ปิดการใช้งานบัญชี {{ u.username }}?">ใช้งานได้ · กดเพื่อปิด</button>
+                  {% else %}
+                    <button type="submit" class="btn btn-soft btn-sm">ถูกปิด · กดเพื่อเปิด</button>
+                  {% endif %}
+                </form>
+              </td>
+              <td>
+                <form method="post" class="space-y-2">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="change_role">
+                  <input type="hidden" name="user_id" value="{{ u.pk }}">
+                  <label class="sr-label" for="role-{{ u.pk }}">ตำแหน่งใหม่</label>
+                  <select id="role-{{ u.pk }}" name="role" class="select">
+                    {% for value, label in roles %}
+                      <option value="{{ value }}"{% if u.role == value %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                  <label class="sr-label" for="reason-{{ u.pk }}">เหตุผล</label>
+                  <input id="reason-{{ u.pk }}" type="text" name="reason" class="input" placeholder="เหตุผล (ไม่บังคับ)">
+                  <button type="submit" class="btn btn-outline btn-sm w-full">ส่งคำขอเปลี่ยนตำแหน่ง</button>
+                </form>
+              </td>
+              <td class="act">
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="reset_password">
+                  <input type="hidden" name="user_id" value="{{ u.pk }}">
+                  <button type="submit" class="btn btn-danger btn-sm"
+                          data-confirm="รีเซตรหัสผ่านของ {{ u.username }} กลับเป็นค่าเริ่มต้น? เจ้าตัวจะเข้าด้วยรหัสเดิมไม่ได้อีก">
+                    รีเซตรหัสผ่าน
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% comment %} ── ประวัติการเปลี่ยนสิทธิ์ ── {% endcomment %}
+  {% if history %}
+    <div class="card">
+      <div class="card-head"><h3 class="card-title">ประวัติการเปลี่ยนสิทธิ์</h3></div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>ผู้ใช้</th><th>เปลี่ยนจาก → เป็น</th><th>ผลลัพธ์</th><th>เมื่อ</th></tr></thead>
+          <tbody>
+            {% for r in history %}
+              <tr>
+                <td class="cell-main">{{ r.user.get_full_name|default:r.user.username }}</td>
+                <td>{{ r.get_from_role_display }} → {{ r.get_to_role_display }}</td>
+                <td>
+                  {% if r.status == "accepted" %}<span class="badge badge-done">{{ r.get_status_display }}</span>
+                  {% elif r.status == "rejected" %}<span class="badge badge-urgent">{{ r.get_status_display }}</span>
+                  {% else %}<span class="badge badge-plain">{{ r.get_status_display }}</span>{% endif %}
+                </td>
+                <td>{{ r.decided_at|date:"j M y H:i"|default:"—" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+
 {% endblock %}

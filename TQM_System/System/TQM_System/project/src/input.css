@@ -20,6 +20,8 @@
       ├─ table.css     ตาราง · แบ่งหน้า
       ├─ card.css      การ์ด · สถิติ · ไทม์ไลน์ · แถบสัดส่วน
       ├─ badge.css     ป้ายสถานะ · กล่องแจ้งเตือน
+      ├─ chart.css     กราฟเส้น · วงแหวน · ปุ่มเลือกช่วงเวลา
+      ├─ calendar.css  ปฏิทินวันนัดหมาย
       ├─ auth.css      หน้า login
       └─ modules.css   ชิ้นส่วนเฉพาะหน้า + สไตล์ตอนพิมพ์
    ============================================================ */
@@ -44,6 +46,8 @@
 @import "./components/table.css";
 @import "./components/card.css";
 @import "./components/badge.css";
+@import "./components/chart.css";
+@import "./components/calendar.css";
 
 /* ── 6. เฉพาะบางหน้า ───────────────────────────── */
 @import "./components/auth.css";

@@ -1,7 +1,14 @@
 {% comment %} ============================================================
    ตารางใบจอง — ใช้ร่วมกันทั้งแดชบอร์ดและหน้ารายการ
-   รับตัวแปร: bookings
+
+   รับตัวแปร:
+     bookings              ลิสต์ใบจอง
+     show_request_buttons  True = โชว์ปุ่มขอแก้ไข/ขอยกเลิก
+                           (view เป็นคนคำนวณ b.ui_can_request มาให้แล้ว)
+
+   จอเล็กเปลี่ยนจากตารางเป็นการ์ด — ตาราง 7 คอลัมน์บนมือถืออ่านไม่ออก
    ============================================================ {% endcomment %}
+
 <div class="table-wrap hidden md:block">
   <table class="table">
     <thead>
@@ -42,10 +49,19 @@
               <span class="cell-sub">— ยังไม่มีผู้รับ —</span>
             {% endif %}
           </td>
-          <td>{% include "partials/_status_badge.html" with status=b.status label=b.get_status_display %}</td>
+          <td>
+            {% include "partials/_status_badge.html" with status=b.status label=b.get_status_display %}
+            {% if b.ui_pending_request %}
+              <div class="mt-1.5"><span class="badge badge-plain">{{ b.ui_pending_request.get_kind_display }} · รอพิจารณา</span></div>
+            {% endif %}
+          </td>
           <td class="act">
             <a href="{% url 'jobs:detail' b.pk %}" class="btn btn-outline btn-sm">รายละเอียด</a>
-            <a href="{% url 'jobs:slip' b.pk %}" class="btn btn-ghost btn-sm">ใบจองคิว</a>
+            {% if show_request_buttons and b.ui_can_request %}
+              {% include "partials/_request_form.html" with b=b %}
+            {% else %}
+              <a href="{% url 'jobs:slip' b.pk %}" class="btn btn-ghost btn-sm">ใบจองคิว</a>
+            {% endif %}
           </td>
         </tr>
       {% empty %}
@@ -65,16 +81,24 @@
 {# ── มือถือ: แสดงเป็นการ์ดแทนตาราง อ่านง่ายกว่ามาก ── #}
 <div class="md:hidden">
   {% for b in bookings %}
-    <a href="{% url 'jobs:detail' b.pk %}" class="job-card">
-      <div class="flex items-start justify-between gap-2">
-        <p class="job-no">{{ b.booking_no }}</p>
-        {% include "partials/_status_badge.html" with status=b.status label=b.get_status_display %}
-      </div>
-      <p class="job-cust">{{ b.customer.name }}</p>
-      <p class="cell-sub">{{ b.appointment_at|date:"j M y H:i" }} น.</p>
-      <p class="cell-sub line-2">{{ b.pickup_address }} → {{ b.dropoff_address }}</p>
-      {% if b.driver %}<p class="cell-sub">คนขับ: {{ b.driver.name }}</p>{% endif %}
-    </a>
+    <div class="job-card">
+      <a href="{% url 'jobs:detail' b.pk %}" class="block space-y-1">
+        <div class="flex items-start justify-between gap-2">
+          <p class="job-no">{{ b.booking_no }}</p>
+          {% include "partials/_status_badge.html" with status=b.status label=b.get_status_display %}
+        </div>
+        <p class="job-cust">{{ b.customer.name }}</p>
+        <p class="cell-sub">{{ b.appointment_at|date:"j M y H:i" }} น.</p>
+        <p class="cell-sub line-2">{{ b.pickup_address }} → {{ b.dropoff_address }}</p>
+        {% if b.driver %}<p class="cell-sub">คนขับ: {{ b.driver.name }}</p>{% endif %}
+      </a>
+
+      {% if b.ui_pending_request %}
+        <p class="pt-2"><span class="badge badge-plain">{{ b.ui_pending_request.get_kind_display }} · รอพิจารณา</span></p>
+      {% elif show_request_buttons and b.ui_can_request %}
+        <div class="pt-2">{% include "partials/_request_form.html" with b=b %}</div>
+      {% endif %}
+    </div>
   {% empty %}
     <div class="empty"><p>ยังไม่มีใบจองในเงื่อนไขนี้</p></div>
   {% endfor %}

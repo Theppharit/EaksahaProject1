@@ -44,6 +44,7 @@ ROLE_MENUS = {
     ],
     Role.TRAILER: [
         ("หน้าหลัก", _D.format("trailer"), "home"),
+        ("รับคิวงาน", "jobs:available", "truck"),
         ("คนขับรถ", "fleet:driver_list", "users"),
         ("ประวัติการจองคิว", "jobs:history", "clock"),
     ],
@@ -71,8 +72,8 @@ ROLE_MENUS = {
         ("ซัพพอร์ตระบบผู้จองคิว", "adminpanel:support_requester", "life"),
         ("ซัพพอร์ตระบบคนขับรถสไลด์", "adminpanel:support_trailer", "life"),
         ("ซัพพอร์ตระบบงานบัญชี", "adminpanel:support_accounting", "life"),
-        ("สิทธิ์การเข้าถึง", "adminpanel:permissions", "shield"),
-        ("อัพโหลดเอกสารการใช้งาน", "adminpanel:doc_upload", "upload"),
+        ("สิทธิ์และรหัสผ่าน", "adminpanel:permissions", "shield"),
+        ("อัปโหลดเอกสารการใช้งาน", "adminpanel:doc_upload", "upload"),
     ],
 }
 

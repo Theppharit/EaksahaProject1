@@ -31,7 +31,14 @@
         <div class="card-head">
           <h3 class="card-title">รายละเอียดงาน</h3>
           <div class="card-tools">
-            <a href="{% url 'jobs:edit' booking.pk %}" class="btn btn-outline btn-sm">แก้ไข</a>
+            {% if can_edit %}
+              <a href="{% url 'jobs:edit' booking.pk %}" class="btn btn-outline btn-sm">แก้ไข</a>
+            {% endif %}
+            {% if pending_request %}
+              <span class="badge badge-plain">{{ pending_request.get_kind_display }} · รอผู้จัดการพิจารณา</span>
+            {% elif can_request %}
+              {% include "partials/_request_form.html" with b=booking %}
+            {% endif %}
           </div>
         </div>
         <div class="card-body">
@@ -47,6 +54,25 @@
             {% if booking.note %}<div class="col-span-full"><dt>หมายเหตุ</dt><dd>{{ booking.note|linebreaksbr }}</dd></div>{% endif %}
             {% if booking.cancelled_reason %}<div class="col-span-full"><dt>เหตุผลที่ยกเลิก</dt><dd class="text-brand">{{ booking.cancelled_reason }}</dd></div>{% endif %}
           </dl>
+
+          {% comment %} ประวัติคำขอแก้ไข/ยกเลิกของใบนี้ — ใครขออะไร ผลเป็นยังไง {% endcomment %}
+          {% if booking_requests %}
+            <div class="mt-6 space-y-2" style="border-top: 1px solid var(--color-line); padding-top: 1rem;">
+              <p class="slip-h">ประวัติคำขอแก้ไข / ยกเลิก</p>
+              {% for r in booking_requests %}
+                <div class="tl-note">
+                  <p class="text-[13.5px]">
+                    <strong>{{ r.get_kind_display }}</strong>
+                    โดย {{ r.created_by.get_full_name|default:r.created_by.username }}
+                    · {{ r.created_at|date:"j M y H:i" }} น.
+                    — {{ r.get_status_display }}
+                  </p>
+                  <p class="cell-sub">เหตุผล: {{ r.reason }}</p>
+                  {% if r.decision_note %}<p class="cell-sub">ผู้พิจารณาระบุ: {{ r.decision_note }}</p>{% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
         </div>
       </div>
 

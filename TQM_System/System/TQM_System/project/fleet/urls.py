@@ -10,4 +10,5 @@ urlpatterns = [
     path("drivers/<int:pk>/", views.driver_detail, name="driver_detail"),
     path("drivers/<int:pk>/edit/", views.driver_form, name="driver_edit"),
     path("drivers/<int:pk>/toggle/", views.driver_toggle, name="driver_toggle"),
+    path("drivers/<int:pk>/delete/", views.driver_delete, name="driver_delete"),
 ]

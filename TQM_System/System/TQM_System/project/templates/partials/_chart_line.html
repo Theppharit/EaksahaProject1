@@ -1,0 +1,42 @@
+{% load l10n %}
+{% comment %} ============================================================
+   กราฟเส้น — พิกัดทุกจุดคำนวณมาจาก jobs/stats.line_chart()
+   รับตัวแปร: chart (ผลจาก line_chart) · unit (หน่วยที่แสดงใต้ยอดรวม)
+
+   ใช้ viewBox คงที่แล้วให้ CSS ยืดเต็มความกว้าง → คมทุกขนาดจอ
+   ชี้เมาส์ที่จุดจะเห็นค่าจริงผ่าน <title> ของ SVG (ไม่ต้องใช้ JS)
+   ============================================================ {% endcomment %}
+
+<div class="chart">
+  {% if chart.is_empty %}
+    <div class="empty">
+      <svg class="size-9 opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+      <p>ยังไม่มีข้อมูลในช่วงเวลานี้</p>
+    </div>
+  {% else %}
+{% localize off %}
+    <svg viewBox="0 0 {{ chart.width }} {{ chart.height }}" role="img"
+         aria-label="กราฟแนวโน้ม รวม {{ chart.total }} {{ unit|default:'รายการ' }}">
+
+      {% for g in chart.grid %}
+        <line class="ch-grid" x1="{{ chart.x_start }}" y1="{{ g.y }}" x2="{{ chart.x_end }}" y2="{{ g.y }}"/>
+        <text class="ch-axis" x="{{ chart.axis_x }}" y="{{ g.ty }}" text-anchor="end">{{ g.label }}</text>
+      {% endfor %}
+
+      <path class="ch-area" d="{{ chart.area }}"/>
+      <polyline class="ch-line" points="{{ chart.poly }}"/>
+
+      {% for p in chart.points %}
+        <circle class="ch-hit" cx="{{ p.x }}" cy="{{ p.y }}" r="13">
+          <title>{{ p.label }} · {{ p.display }} {{ unit|default:"รายการ" }}</title>
+        </circle>
+        <circle class="ch-dot" cx="{{ p.x }}" cy="{{ p.y }}" r="3.5"/>
+      {% endfor %}
+
+      {% for t in chart.xticks %}
+        <text class="ch-axis" x="{{ t.x }}" y="{{ chart.label_y }}" text-anchor="middle">{{ t.label }}</text>
+      {% endfor %}
+    </svg>
+    {% endlocalize %}
+  {% endif %}
+</div>

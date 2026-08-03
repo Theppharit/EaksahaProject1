@@ -3,7 +3,27 @@
 {% block title %}ผู้จัดการสาขา{% endblock %}
 {% block page_heading %}กระดานจ่ายงาน{% endblock %}
 {% block dash_title %}กระดานจ่ายงาน{% endblock %}
-{% block dash_sub %}ใบจองทั้งหมดในระบบ และรายการที่รอคุณอนุมัติ{% endblock %}
+{% block dash_sub %}ภาพรวมทั้งระบบ ปฏิทินนัดหมายของผู้จองทุกคน และคำขอที่รอคุณ{% endblock %}
 
-{#  เนื้อหาเฉพาะของผู้จัดการสาขา เพิ่มได้ที่นี่
-    {% block extra_bottom %} ... {% endblock %}  #}
+{% block head_actions %}
+  <a href="{% url 'jobs:pending' %}" class="btn btn-soft">รายการรออนุมัติ</a>
+{% endblock %}
+
+{% block dash_body %}
+
+  {% include "partials/_requests_panel.html" %}
+  {% include "partials/_stat_cards.html" %}
+  {% include "partials/_dash_charts.html" %}
+  {% include "partials/_calendar.html" %}
+
+  <div class="card">
+    <div class="card-head">
+      <h3 class="card-title">ทุกคิวที่ยังไม่ปิดงาน</h3>
+      <div class="card-tools">
+        <a href="{% url 'jobs:list' %}" class="btn btn-outline btn-sm">ดูทั้งหมด</a>
+      </div>
+    </div>
+    {% include "partials/_booking_table.html" %}
+  </div>
+
+{% endblock %}

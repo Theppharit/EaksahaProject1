@@ -23,6 +23,7 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 
 from project.customers.models import Customer, CustomerVehicle
@@ -106,7 +107,12 @@ class BookingQuerySet(models.QuerySet):
             return self.filter(sales=user)  # เฉพาะใบที่ระบุชื่อตัวเอง
 
         if user.role == Role.TRAILER:
-            return self.filter(truck_owner__user=user)  # เฉพาะงานของตัวเอง
+            # งานของตัวเอง + งานใหม่ที่ยังไม่มีใครกดรับ
+            # (สเปก: "เจ้าของรถสไลด์ทุกคันจะเห็นคิวที่ยังไม่ถูกกดรับ")
+            return self.filter(
+                Q(truck_owner__user=user)
+                | Q(truck_owner__isnull=True, status=BookingStatus.PENDING_ACCEPT)
+            )
 
         if user.role == Role.ACCOUNTING:
             # บัญชีเห็นตั้งแต่ ผจก.อนุมัติ เป็นต้นไป
@@ -376,3 +382,71 @@ class JobPhoto(models.Model):
 
     def __str__(self):
         return f"{self.step} · {self.angle or 'รูป'}"
+
+
+# ============================================================
+# คำขอแก้ไข / คำขอยกเลิก
+# ------------------------------------------------------------
+# สเปก: ผู้จองคิวและเจ้าของรถ "ขอแก้ไข" หรือ "ขอยกเลิก" ได้
+# แต่ทั้งสองตำแหน่งไม่มีสิทธิ์เปลี่ยนใบจองเอง
+# → เก็บเป็นคำขอ แล้วให้ ผจก.สาขา (หรือแอดมิน) เป็นคนตัดสิน
+#   ได้ประวัติครบว่าใครขออะไร เมื่อไร ใครอนุมัติ
+# ============================================================
+class RequestKind(models.TextChoices):
+    EDIT = "edit", "ขอแก้ไข"
+    CANCEL = "cancel", "ขอยกเลิก"
+
+
+class RequestStatus(models.TextChoices):
+    PENDING = "pending", "รอผู้จัดการพิจารณา"
+    APPROVED = "approved", "อนุมัติแล้ว"
+    REJECTED = "rejected", "ไม่อนุมัติ"
+    DONE = "done", "แก้ไขเรียบร้อยแล้ว"
+
+
+class BookingRequest(models.Model):
+    booking = models.ForeignKey(
+        Booking, verbose_name="ใบจอง", on_delete=models.CASCADE, related_name="requests"
+    )
+    kind = models.CharField("ประเภทคำขอ", max_length=10, choices=RequestKind.choices)
+    reason = models.TextField("เหตุผล")
+
+    status = models.CharField(
+        "สถานะคำขอ",
+        max_length=10,
+        choices=RequestStatus.choices,
+        default=RequestStatus.PENDING,
+        db_index=True,
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="ผู้ขอ",
+        on_delete=models.PROTECT,
+        related_name="booking_requests",
+    )
+    created_at = models.DateTimeField("ขอเมื่อ", auto_now_add=True, db_index=True)
+
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="ผู้พิจารณา",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="booking_requests_decided",
+    )
+    decided_at = models.DateTimeField("พิจารณาเมื่อ", null=True, blank=True)
+    decision_note = models.CharField("หมายเหตุผู้พิจารณา", max_length=300, blank=True)
+
+    class Meta:
+        verbose_name = "คำขอแก้ไข/ยกเลิก"
+        verbose_name_plural = "คำขอแก้ไข/ยกเลิก"
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["status", "-created_at"])]
+
+    def __str__(self):
+        return f"{self.booking.booking_no} · {self.get_kind_display()}"
+
+    @property
+    def is_pending(self):
+        return self.status == RequestStatus.PENDING

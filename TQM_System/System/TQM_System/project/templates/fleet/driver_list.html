@@ -1,69 +1,111 @@
 {% extends "dashboard/_base.html" %}
+
 {% block title %}คนขับรถ{% endblock %}
 {% block page_heading %}คนขับรถ{% endblock %}
 
+{% comment %} ============================================================
+   คนขับรถทั้งหมด จัดกลุ่มตามเจ้าของรถ
+   การ์ด 1 ใบ = คนขับ 1 คน + รถที่รับผิดชอบ + สถานะว่าง/ไม่ว่าง
+   คนขับเสริมพับไว้ใน <details> กดกางดูได้ ไม่ต้องใช้ JS
+   ============================================================ {% endcomment %}
+
 {% block content %}
-<div class="page-head">
-  <div>
-    <h1>คนขับรถ</h1>
-    <p class="page-sub">{% if can_add %}คนขับในกลุ่มของคุณ กดที่ชื่อเพื่อดูรายละเอียด{% else %}คนขับทุกกลุ่ม แยกตามเจ้าของรถ{% endif %}</p>
-  </div>
-  {% if can_add %}
-    <a href="{% url 'fleet:driver_add' %}" class="btn btn-primary">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      เพิ่มคนขับ
-    </a>
-  {% endif %}
-</div>
 
-<form method="get" class="filter-bar">
-  <label class="search">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
-    <input type="search" name="q" value="{{ keyword }}" placeholder="ค้นหาชื่อคนขับ">
-  </label>
-  <select name="status" class="select w-auto">
-    <option value="">ทุกสถานะ</option>
-    <option value="free" {% if status == "free" %}selected{% endif %}>ว่าง</option>
-    <option value="busy" {% if status == "busy" %}selected{% endif %}>ไม่ว่าง</option>
-  </select>
-  <button class="btn btn-primary btn-sm">ค้นหา</button>
-</form>
-
-<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-  {% for d in drivers %}
-    <div class="person-card">
-      <a href="{% url 'fleet:driver_detail' d.pk %}" class="flex min-w-0 flex-1 items-center gap-3">
-        {% if d.photo %}
-          <img src="{{ d.photo.url }}" alt="" class="size-12 shrink-0 rounded-full object-cover">
-        {% else %}
-          <span class="avatar size-12 text-base">{{ d.name|slice:":2" }}</span>
-        {% endif %}
-        <div class="min-w-0">
-          <p class="person-name">{{ d.name }}{% if d.is_backup %} <span class="badge badge-plain">เสริม</span>{% endif %}</p>
-          <p class="cell-sub">{{ d.phone }}</p>
-          <p class="cell-sub">{% if d.truck %}ทะเบียน {{ d.truck.plate }}{% else %}ยังไม่กำหนดรถ{% endif %}</p>
-          {% if groups %}<p class="cell-sub">กลุ่ม: {{ d.owner.name }}</p>{% endif %}
-        </div>
+  <div class="page-head">
+    <div>
+      <h1>คนขับรถ</h1>
+      {% if owner_mode %}
+        <p class="page-sub">คนขับในกลุ่มของคุณ {{ total_drivers }} คน — กดที่ชื่อเพื่อดูโปรไฟล์เต็ม</p>
+      {% else %}
+        <p class="page-sub">ทั้งหมด {{ total_drivers }} คน — ข้อมูลคนขับและรถที่รับผิดชอบอยู่ในการ์ดเดียวกัน</p>
+      {% endif %}
+    </div>
+    {% if can_add %}
+      <a href="{% url 'fleet:driver_add' %}" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        เพิ่มคนขับ
       </a>
-      <div class="flex flex-col items-end gap-2">
-        {% if d.is_available %}
-          <span class="badge badge-done">ว่าง</span>
+    {% endif %}
+  </div>
+
+  {% comment %} ── แถบค้นหา / เลือกเจ้าของรถ / กรองสถานะ ── {% endcomment %}
+  <form method="get" class="filter-bar">
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
+      <input type="search" name="q" value="{{ keyword }}" placeholder="ค้นหาชื่อคนขับ">
+    </label>
+
+    {% if owners|length > 1 %}
+      <label class="sr-label" for="ownerSel">เจ้าของรถ</label>
+      <select id="ownerSel" name="owner" class="select w-auto">
+        <option value="">— เจ้าของรถทุกเจ้า —</option>
+        {% for o in owners %}
+          <option value="{{ o.pk }}"{% if selected_owner == o.pk|stringformat:"s" %} selected{% endif %}>{{ o.name }}</option>
+        {% endfor %}
+      </select>
+    {% endif %}
+
+    <label class="sr-label" for="statusSel">สถานะ</label>
+    <select id="statusSel" name="status" class="select w-auto">
+      <option value="">ทุกสถานะ</option>
+      <option value="free"{% if status == "free" %} selected{% endif %}>ว่าง</option>
+      <option value="busy"{% if status == "busy" %} selected{% endif %}>ไม่ว่าง</option>
+    </select>
+
+    <button type="submit" class="btn btn-soft">ค้นหา</button>
+    {% if keyword or status or selected_owner %}
+      <a href="{% url 'fleet:driver_list' %}" class="btn btn-ghost">ล้างตัวกรอง</a>
+    {% endif %}
+  </form>
+
+  {% for g in groups %}
+    <div class="card">
+      {% comment %} ── หัวกลุ่ม: ข้อมูลเจ้าของรถ ── {% endcomment %}
+      <div class="card-head">
+        <h3 class="card-title">{{ g.owner.name }}</h3>
+        <div class="card-tools">
+          <span class="badge badge-done">ว่าง {{ g.free }}</span>
+          <span class="badge badge-plain">ทั้งหมด {{ g.total }} คน</span>
+        </div>
+      </div>
+
+      <div class="card-body space-y-5 pt-2">
+        <p class="cell-sub">
+          โทร {{ g.owner.phone }}
+          {% if g.owner.tax_id %} · เลขผู้เสียภาษี {{ g.owner.tax_id }}{% endif %}
+          {% if g.owner.bank_name %} · {{ g.owner.bank_name }} {{ g.owner.bank_account }}{% endif %}
+        </p>
+
+        {% comment %} ── คนขับหลัก ── {% endcomment %}
+        {% if g.main %}
+          <div class="driver-grid">
+            {% for d in g.main %}{% include "partials/_driver_card.html" with d=d %}{% endfor %}
+          </div>
         {% else %}
-          <span class="badge badge-cancel">ไม่ว่าง</span>
+          <p class="cell-sub">— ยังไม่มีคนขับหลักในกลุ่มนี้ —</p>
         {% endif %}
-        {% if d.approval_status != "approved" %}
-          <span class="badge badge-wait">{{ d.get_approval_status_display }}</span>
+
+        {% comment %} ── คนขับเสริม: พับไว้ กดกางดู ── {% endcomment %}
+        {% if g.backup %}
+          <details class="fold">
+            <summary class="fold-head">
+              <svg class="fold-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              คนขับเสริม {{ g.backup|length }} คน
+            </summary>
+            <div class="driver-grid pt-4">
+              {% for d in g.backup %}{% include "partials/_driver_card.html" with d=d %}{% endfor %}
+            </div>
+          </details>
         {% endif %}
       </div>
     </div>
   {% empty %}
-    <div class="card sm:col-span-2 xl:col-span-3">
+    <div class="card">
       <div class="empty">
         <svg class="size-9 opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-        <p>ยังไม่มีคนขับในระบบ</p>
-        {% if can_add %}<a href="{% url 'fleet:driver_add' %}" class="btn btn-primary btn-sm">เพิ่มคนขับคนแรก</a>{% endif %}
+        <p>ไม่พบคนขับตามเงื่อนไขที่เลือก</p>
       </div>
     </div>
   {% endfor %}
-</div>
+
 {% endblock %}

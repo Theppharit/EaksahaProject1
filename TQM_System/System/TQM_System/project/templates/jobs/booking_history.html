@@ -1,0 +1,42 @@
+{% extends "dashboard/_base.html" %}
+
+{% block title %}ประวัติการจองคิว{% endblock %}
+{% block page_heading %}ประวัติการจองคิว{% endblock %}
+
+{% block content %}
+
+  <div class="page-head">
+    <div>
+      <h1>ประวัติการจองคิว</h1>
+      <p class="page-sub">เลือกดูตามสถานะได้ และปรับจำนวนที่ย้อนดูได้เอง</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3 class="card-title">
+        {% if current_status %}เฉพาะสถานะที่เลือก{% else %}ทุกสถานะ{% endif %}
+      </h3>
+      <div class="card-tools">
+        <form method="get" class="flex items-center gap-2">
+          {% if current_status %}<input type="hidden" name="status" value="{{ current_status }}">{% endif %}
+          <label class="cell-sub" for="limitSel">ย้อนหลัง</label>
+          <select id="limitSel" name="limit" class="select w-auto" onchange="this.form.submit()">
+            {% for n in limit_choices %}
+              <option value="{{ n }}"{% if n == limit %} selected{% endif %}>{{ n }} รายการ</option>
+            {% endfor %}
+          </select>
+          <noscript><button type="submit" class="btn btn-soft btn-sm">ใช้</button></noscript>
+        </form>
+      </div>
+    </div>
+
+    {% include "partials/_filter_tabs.html" %}
+    {% include "partials/_booking_table.html" %}
+  </div>
+
+  <p class="cell-sub text-center">
+    แสดง {{ bookings|length }} รายการล่าสุด — ถ้าอยากเห็นมากกว่านี้ ปรับตัวเลือก “ย้อนหลัง” ด้านบน
+  </p>
+
+{% endblock %}

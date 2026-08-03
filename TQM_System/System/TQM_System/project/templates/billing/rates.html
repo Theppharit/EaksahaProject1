@@ -1,112 +1,143 @@
 {% extends "dashboard/_base.html" %}
+
 {% block title %}เกณฑ์ราคา · รอบจ่ายเงิน{% endblock %}
 {% block page_heading %}เกณฑ์ราคา · รอบจ่ายเงิน{% endblock %}
 
+{% comment %} ============================================================
+   ผู้จัดการสาขาตั้งเรทค่าเดินทาง และวันจ่ายเงิน (เดือนละครั้ง)
+
+   เรทเก่าไม่ถูกลบ — เก็บไว้ทั้งหมดพร้อมวันเริ่มใช้
+   เวลาลูกค้าทักท้วงย้อนหลังจะได้ตอบได้ว่างานเดือนนั้นคิดด้วยเรทไหน
+   ============================================================ {% endcomment %}
+
 {% block content %}
-<div class="page-head">
-  <div>
-    <h1>เกณฑ์ราคา และรอบจ่ายเงิน</h1>
-    <p class="page-sub">ตั้งค่าเรทค่าเดินทาง และกำหนดว่าจ่ายเงินเจ้าของรถเดือนละกี่ครั้ง วันไหน</p>
-  </div>
-</div>
 
-{% if current %}
-  <div class="highlight-card">
-    <p class="cell-sub">เกณฑ์ที่ใช้อยู่ตอนนี้</p>
-    <p class="font-kanit text-xl font-bold">{{ current.name }}</p>
-    <p class="text-[15px]">เริ่มต้น {{ current.base_price|floatformat:0 }} บาท (รวม {{ current.included_km|floatformat:0 }} กม.)
-      · เกิน กม.ละ {{ current.price_per_km|floatformat:0 }} บาท</p>
-  </div>
-{% endif %}
-
-<div class="grid-main">
-  <div class="col-wide space-y-5">
-    <div class="card">
-      <div class="card-head"><h3 class="card-title">ประวัติเกณฑ์ราคา</h3></div>
-      <div class="table-wrap">
-        <table class="table">
-          <thead><tr><th>ชื่อเกณฑ์</th><th class="num">ราคาพื้นฐาน</th><th class="num">รวม (กม.)</th><th class="num">ส่วนเกิน/กม.</th><th>เริ่มใช้</th><th>สถานะ</th></tr></thead>
-          <tbody>
-            {% for r in rates %}
-              <tr>
-                <td class="cell-main">{{ r.name }}</td>
-                <td class="num">{{ r.base_price|floatformat:2 }}</td>
-                <td class="num">{{ r.included_km|floatformat:0 }}</td>
-                <td class="num">{{ r.price_per_km|floatformat:2 }}</td>
-                <td>{{ r.effective_from|date:"j M Y" }}</td>
-                <td>{% if r.is_active %}<span class="badge badge-done">ใช้งาน</span>{% else %}<span class="badge badge-cancel">เลิกใช้</span>{% endif %}</td>
-              </tr>
-            {% empty %}
-              <tr><td colspan="6"><div class="empty"><p>ยังไม่ได้ตั้งเกณฑ์ราคา</p></div></td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-head"><h3 class="card-title">รอบจ่ายเงินที่ตั้งไว้</h3></div>
-      <div class="table-wrap">
-        <table class="table">
-          <thead><tr><th>ชื่อรอบ</th><th>จ่ายกี่ครั้ง/เดือน</th><th>วันจ่าย</th><th>สถานะ</th></tr></thead>
-          <tbody>
-            {% for c in cycles %}
-              <tr>
-                <td class="cell-main">{{ c.name }}</td>
-                <td>{{ c.get_times_per_month_display }}</td>
-                <td>วันที่ {{ c.pay_day_1 }}{% if c.pay_day_2 %} และ {{ c.pay_day_2 }}{% endif %}</td>
-                <td>{% if c.is_active %}<span class="badge badge-done">ใช้งาน</span>{% else %}<span class="badge badge-cancel">ปิด</span>{% endif %}</td>
-              </tr>
-            {% empty %}
-              <tr><td colspan="4"><div class="empty"><p>ยังไม่ได้ตั้งรอบจ่ายเงิน</p></div></td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+  <div class="page-head">
+    <div>
+      <h1>เกณฑ์ราคา · รอบจ่ายเงิน</h1>
+      <p class="page-sub">ตั้งค่าเรทค่าเดินทาง และวันจ่ายเงินให้เจ้าของรถ</p>
     </div>
   </div>
 
-  <div class="space-y-5">
-    <div class="card">
-      <div class="card-head"><h3 class="card-title">เพิ่มเกณฑ์ราคาใหม่</h3></div>
-      <div class="card-body">
-        <form method="post" class="space-y-4">
+  <div class="grid-main">
+
+    {% comment %} ── ซ้าย: เรทที่ใช้อยู่ตอนนี้ + ตัวอย่างราคา ── {% endcomment %}
+    <div class="col-wide space-y-5">
+      <div class="card">
+        <div class="card-head">
+          <h3 class="card-title">เรทที่ใช้อยู่ตอนนี้</h3>
+          {% if current %}<div class="card-tools"><span class="badge badge-done">ใช้งานอยู่</span></div>{% endif %}
+        </div>
+
+        <div class="card-body space-y-5">
+          {% if current %}
+            <div>
+              <p class="figure-value">{{ current.base_price|floatformat:0 }}<span class="figure-unit"> บาท</span></p>
+              <p class="cell-sub">
+                ค่าบริการพื้นฐาน (รวมระยะทาง {{ current.included_km|floatformat:0 }} กม.)
+                · เกินจากนั้นคิด {{ current.price_per_km|floatformat:2 }} บาท/กม.
+              </p>
+              <p class="cell-sub">“{{ current.name }}” เริ่มใช้ {{ current.effective_from|date:"j F Y" }}</p>
+            </div>
+
+            <div>
+              <p class="slip-h">ลองคำนวณดู</p>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead><tr><th>ระยะทาง</th><th class="num">ค่าบริการ</th></tr></thead>
+                  <tbody>
+                    {% for row in preview %}
+                      <tr><td>{{ row.km }} กม.</td><td class="num">{{ row.price }} บาท</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          {% else %}
+            <div class="alert alert-warning">
+              <span>ยังไม่ได้ตั้งเกณฑ์ราคา — กรอกในช่อง “ตั้งเกณฑ์ราคาใหม่” ทางขวาแล้วกดบันทึก</span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% comment %} ── ประวัติเรททั้งหมด ── {% endcomment %}
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">เรททั้งหมดที่เคยตั้งไว้</h3></div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th>ชื่อเกณฑ์</th><th>เริ่มใช้</th><th class="num">พื้นฐาน</th><th class="num">รวม กม.</th><th class="num">บาท/กม.</th><th>สถานะ</th></tr>
+            </thead>
+            <tbody>
+              {% for r in rates %}
+                <tr>
+                  <td><div class="cell-main">{{ r.name }}</div><div class="cell-sub">ตั้งโดย {{ r.created_by.get_full_name|default:r.created_by.username }}</div></td>
+                  <td>{{ r.effective_from|date:"j M y" }}</td>
+                  <td class="num">{{ r.base_price|floatformat:0 }}</td>
+                  <td class="num">{{ r.included_km|floatformat:0 }}</td>
+                  <td class="num">{{ r.price_per_km|floatformat:2 }}</td>
+                  <td>{% if r.is_active %}<span class="badge badge-done">ใช้งานอยู่</span>{% else %}<span class="badge badge-plain">เลิกใช้แล้ว</span>{% endif %}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="6"><div class="empty"><p>ยังไม่มีเกณฑ์ราคาในระบบ</p></div></td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    {% comment %} ── ขวา: ฟอร์มตั้งค่า ── {% endcomment %}
+    <div class="space-y-5">
+
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">ตั้งเกณฑ์ราคาใหม่</h3></div>
+        <form method="post" class="card-body space-y-4">
           {% csrf_token %}
-          {% for f in rate_form %}
+          {% for field in rate_form %}
             <div class="field">
-              {% if f.field.widget.input_type == 'checkbox' %}
-                <label class="check-row">{{ f }} {{ f.label }}</label>
-              {% else %}
-                <label class="label" for="{{ f.id_for_label }}">{{ f.label }}</label>{{ f }}
-              {% endif %}
-              {% for e in f.errors %}<p class="error">{{ e }}</p>{% endfor %}
+              <label class="label{% if field.field.required %} label-req{% endif %}" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+              {% for e in field.errors %}<p class="error">{{ e }}</p>{% endfor %}
             </div>
           {% endfor %}
-          <button name="save_rate" class="btn btn-primary w-full">บันทึกเกณฑ์ราคา</button>
+          <p class="help">ติ๊ก “ใช้งานอยู่” แล้วบันทึก ระบบจะปิดเรทเก่าให้อัตโนมัติ</p>
+          <button type="submit" name="save_rate" value="1" class="btn btn-primary w-full">บันทึกเกณฑ์ราคา</button>
         </form>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="card-head"><h3 class="card-title">ตั้งรอบจ่ายเงิน</h3></div>
-      <div class="card-body">
-        <form method="post" class="space-y-4">
-          {% csrf_token %}
-          {% for f in cycle_form %}
-            <div class="field">
-              {% if f.field.widget.input_type == 'checkbox' %}
-                <label class="check-row">{{ f }} {{ f.label }}</label>
-              {% else %}
-                <label class="label" for="{{ f.id_for_label }}">{{ f.label }}</label>{{ f }}
-                {% if f.help_text %}<p class="help">{{ f.help_text }}</p>{% endif %}
-              {% endif %}
-              {% for e in f.errors %}<p class="error">{{ e }}</p>{% endfor %}
+      <div class="card">
+        <div class="card-head">
+          <h3 class="card-title">รอบจ่ายเงิน</h3>
+          <div class="card-tools"><span class="badge badge-plain">เดือนละ 1 ครั้ง</span></div>
+        </div>
+        <div class="card-body space-y-4">
+          {% if current_cycle %}
+            <div class="highlight-card">
+              <p class="stat-label">รอบที่ใช้อยู่</p>
+              <p class="stat-value">ทุกวันที่ {{ current_cycle.pay_day_1 }}</p>
+              <p class="cell-sub">{{ current_cycle.name }}</p>
             </div>
-          {% endfor %}
-          <button name="save_cycle" class="btn btn-primary w-full">บันทึกรอบจ่ายเงิน</button>
-        </form>
+          {% endif %}
+
+          <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {% for field in cycle_form %}
+              <div class="field">
+                <label class="label{% if field.field.required %} label-req{% endif %}" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+                {% for e in field.errors %}<p class="error">{{ e }}</p>{% endfor %}
+              </div>
+            {% endfor %}
+            <button type="submit" name="save_cycle" value="1" class="btn btn-primary w-full">บันทึกรอบจ่ายเงิน</button>
+          </form>
+        </div>
       </div>
+
     </div>
   </div>
-</div>
+
 {% endblock %}

@@ -1,0 +1,50 @@
+{% comment %} ============================================================
+   คำขอที่รอผู้จัดการ/แอดมินพิจารณา
+   รับตัวแปร: open_requests
+
+   โชว์เฉพาะตอนมีคำขอค้าง — ไม่มีคำขอก็ไม่ต้องมีกล่องว่างมารกหน้าจอ
+   ============================================================ {% endcomment %}
+
+{% if open_requests %}
+  <div class="card">
+    <div class="card-head">
+      <h3 class="card-title">คำขอที่รอคุณพิจารณา</h3>
+      <div class="card-tools"><span class="badge badge-wait">{{ open_requests|length }} รายการ</span></div>
+    </div>
+
+    <div class="card-body space-y-3 pt-3">
+      {% for r in open_requests %}
+        <div class="req-item">
+          <div class="min-w-0 flex-1 space-y-1">
+            <p class="req-item-title">
+              {% if r.kind == "cancel" %}
+                <span class="badge badge-urgent">ขอยกเลิก</span>
+              {% else %}
+                <span class="badge badge-wait">ขอแก้ไข</span>
+              {% endif %}
+              <a href="{% url 'jobs:detail' r.booking.pk %}" class="underline">{{ r.booking.booking_no }}</a>
+              · {{ r.booking.customer.name }}
+            </p>
+            <p class="cell-sub">
+              โดย {{ r.created_by.get_full_name|default:r.created_by.username }}
+              · {{ r.created_at|date:"j M y H:i" }} น.
+            </p>
+            <p class="tl-note">{{ r.reason }}</p>
+          </div>
+
+          <form method="post" action="{% url 'jobs:request_decide' r.pk %}" class="req-item-act">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <label class="sr-label" for="note-{{ r.pk }}">หมายเหตุผู้พิจารณา</label>
+            <input id="note-{{ r.pk }}" type="text" name="note" class="input" placeholder="หมายเหตุ (บังคับกรอกเมื่อไม่อนุมัติ)">
+            <div class="flex gap-2">
+              <button type="submit" name="decision" value="approve" class="btn btn-primary btn-sm"
+                      {% if r.kind == "cancel" %}data-confirm="อนุมัติแล้วใบจองนี้จะถูกยกเลิกทันที ยืนยันไหม?"{% endif %}>อนุมัติ</button>
+              <button type="submit" name="decision" value="reject" class="btn btn-outline btn-sm">ไม่อนุมัติ</button>
+            </div>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}

@@ -1,0 +1,45 @@
+{% load l10n %}
+{% comment %} ============================================================
+   วงแหวนสัดส่วนตามสถานะ + คำอธิบายสี
+   รับตัวแปร: donut (ผลจาก jobs/stats.donut_chart)
+
+   วาดด้วยวงกลมวงเดียวซ้อนกันหลายชั้น แล้วใช้ stroke-dasharray
+   ตัดเป็นชิ้น ๆ — ไม่ต้องคำนวณ arc path ให้ยุ่งยาก
+   ============================================================ {% endcomment %}
+
+{% if donut.is_empty %}
+  <div class="empty"><p>ยังไม่มีใบจองในช่วงเวลานี้</p></div>
+{% else %}
+  <div class="donut-wrap">
+{% localize off %}
+    <svg class="w-[170px] shrink-0" viewBox="0 0 {{ donut.size }} {{ donut.size }}" role="img"
+         aria-label="สัดส่วนใบจองแยกตามสถานะ รวม {{ donut.total }} รายการ">
+      <circle class="ch-ring-bg" cx="{{ donut.center }}" cy="{{ donut.center }}"
+              r="{{ donut.radius }}" stroke-width="{{ donut.stroke }}"/>
+
+      {% for s in donut.segments %}
+        <circle class="ch-ring" cx="{{ donut.center }}" cy="{{ donut.center }}"
+                r="{{ donut.radius }}" stroke="{{ s.color }}" stroke-width="{{ donut.stroke }}"
+                stroke-dasharray="{{ s.dash }}" stroke-dashoffset="{{ s.offset }}"
+                transform="rotate(-90 {{ donut.center }} {{ donut.center }})">
+          <title>{{ s.label }} · {{ s.value }} รายการ ({{ s.pct }}%)</title>
+        </circle>
+      {% endfor %}
+
+      <text class="ch-center" x="{{ donut.center }}" y="{{ donut.center_text_y }}">{{ donut.total }}</text>
+      <text class="ch-center-sub" x="{{ donut.center }}" y="{{ donut.center_sub_y }}">ใบจอง</text>
+    </svg>
+    {% endlocalize %}
+
+    <div class="legend">
+      {% for s in donut.segments %}
+        <div class="legend-row">
+          <span class="legend-dot" style="background-color: {{ s.color }}"></span>
+          <span class="legend-name">{{ s.label }}</span>
+          <span class="legend-num">{{ s.value }}</span>
+          <span class="legend-pct">{{ s.pct }}%</span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}

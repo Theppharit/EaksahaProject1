@@ -1,0 +1,139 @@
+/* ============================================================
+   chart.css — กราฟที่วาดด้วย SVG จากฝั่งเซิร์ฟเวอร์
+   ------------------------------------------------------------
+   ไม่ใช้ไลบรารีกราฟเลย พิกัดทุกจุดคำนวณมาจาก jobs/stats.py
+   ข้อดี: หน้าเบา ไม่ต้องต่อเน็ตออกนอก และสั่งพิมพ์แล้วกราฟติดไปด้วย
+
+   รวม: กราฟเส้น · วงแหวน · แถบอันดับ · ปุ่มเลือกช่วงเวลา
+   ============================================================ */
+
+@layer components {
+  /* ── กรอบกราฟ ─────────────────────────────── */
+  .chart {
+    @apply space-y-3;
+  }
+  .chart svg {
+    @apply block h-auto w-full;
+  }
+
+  /* ── กราฟเส้น ─────────────────────────────── */
+  .ch-grid {
+    stroke: var(--color-line);
+    stroke-width: 1;
+  }
+  .ch-axis {
+    fill: var(--color-ink-soft);
+    font-size: 11px;
+  }
+  .ch-area {
+    fill: var(--color-accent);
+    opacity: 0.1;
+  }
+  .ch-line {
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ch-dot {
+    fill: var(--color-surface);
+    stroke: var(--color-accent);
+    stroke-width: 2.5;
+  }
+  /* วงใสคลุมทับจุด — ขยายพื้นที่ให้ชี้เมาส์โดนง่าย */
+  .ch-hit {
+    fill: transparent;
+  }
+  .ch-hit:hover + .ch-dot {
+    r: 6;
+  }
+
+  /* ── วงแหวนสัดส่วน ────────────────────────── */
+  .ch-ring-bg {
+    fill: none;
+    stroke: var(--color-surface-2);
+  }
+  .ch-ring {
+    fill: none;
+    stroke-linecap: butt;
+    transition: stroke-width 0.15s;
+  }
+  .ch-ring:hover {
+    stroke-width: 30;
+  }
+  /* ตัวเลขกลางวงแหวน — วาดเป็น <text> ใน SVG จะได้อยู่กลางเป๊ะทุกขนาดจอ */
+  .ch-center {
+    font-family: var(--font-kanit);
+    fill: currentColor;
+    font-size: 26px;
+    font-weight: 700;
+    text-anchor: middle;
+  }
+  .ch-center-sub {
+    fill: var(--color-ink-soft);
+    font-size: 11px;
+    text-anchor: middle;
+  }
+
+  .donut-wrap {
+    @apply flex flex-col items-center gap-5 sm:flex-row sm:items-start;
+  }
+  .donut-total {
+    @apply font-kanit text-2xl font-bold;
+  }
+  .donut-cap {
+    color: var(--color-ink-soft);
+    @apply text-[12px];
+  }
+
+  /* ── คำอธิบายสี ───────────────────────────── */
+  .legend {
+    @apply min-w-0 flex-1 space-y-2;
+  }
+  .legend-row {
+    @apply flex items-center gap-2.5 text-[13.5px];
+  }
+  .legend-dot {
+    @apply size-2.5 shrink-0 rounded-full;
+  }
+  .legend-name {
+    @apply min-w-0 flex-1 truncate;
+  }
+  .legend-num {
+    @apply shrink-0 font-medium tabular;
+  }
+  .legend-pct {
+    color: var(--color-ink-soft);
+    @apply w-12 shrink-0 text-right text-[12.5px] tabular;
+  }
+
+  /* ── ปุ่มเลือกช่วงเวลา (แถบแคปซูล) ─────────── */
+  .seg {
+    background-color: var(--color-surface-2);
+    @apply flex flex-wrap items-center gap-1 rounded-pill p-1;
+  }
+  .seg-item {
+    color: var(--color-ink-soft);
+    @apply rounded-pill px-3.5 py-1.5 text-[13.5px] transition;
+  }
+  .seg-item:hover {
+    @apply text-neutral-900;
+  }
+  .seg-item.is-active {
+    background-color: var(--color-accent);
+    @apply font-medium text-white;
+  }
+
+  /* ── กล่องตัวเลขเด่น (ยอดเงิน ฯลฯ) ────────── */
+  .figure {
+    @apply flex flex-wrap items-end gap-x-6 gap-y-2;
+  }
+  .figure-value {
+    @apply font-kanit text-[32px] font-bold leading-none tabular;
+  }
+  .figure-unit {
+    color: var(--color-ink-soft);
+    @apply text-[14px];
+  }
+}

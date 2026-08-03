@@ -1,83 +1,213 @@
 {% extends "dashboard/_base.html" %}
+
 {% block title %}{{ driver.name }}{% endblock %}
 {% block page_heading %}ข้อมูลคนขับ{% endblock %}
 
-{% block content %}
-<div class="page-head">
-  <div>
-    <h1>{{ driver.name }}</h1>
-    <p class="page-sub">สังกัด {{ driver.owner.name }}</p>
-  </div>
-  <a href="{% url 'fleet:driver_list' %}" class="btn btn-outline">← กลับรายชื่อ</a>
-</div>
+{% comment %} ============================================================
+   โปรไฟล์คนขับ 1 คน — ข้อมูลส่วนตัว · รถที่รับผิดชอบ · สถานะอนุมัติ
+   เจ้าของรถแก้ไข เปลี่ยนสถานะว่าง/ไม่ว่าง และลบคนขับเสริมได้จากหน้านี้
+   ============================================================ {% endcomment %}
 
-<div class="grid-main">
-  <div class="col-wide space-y-5">
+{% block content %}
+
+  <div class="page-head">
+    <div>
+      <h1>{{ driver.name }}</h1>
+      <p class="page-sub">
+        สังกัด {{ driver.owner.name }} ·
+        {% if driver.is_backup %}คนขับเสริม{% else %}คนขับหลัก{% endif %}
+      </p>
+    </div>
+    <a href="{% url 'fleet:driver_list' %}" class="btn btn-outline">← กลับรายชื่อ</a>
+  </div>
+
+  {% comment %} ── กำลังรับงานอยู่ → บอกให้ชัดว่าทำไมกดเปลี่ยนสถานะไม่ได้ ── {% endcomment %}
+  {% if active_job %}
+    <div class="banner">
+      <div class="banner-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5v8h1"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+      </div>
+      <div class="min-w-0 flex-1">
+        <p class="banner-title">กำลังรับงานอยู่</p>
+        <p class="banner-sub">
+          {{ active_job.booking_no }} · {{ active_job.customer.name }}
+          · นัด {{ active_job.appointment_at|date:"j M y H:i" }} น.
+          — สถานะจะกลับเป็น “ว่าง” เองเมื่อกดปิดงาน
+        </p>
+      </div>
+      <a href="{% url 'jobs:detail' active_job.pk %}" class="btn btn-primary">เปิดใบจอง</a>
+    </div>
+  {% endif %}
+
+  <div class="grid-main">
+    <div class="col-wide space-y-5">
+
+      {% comment %} ── ข้อมูลส่วนตัว ── {% endcomment %}
+      <div class="card">
+        <div class="card-head">
+          <h3 class="card-title">ข้อมูลส่วนตัว</h3>
+          {% if can_edit %}
+            <div class="card-tools">
+              <a href="{% url 'fleet:driver_edit' driver.pk %}" class="btn btn-outline btn-sm">แก้ไข</a>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="card-body space-y-5">
+          <div class="flex flex-col gap-5 sm:flex-row">
+            {% if driver.photo %}
+              <img src="{{ driver.photo.url }}" alt="" class="size-28 shrink-0 rounded-2xl object-cover">
+            {% else %}
+              <span class="avatar size-28 rounded-2xl text-3xl">{{ driver.name|slice:":2" }}</span>
+            {% endif %}
+
+            <dl class="detail-grid flex-1">
+              <div><dt>เบอร์โทร</dt><dd>{{ driver.phone }}</dd></div>
+              <div><dt>ประเภท</dt><dd>{% if driver.is_backup %}คนขับเสริม{% else %}คนขับหลัก{% endif %}</dd></div>
+              <div><dt>เลขบัตรประชาชน</dt><dd>{{ driver.national_id|default:"—" }}</dd></div>
+              <div><dt>เลขใบขับขี่</dt><dd>{{ driver.license_no|default:"—" }}</dd></div>
+              <div><dt>ใบขับขี่หมดอายุ</dt><dd>{{ driver.license_expiry|date:"j M Y"|default:"—" }}</dd></div>
+              <div><dt>เพิ่มเข้าระบบเมื่อ</dt><dd>{{ driver.created_at|date:"j M Y" }}</dd></div>
+            </dl>
+          </div>
+
+          {% comment %} ── ปุ่มสถานะว่าง / ไม่ว่าง ── {% endcomment %}
+          {% if can_edit %}
+            <div class="highlight-card">
+              <p class="stat-label">สถานะการรับงาน</p>
+              <p class="stat-value">
+                {% if driver.is_available %}ว่าง — พร้อมรับงาน{% else %}ไม่ว่าง{% endif %}
+              </p>
+
+              {% if active_job %}
+                <p class="cell-sub">
+                  กำลังรับงาน {{ active_job.booking_no }} อยู่ —
+                  เปลี่ยนเป็น “ว่าง” เองไม่ได้ ระบบจะปลดให้เมื่อคุณกดปิดงาน
+                </p>
+              {% else %}
+                <form method="post" action="{% url 'fleet:driver_toggle' driver.pk %}" class="pt-2">
+                  {% csrf_token %}
+                  <button type="submit" class="btn {% if driver.is_available %}btn-outline{% else %}btn-primary{% endif %} w-full sm:w-auto">
+                    เปลี่ยนเป็น{% if driver.is_available %}ไม่ว่าง{% else %}ว่าง{% endif %}
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% comment %} ── สถานะการอนุมัติ ── {% endcomment %}
+      <div class="card">
+        <div class="card-head">
+          <h3 class="card-title">สถานะการอนุมัติ</h3>
+          <div class="card-tools">
+            {% if driver.approval_status == "approved" %}
+              <span class="badge badge-done">อนุมัติแล้ว</span>
+            {% elif driver.approval_status == "pending" %}
+              <span class="badge badge-wait">รออนุมัติ</span>
+            {% else %}
+              <span class="badge badge-urgent">ไม่อนุมัติ</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card-body">
+          {% if driver.approval_status == "approved" %}
+            <p class="text-[14.5px]">คนขับคนนี้ผ่านการตรวจสอบแล้ว รับงานได้ตามปกติ</p>
+          {% elif driver.approval_status == "pending" %}
+            <div class="alert alert-warning">
+              <span>
+                ยังรอผู้จัดการสาขาตรวจเอกสารและอนุมัติ —
+                <strong>ระหว่างนี้จะเลือกคนขับคนนี้ตอนกดรับงานไม่ได้</strong>
+                ถ้ารอนานให้แจ้งผู้จัดการสาขาตรวจสอบให้
+              </span>
+            </div>
+          {% else %}
+            <div class="alert alert-error">
+              <span>
+                ไม่ผ่านการอนุมัติ จึงรับงานไม่ได้ —
+                ติดต่อผู้จัดการสาขาเพื่อสอบถามเหตุผลและยื่นเอกสารใหม่
+              </span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% comment %} ── รถที่รับผิดชอบ ── {% endcomment %}
+      <div class="card">
+        <div class="card-head">
+          <h3 class="card-title">รถที่รับผิดชอบ</h3>
+          {% if driver.truck %}
+            <div class="card-tools"><span class="badge badge-plain">{{ driver.truck.plate }}</span></div>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          {% if driver.truck %}
+            <dl class="detail-grid">
+              <div><dt>ทะเบียน</dt><dd class="font-kanit text-lg font-semibold">{{ driver.truck.plate }}</dd></div>
+              <div><dt>ประเภท</dt><dd>{{ driver.truck.get_type_display }}</dd></div>
+              <div><dt>ยี่ห้อ</dt><dd>{{ driver.truck.brand|default:"—" }}</dd></div>
+              <div><dt>น้ำหนักบรรทุก</dt><dd>{% if driver.truck.capacity_kg %}{{ driver.truck.capacity_kg }} กก.{% else %}—{% endif %}</dd></div>
+              <div><dt>ประกันหมดอายุ</dt><dd>{{ driver.truck.insurance_expiry|date:"j M Y"|default:"—" }}</dd></div>
+              <div><dt>ภาษีหมดอายุ</dt><dd>{{ driver.truck.tax_expiry|date:"j M Y"|default:"—" }}</dd></div>
+            </dl>
+          {% else %}
+            <div class="empty"><p>ยังไม่ได้กำหนดรถให้คนขับคนนี้</p></div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% comment %} ── ลบคนขับเสริม ── {% endcomment %}
+      {% if can_edit and driver.is_backup %}
+        <div class="card">
+          <div class="card-head"><h3 class="card-title">ลบคนขับเสริม</h3></div>
+          <div class="card-body space-y-3">
+            {% if can_delete %}
+              <p class="cell-sub">คนขับคนนี้ยังไม่เคยมีงานในระบบ จึงลบออกได้</p>
+              <form method="post" action="{% url 'fleet:driver_delete' driver.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger"
+                        data-confirm="ลบคนขับเสริม {{ driver.name }} ออกจากระบบ? ลบแล้วกู้คืนไม่ได้">
+                  ลบคนขับคนนี้
+                </button>
+              </form>
+            {% else %}
+              <div class="alert alert-warning">
+                <span>
+                  ลบไม่ได้ เพราะมีประวัติงานอยู่ {{ job_count }} รายการ —
+                  ถ้าลบ ประวัติใบจองเก่าจะเสียหายและตอบลูกค้าย้อนหลังไม่ได้
+                  ถ้าคนขับคนนี้ไม่ได้ทำงานแล้ว ให้กดเปลี่ยนเป็น “ไม่ว่าง” ไว้แทน
+                </span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    {% comment %} ── งานล่าสุด ── {% endcomment %}
     <div class="card">
       <div class="card-head">
-        <h3 class="card-title">ข้อมูลส่วนตัว</h3>
-        {% if can_edit %}
-          <div class="card-tools"><a href="{% url 'fleet:driver_edit' driver.pk %}" class="btn btn-outline btn-sm">แก้ไข</a></div>
-        {% endif %}
+        <h3 class="card-title">งานล่าสุด</h3>
+        <div class="card-tools"><span class="cell-sub">ทั้งหมด {{ job_count }} งาน</span></div>
       </div>
       <div class="card-body">
-        <div class="flex flex-col gap-5 sm:flex-row">
-          {% if driver.photo %}
-            <img src="{{ driver.photo.url }}" alt="" class="size-28 shrink-0 rounded-2xl object-cover">
-          {% else %}
-            <span class="avatar size-28 rounded-2xl text-3xl">{{ driver.name|slice:":2" }}</span>
-          {% endif %}
-          <dl class="detail-grid flex-1">
-            <div><dt>เบอร์โทร</dt><dd>{{ driver.phone }}</dd></div>
-            <div><dt>ประเภท</dt><dd>{% if driver.is_backup %}คนขับเสริม{% else %}คนขับหลัก{% endif %}</dd></div>
-            <div><dt>เลขใบขับขี่</dt><dd>{{ driver.license_no|default:"—" }}</dd></div>
-            <div><dt>ใบขับขี่หมดอายุ</dt><dd>{{ driver.license_expiry|date:"j M Y"|default:"—" }}</dd></div>
-            <div><dt>สถานะ</dt><dd>{% if driver.is_available %}<span class="badge badge-done">ว่าง</span>{% else %}<span class="badge badge-cancel">ไม่ว่าง</span>{% endif %}</dd></div>
-            <div><dt>การอนุมัติ</dt><dd>{{ driver.get_approval_status_display }}</dd></div>
-          </dl>
-        </div>
-        {% if can_edit %}
-          <form method="post" action="{% url 'fleet:driver_toggle' driver.pk %}" class="mt-5">
-            {% csrf_token %}
-            <button class="btn {% if driver.is_available %}btn-outline{% else %}btn-primary{% endif %} w-full sm:w-auto">
-              เปลี่ยนเป็น{% if driver.is_available %}ไม่ว่าง{% else %}ว่าง{% endif %}
-            </button>
-          </form>
-        {% endif %}
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-head"><h3 class="card-title">รถที่รับผิดชอบ</h3></div>
-      <div class="card-body">
-        {% if driver.truck %}
-          <dl class="detail-grid">
-            <div><dt>ทะเบียน</dt><dd class="font-kanit text-lg font-semibold">{{ driver.truck.plate }}</dd></div>
-            <div><dt>ประเภท</dt><dd>{{ driver.truck.get_type_display }}</dd></div>
-            <div><dt>ประกันหมดอายุ</dt><dd>{{ driver.truck.insurance_expiry|date:"j M Y"|default:"—" }}</dd></div>
-            <div><dt>ภาษีหมดอายุ</dt><dd>{{ driver.truck.tax_expiry|date:"j M Y"|default:"—" }}</dd></div>
-          </dl>
-        {% else %}
-          <p class="empty">ยังไม่ได้กำหนดรถให้คนขับคนนี้</p>
-        {% endif %}
+        <ol class="timeline">
+          {% for j in jobs %}
+            <li>
+              <p class="tl-title">
+                <a href="{% url 'jobs:detail' j.pk %}" class="underline">{{ j.booking_no }}</a>
+                {% include "partials/_status_badge.html" with status=j.status label=j.get_status_display %}
+              </p>
+              <p class="cell-sub">{{ j.customer.name }} · {{ j.appointment_at|date:"j M H:i" }} น.</p>
+            </li>
+          {% empty %}
+            <li><p class="cell-sub">ยังไม่มีงาน</p></li>
+          {% endfor %}
+        </ol>
       </div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-head"><h3 class="card-title">งานล่าสุด</h3></div>
-    <div class="card-body">
-      <ol class="timeline">
-        {% for j in jobs %}
-          <li>
-            <p class="tl-title"><a href="{% url 'jobs:detail' j.pk %}" class="text-brand">{{ j.booking_no }}</a></p>
-            <p class="cell-sub">{{ j.customer.name }} · {{ j.appointment_at|date:"j M H:i" }} น.</p>
-          </li>
-        {% empty %}
-          <li><p class="cell-sub">ยังไม่มีงาน</p></li>
-        {% endfor %}
-      </ol>
-    </div>
-  </div>
-</div>
 {% endblock %}

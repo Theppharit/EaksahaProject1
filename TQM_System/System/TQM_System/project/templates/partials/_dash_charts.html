@@ -1,0 +1,50 @@
+{% comment %} ============================================================
+   ชุดกราฟมาตรฐานของแดชบอร์ด
+   ตัวไหนที่ view ไม่ได้ส่งมา ก็จะไม่แสดง — เขียนที่เดียวใช้ได้ทุกตำแหน่ง
+
+   ใช้ตัวแปร: period · period_choices · trend · donut · money · ranks
+   ============================================================ {% endcomment %}
+
+{% if period_choices %}{% include "partials/_period_bar.html" %}{% endif %}
+
+<div class="grid-main">
+  <div class="card col-wide">
+    <div class="card-head">
+      <h3 class="card-title">แนวโน้มจำนวนงาน</h3>
+      <div class="card-tools">
+        <span class="cell-sub">{{ period.label }} · รวม {{ trend.total }} รายการ</span>
+      </div>
+    </div>
+    <div class="card-body pt-3">
+      {% include "partials/_chart_line.html" with chart=trend unit="รายการ" %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3 class="card-title">สัดส่วนตามสถานะ</h3></div>
+    <div class="card-body pt-3">{% include "partials/_chart_donut.html" %}</div>
+  </div>
+</div>
+
+{% if money or ranks %}
+  <div class="grid-main">
+    {% if money %}
+      <div class="card col-wide">
+        <div class="card-head">
+          <h3 class="card-title">ยอดเงินจากงานที่ปิดแล้ว</h3>
+          <div class="card-tools"><span class="cell-sub">{{ period.label }} · รวม {{ money.total }} บาท</span></div>
+        </div>
+        <div class="card-body pt-3">
+          {% include "partials/_chart_line.html" with chart=money unit="บาท" %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if ranks %}
+      <div class="card{% if not money %} col-wide{% endif %}">
+        <div class="card-head"><h3 class="card-title">{{ rank_title }}</h3></div>
+        <div class="card-body pt-4">{% include "partials/_rank_bars.html" %}</div>
+      </div>
+    {% endif %}
+  </div>
+{% endif %}

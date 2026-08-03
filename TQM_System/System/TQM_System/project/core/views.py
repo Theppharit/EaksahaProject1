@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from project.accounts.forms import ProfileForm, VerifyIdentityForm
+from project.accounts.models import RoleChangeRequest, RoleChangeStatus
 
 from .models import Notification, SystemDoc
 
@@ -21,8 +22,59 @@ def notifications(request):
     return render(
         request,
         "core/notifications.html",
-        {"items": qs[:100], "only_unread": request.GET.get("filter") == "unread"},
+        {
+            "items": qs[:100],
+            "only_unread": request.GET.get("filter") == "unread",
+            # คำขอเปลี่ยนสิทธิ์ที่รอเจ้าตัวตัดสิน — ดันขึ้นบนสุดเพราะสำคัญกว่าแจ้งเตือนทั่วไป
+            "role_changes": RoleChangeRequest.objects.filter(
+                user=request.user, status=RoleChangeStatus.PENDING
+            ).select_related("requested_by"),
+        },
     )
+
+
+@login_required
+def role_change_decide(request, pk):
+    """
+    เจ้าของบัญชีกดยอมรับหรือปฏิเสธการเปลี่ยนสิทธิ์
+    ⚠ สิทธิ์เปลี่ยนจริงตรงนี้เท่านั้น — ตอนแอดมินกดยังไม่มีผลใด ๆ
+    """
+    req = get_object_or_404(
+        RoleChangeRequest, pk=pk, user=request.user, status=RoleChangeStatus.PENDING
+    )
+    if request.method != "POST":
+        return redirect("core:notifications")
+
+    accepted = request.POST.get("decision") == "accept"
+    req.status = RoleChangeStatus.ACCEPTED if accepted else RoleChangeStatus.REJECTED
+    req.decided_at = timezone.now()
+    req.save(update_fields=["status", "decided_at"])
+
+    # ปิดแจ้งเตือนใบที่ค้างอยู่ จะได้ไม่ค้างเป็นจุดแดงตลอด
+    request.user.notifications.filter(
+        kind=Notification.Kind.PERMISSION, acked_at__isnull=True, need_ack=True
+    ).update(acked_at=timezone.now(), is_read=True)
+
+    Notification.push(
+        [req.requested_by],
+        title=f"ผลคำขอเปลี่ยนสิทธิ์ของ {request.user.get_full_name() or request.user.username}",
+        body=f"{'ยอมรับ' if accepted else 'ปฏิเสธ'}การเปลี่ยนเป็น “{req.get_to_role_display()}”",
+        link="/manage/permissions/",
+        kind=Notification.Kind.PERMISSION,
+    )
+
+    if accepted:
+        request.user.role = req.to_role
+        request.user.save(update_fields=["role"])
+        messages.success(
+            request,
+            f"เปลี่ยนตำแหน่งเป็น “{req.get_to_role_display()}” เรียบร้อย "
+            f"หน้าจอและเมนูจะเปลี่ยนตามตำแหน่งใหม่ทันที",
+        )
+        return redirect("accounts:dashboard")
+
+    messages.success(request, "ปฏิเสธคำขอเปลี่ยนสิทธิ์แล้ว ตำแหน่งของคุณยังเหมือนเดิม")
+    return redirect("core:notifications")
 
 
 @login_required

@@ -1,18 +1,10 @@
 from django import forms
 
-from project.accounts.models import Role, User
+from project.accounts.models import Role
 from project.core.models import SystemDoc
 
-
-class UserRoleForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ["role", "is_active", "id_verified"]
-        widgets = {
-            "role": forms.Select(attrs={"class": "select"}),
-            "is_active": forms.CheckboxInput(attrs={"class": "check"}),
-            "id_verified": forms.CheckboxInput(attrs={"class": "check"}),
-        }
+# หมายเหตุ: การเปลี่ยนตำแหน่งไม่ได้ใช้ ModelForm แล้ว
+# เพราะสิทธิ์ต้องผ่านการยอมรับของเจ้าของบัญชีก่อน (ดู adminpanel/views.py)
 
 
 class DocForm(forms.ModelForm):

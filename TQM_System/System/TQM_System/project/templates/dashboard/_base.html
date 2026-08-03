@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{# ============================================================
+{% comment %} ============================================================
    โครงหน้าหลังบ้าน — สไตล์ "กระดาษ 2 แผ่น" เต็มหน้าจอ 100%
      app-frame  พื้นดำเต็มจอ = กระดาษแผ่นที่ 1
      └ app-window  ตัวจัดแถว ไม่มีหน้าตาของตัวเอง
@@ -9,7 +9,7 @@
         └ app-main  กระดาษแผ่นที่ 2 มนด้านซ้าย วางทับแผ่นแรก
 
    จอเล็ก: แผ่นที่ 2 เต็มจอ ไม่มีขอบมน / เมนูซ้ายเลื่อนทับ / มีแถบเมนูล่าง
-   ============================================================ #}
+   ============================================================ {% endcomment %}
 
 {% block body_attrs %}data-role="{{ user.role }}"{% endblock %}
 
@@ -34,7 +34,8 @@
         <p class="sidebar-section">งานของฉัน</p>
         {% for item in nav_items %}{% include "partials/_nav_link.html" %}{% endfor %}
 
-        <p class="sidebar-section">ทั่วไป</p>
+        {# เมนูส่วนกลาง — ใช้เส้นคั่นบาง ๆ แทนหัวข้อ จะได้ไม่มีคำว่า "ทั่วไป" มาคั่นสายตา #}
+        <div class="sidebar-sep"></div>
         {% for item in common_items %}{% include "partials/_nav_link.html" %}{% endfor %}
       </nav>
 
@@ -58,6 +59,26 @@
 
     <!-- ══════════ ส่วนขวา ══════════ -->
     <div class="app-main">
+
+      {% comment %} ============================================================
+         แถบเตือนโหมดซัพพอร์ต — โผล่เฉพาะตอนแอดมินสวมสิทธิ์ผู้ใช้คนอื่น
+         ตั้งใจให้สีสะดุดตาและอยู่บนสุดตลอด กันลืมว่ากำลังกดในนามคนอื่นอยู่
+         ============================================================ {% endcomment %}
+      {% if request.impersonator %}
+        <div class="impersonate-bar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+          <p class="min-w-0 flex-1">
+            โหมดซัพพอร์ต — คุณกำลังใช้งานในนาม
+            <strong>{{ user.get_full_name|default:user.username }}</strong>
+            ({{ user.get_role_display }})
+            <span class="hidden sm:inline">· บัญชีจริงของคุณคือ {{ request.impersonator.username }}</span>
+          </p>
+          <form method="post" action="{% url 'adminpanel:impersonate_stop' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm bg-white text-neutral-900">ออกจากโหมด</button>
+          </form>
+        </div>
+      {% endif %}
 
       <header class="topbar">
         <button class="icon-btn lg:hidden" id="sidebarToggle" aria-label="เปิดเมนู">

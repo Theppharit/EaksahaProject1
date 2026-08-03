@@ -1,0 +1,91 @@
+{% comment %} ============================================================
+   ปฏิทินวันนัดหมาย — รับตัวแปร: cal (ผลจาก jobs/calendars.month_calendar)
+
+   ทั้งเดือนถูกวาดมาจากเซิร์ฟเวอร์แล้ว รวมทั้งรายละเอียดของทุกวัน
+   กดวันไหนก็กางแผงข้างล่างทันที ไม่ต้องโหลดหน้าใหม่ ไม่ต้องรอเน็ต
+   ============================================================ {% endcomment %}
+
+<div class="card">
+  <div class="card-head">
+    <h3 class="card-title">ปฏิทินวันนัดหมาย</h3>
+    <div class="card-tools">
+      <span class="cell-sub">{{ cal.total }} คิวในเดือนนี้</span>
+      <a class="cal-nav" aria-label="เดือนก่อนหน้า"
+         href="?y={{ cal.prev.y }}&amp;m={{ cal.prev.m }}{% if period %}&amp;period={{ period.key }}{% endif %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+      <a class="cal-nav" aria-label="เดือนถัดไป"
+         href="?y={{ cal.next.y }}&amp;m={{ cal.next.m }}{% if period %}&amp;period={{ period.key }}{% endif %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="card-body pt-3">
+    <p class="cal-title mb-3">{{ cal.title }}</p>
+
+    <div class="cal-grid" id="calGrid">
+      {% for name in cal.dow %}<div class="cal-dow">{{ name }}</div>{% endfor %}
+
+      {% for week in cal.weeks %}
+        {% for day in week %}
+          <button type="button" data-day="{{ day.key }}"
+                  class="cal-day{% if not day.in_month %} is-out{% endif %}{% if day.is_today %} is-today{% endif %}{% if day.count and day.in_month %} has-items{% endif %}"
+                  {% if day.count %}aria-label="{{ day.day }} — มี {{ day.count }} คิว"{% endif %}>
+            <span class="cal-num">{{ day.day }}</span>
+
+            {% for b in day.shown %}
+              <span class="cal-chip">{{ b.appointment_at|date:"H:i" }} {{ b.customer.name }}</span>
+            {% endfor %}
+            {% if day.more %}<span class="cal-more">+{{ day.more }} คิว</span>{% endif %}
+
+            {% if day.count %}
+              <span class="cal-dots">
+                {% for b in day.shown %}<span class="cal-dot"></span>{% endfor %}
+              </span>
+            {% endif %}
+          </button>
+        {% endfor %}
+      {% endfor %}
+    </div>
+
+    {# แผงรายละเอียดของแต่ละวัน — ซ่อนไว้ก่อน กดวันแล้วค่อยเปิดอันที่ตรงกัน #}
+    {% for day in cal.days_with_items %}
+      <div class="cal-panel" data-panel="{{ day.key }}">
+        <p class="cal-panel-title">คิวของวันที่ {{ day.date|date:"j F" }} — {{ day.count }} รายการ</p>
+        {% for b in day.items %}
+          <a href="{% url 'jobs:detail' b.pk %}" class="cal-item">
+            <span class="cal-time">{{ b.appointment_at|date:"H:i" }}</span>
+            <span class="cal-name">{{ b.customer.name }}</span>
+            {% include "partials/_status_badge.html" with status=b.status label=b.get_status_display %}
+            <span class="cal-sub">{{ b.booking_no }} · {{ b.pickup_address|truncatechars:40 }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  // กดวันในปฏิทิน → กางแผงรายละเอียดของวันนั้น (เปิดได้ทีละวัน)
+  (function () {
+    var grid = document.getElementById('calGrid');
+    if (!grid) return;
+
+    grid.addEventListener('click', function (e) {
+      var cell = e.target.closest('.cal-day');
+      if (!cell) return;
+
+      var panel = document.querySelector('[data-panel="' + cell.dataset.day + '"]');
+      document.querySelectorAll('.cal-panel.is-open').forEach(function (p) {
+        if (p !== panel) p.classList.remove('is-open');
+      });
+      if (panel) {
+        panel.classList.toggle('is-open');
+        if (panel.classList.contains('is-open')) {
+          panel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+      }
+    });
+  })();
+</script>

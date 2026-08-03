@@ -1,44 +1,107 @@
 {% extends "dashboard/_base.html" %}
+
 {% block title %}{{ page_title }}{% endblock %}
 {% block page_heading %}{{ page_title }}{% endblock %}
 
+{% comment %} ============================================================
+   หน้าซัพพอร์ต — แอดมิน "เข้าไปใช้งานระบบของผู้ใช้จริง ๆ" ได้
+   เพราะปัญหาที่ผู้ใช้เจอส่วนใหญ่ต้องกดตามเองถึงจะเห็น
+
+   ทุกครั้งที่เข้าโหมดนี้จะถูกบันทึกไว้ว่าใครเข้าไปแทนใคร เมื่อไร
+   ============================================================ {% endcomment %}
+
 {% block content %}
-<div class="page-head">
-  <div>
-    <h1>{{ page_title }}</h1>
-    <p class="page-sub">ดูสถานะการใช้งานของผู้ใช้ตำแหน่ง{{ role_label }} เพื่อช่วยแก้ปัญหาให้เขาได้</p>
-  </div>
-</div>
 
-{% if stuck %}
-  <div class="alert alert-warning">
-    <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg>
-    <span>มี {{ stuck }} งานที่ค้างอยู่ในขั้นตอนของตำแหน่งนี้ — อาจต้องเข้าไปช่วยดู</span>
-  </div>
-{% endif %}
-
-<div class="grid-main">
-  <div class="card">
-    <div class="card-head"><h3 class="card-title">ผู้ใช้ตำแหน่งนี้</h3></div>
-    <div class="card-body space-y-0 divide-y divide-neutral-200">
-      {% for u in users %}
-        <div class="flex items-center gap-3 py-3">
-          <span class="avatar">{{ u.initials }}</span>
-          <div class="min-w-0 flex-1">
-            <p class="cell-main">{{ u.get_full_name|default:u.username }}</p>
-            <p class="cell-sub">{{ u.username }} · เข้าใช้ล่าสุด {{ u.last_login|date:"j M H:i"|default:"ยังไม่เคย" }}</p>
-          </div>
-          {% if u.is_active %}<span class="badge badge-done">ใช้งานอยู่</span>{% else %}<span class="badge badge-urgent">ถูกระงับ</span>{% endif %}
-        </div>
-      {% empty %}
-        <div class="empty"><p>ยังไม่มีผู้ใช้ในตำแหน่งนี้</p></div>
-      {% endfor %}
+  <div class="page-head">
+    <div>
+      <h1>{{ page_title }}</h1>
+      <p class="page-sub">ดูสถานะการใช้งาน และเข้าไปใช้ระบบแทนผู้ใช้เพื่อช่วยแก้ปัญหา</p>
     </div>
   </div>
 
-  <div class="col-wide card">
-    <div class="card-head"><h3 class="card-title">งานที่เกี่ยวข้องล่าสุด</h3></div>
-    {% include "partials/_booking_table.html" with bookings=bookings %}
+  <div class="alert alert-warning">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+    <span>
+      เมื่อเข้าโหมดซัพพอร์ต ทุกอย่างที่คุณกดจะมีผลจริงในนามของผู้ใช้คนนั้น
+      กรุณาใช้เพื่อการช่วยเหลือเท่านั้น — ระบบบันทึกไว้ทุกครั้ง
+    </span>
   </div>
-</div>
+
+  {% comment %} ── ผู้ใช้ในตำแหน่งนี้ ── {% endcomment %}
+  <div class="card">
+    <div class="card-head">
+      <h3 class="card-title">ผู้ใช้ตำแหน่ง {{ role_label }}</h3>
+      <div class="card-tools"><span class="cell-sub">{{ users|length }} บัญชี</span></div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>ผู้ใช้</th><th>เบอร์โทร</th><th class="num">ใบจองที่สร้าง</th><th>สถานะบัญชี</th><th class="act"></th></tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+            <tr>
+              <td>
+                <div class="cell-main">{{ u.get_full_name|default:u.username }}</div>
+                <div class="cell-sub">{{ u.username }}</div>
+              </td>
+              <td>{{ u.phone|default:"—" }}</td>
+              <td class="num">{{ u.jobs }}</td>
+              <td>
+                {% if u.is_active %}<span class="badge badge-done">ใช้งานได้</span>
+                {% else %}<span class="badge badge-cancel">ถูกปิด</span>{% endif %}
+                {% if u.id_verified %}<span class="badge badge-plain">ยืนยันตัวตนแล้ว</span>{% endif %}
+              </td>
+              <td class="act">
+                {% if u.is_active %}
+                  <form method="post" action="{% url 'adminpanel:impersonate_start' u.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" class="btn btn-primary btn-sm"
+                            data-confirm="เข้าใช้งานระบบในนามของ {{ u.get_full_name|default:u.username }} — ทุกการกดจะมีผลจริง ยืนยันไหม?">
+                      เข้าใช้งานระบบนี้
+                    </button>
+                  </form>
+                {% else %}
+                  <span class="cell-sub">บัญชีถูกปิด</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5"><div class="empty"><p>ยังไม่มีผู้ใช้ในตำแหน่งนี้</p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% comment %} ── งานที่เกี่ยวข้องกับตำแหน่งนี้ ── {% endcomment %}
+  <div class="card">
+    <div class="card-head">
+      <h3 class="card-title">งานที่เกี่ยวข้องกับตำแหน่งนี้</h3>
+      <div class="card-tools">
+        {% if stuck %}<span class="badge badge-wait">ค้างอยู่ {{ stuck }} ใบ</span>{% endif %}
+      </div>
+    </div>
+    {% include "partials/_booking_table.html" %}
+  </div>
+
+  {% comment %} ── ประวัติการเข้าโหมดซัพพอร์ต ── {% endcomment %}
+  {% if recent_logs %}
+    <div class="card">
+      <div class="card-head"><h3 class="card-title">ประวัติการเข้าโหมดซัพพอร์ตล่าสุด</h3></div>
+      <div class="card-body space-y-2">
+        {% for log in recent_logs %}
+          <p class="cell-sub">
+            {{ log.started_at|date:"j M y H:i" }} น. —
+            {{ log.admin.get_full_name|default:log.admin.username }}
+            เข้าใช้งานแทน {{ log.target.get_full_name|default:log.target.username }}
+            {% if log.ended_at %}(ออกเมื่อ {{ log.ended_at|date:"H:i" }} น.){% else %}<span class="badge badge-go">ยังอยู่ในโหมด</span>{% endif %}
+          </p>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
 {% endblock %}

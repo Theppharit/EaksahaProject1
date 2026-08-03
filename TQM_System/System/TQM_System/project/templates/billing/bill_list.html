@@ -1,60 +1,128 @@
 {% extends "dashboard/_base.html" %}
+
 {% block title %}ออกเลขบิล{% endblock %}
 {% block page_heading %}ออกเลขบิล{% endblock %}
 
-{% block content %}
-<div class="page-head">
-  <div>
-    <h1>ออกเลขบิล</h1>
-    <p class="page-sub">รวมงานที่ปิดแล้วของเจ้าของรถแต่ละราย ออกเป็นบิลใบเดียวเพื่อนำไปชำระเงิน</p>
-  </div>
-</div>
+{% comment %} ============================================================
+   งานที่ปิดแล้วและยังไม่ถูกวางบิล ของรอบเดือนที่เลือก
+   แจกแจงรายคนขับ แล้วรวมเป็นยอดของเจ้าของรถแต่ละราย
+   บิลออกในนามเจ้าของรถ เพราะเป็นคู่สัญญาและเป็นเจ้าของบัญชีที่รับเงิน
+   ============================================================ {% endcomment %}
 
-<div class="card">
-  <div class="card-head"><h3 class="card-title">งานที่ปิดแล้ว รอวางบิล</h3></div>
-  <div class="card-body space-y-4">
-    {% for g in groups %}
-      <div class="bill-group">
-        <div class="min-w-0">
-          <p class="font-kanit text-[16px] font-semibold">{{ g.owner.name }}</p>
-          <p class="cell-sub">{{ g.jobs|length }} งานรอวางบิล</p>
+{% block content %}
+
+  <div class="page-head">
+    <div>
+      <h1>ออกเลขบิล</h1>
+      <p class="page-sub">งานที่ปิดแล้วในรอบเดือนที่เลือก และยังไม่ถูกวางบิล</p>
+    </div>
+    <form method="get" class="flex items-center gap-2">
+      <label class="cell-sub" for="monthSel">รอบเดือน</label>
+      <select id="monthSel" name="month" class="select w-auto" onchange="this.form.submit()">
+        {% for m in months %}
+          <option value="{{ m.value }}"{% if m.value == month %} selected{% endif %}>{{ m.label }}</option>
+        {% endfor %}
+      </select>
+      <noscript><button type="submit" class="btn btn-soft btn-sm">ดู</button></noscript>
+    </form>
+  </div>
+
+  {% if groups %}
+    <div class="highlight-card">
+      <p class="stat-label">ยอดรวมที่ยังไม่วางบิลในรอบนี้</p>
+      <p class="figure-value">{{ grand_total|floatformat:0 }}<span class="figure-unit"> บาท</span></p>
+    </div>
+  {% endif %}
+
+  {% for g in groups %}
+    <div class="card">
+      <div class="card-head">
+        <h3 class="card-title">{{ g.owner.name }}</h3>
+        <div class="card-tools">
+          <span class="cell-sub">{{ g.jobs }} งาน · รวม {{ g.total|floatformat:0 }} บาท</span>
+          <a href="{% url 'billing:bill_create' g.owner.pk %}?month={{ month }}" class="btn btn-primary btn-sm">ออกบิลรอบนี้</a>
         </div>
-        <div class="text-right">
-          <p class="font-kanit text-xl font-bold tabular">{{ g.total|floatformat:2 }}</p>
-          <p class="cell-sub">บาท</p>
-        </div>
-        <a href="{% url 'billing:bill_create' g.owner.pk %}" class="btn btn-primary">ออกบิล</a>
       </div>
-    {% empty %}
+
+      <div class="card-body space-y-4 pt-2">
+        {% for line in g.drivers %}
+          <div class="bill-group">
+            <div class="min-w-0 flex-1">
+              <p class="person-name">
+                {% if line.driver %}{{ line.driver.name }}{% else %}— ไม่ระบุคนขับ —{% endif %}
+              </p>
+              <p class="cell-sub">
+                {{ line.jobs|length }} งาน
+                {% if line.driver.truck %} · รถ {{ line.driver.truck.plate }}{% endif %}
+              </p>
+
+              <div class="table-wrap mt-3">
+                <table class="table">
+                  <thead><tr><th>เลขที่ใบจอง</th><th>ลูกค้า</th><th>ปิดงานเมื่อ</th><th class="num">ยอด</th></tr></thead>
+                  <tbody>
+                    {% for j in line.jobs %}
+                      <tr>
+                        <td><a href="{% url 'jobs:detail' j.pk %}" class="cell-main underline">{{ j.booking_no }}</a></td>
+                        <td>{{ j.customer.name }}</td>
+                        <td>{{ j.closed_at|date:"j M y H:i" }}</td>
+                        <td class="num">{{ j.total_price|floatformat:2 }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                  <tfoot>
+                    <tr><td colspan="3">รวมของคนขับคนนี้</td><td class="num">{{ line.total|floatformat:2 }}</td></tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% empty %}
+    <div class="card">
       <div class="empty">
         <svg class="size-9 opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-        <p>ยังไม่มีงานที่ปิดแล้วรอวางบิล</p>
+        <p>รอบเดือนนี้ไม่มีงานที่ปิดแล้วรอวางบิล</p>
       </div>
-    {% endfor %}
-  </div>
-</div>
+    </div>
+  {% endfor %}
 
-<div class="card">
-  <div class="card-head"><h3 class="card-title">บิลที่ออกแล้ว</h3></div>
-  <div class="table-wrap">
-    <table class="table">
-      <thead><tr><th>เลขที่บิล</th><th>เจ้าของรถ</th><th>รอบวันที่</th><th class="num">ยอดรวม</th><th>สถานะ</th><th>เลข PO</th><th class="act"></th></tr></thead>
-      <tbody>
-        {% for b in bills %}
-          <tr>
-            <td class="cell-main">{{ b.bill_no }}</td>
-            <td>{{ b.truck_owner.name }}</td>
-            <td>{{ b.period_start|date:"j M" }} – {{ b.period_end|date:"j M y" }}</td>
-            <td class="num">{{ b.total_amount|floatformat:2 }}</td>
-            <td>{% if b.status == "paid" %}<span class="badge badge-done">จ่ายแล้ว</span>{% elif b.status == "issued" %}<span class="badge badge-wait">รอชำระ</span>{% else %}<span class="badge badge-plain">{{ b.get_status_display }}</span>{% endif %}</td>
-            <td>{{ b.po_no|default:"—" }}</td>
-            <td class="act"><a href="{% url 'billing:bill_detail' b.pk %}" class="btn btn-outline btn-sm">เปิดดู</a></td>
-          </tr>
-        {% empty %}
-          <tr><td colspan="7"><div class="empty"><p>ยังไม่มีบิล</p></div></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  {% comment %} ── บิลที่ออกไปแล้ว ── {% endcomment %}
+  <div class="card">
+    <div class="card-head">
+      <h3 class="card-title">บิลที่ออกไปแล้ว</h3>
+      <div class="card-tools">
+        <a href="{% url 'billing:payment_history' %}" class="btn btn-outline btn-sm">ประวัติการจ่ายเงิน</a>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>เลขที่บิล</th><th>เจ้าของรถ</th><th>รอบวันที่</th><th class="num">ยอดรวม</th><th>เลข PO</th><th>สถานะ</th><th class="act"></th></tr>
+        </thead>
+        <tbody>
+          {% for b in bills %}
+            <tr>
+              <td class="cell-main">{{ b.bill_no }}</td>
+              <td>{{ b.truck_owner.name }}</td>
+              <td>{{ b.period_start|date:"j M y" }} – {{ b.period_end|date:"j M y" }}</td>
+              <td class="num">{{ b.total_amount|floatformat:2 }}</td>
+              <td>{% if b.po_no %}{{ b.po_no }}{% else %}<span class="cell-sub">— ยังไม่จ่าย —</span>{% endif %}</td>
+              <td>
+                {% if b.status == "paid" %}<span class="badge badge-done">จ่ายแล้ว</span>
+                {% elif b.status == "issued" %}<span class="badge badge-wait">รอชำระเงิน</span>
+                {% elif b.status == "cancelled" %}<span class="badge badge-urgent">ยกเลิก</span>
+                {% else %}<span class="badge badge-plain">ร่าง</span>{% endif %}
+              </td>
+              <td class="act"><a href="{% url 'billing:bill_detail' b.pk %}" class="btn btn-outline btn-sm">เปิดบิล</a></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7"><div class="empty"><p>ยังไม่เคยออกบิลในระบบ</p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
-</div>
+
 {% endblock %}

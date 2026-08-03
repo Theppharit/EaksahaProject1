@@ -1,7 +1,14 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Booking, BookingStatus, BookingStatusLog, JobPhoto, JobStep
+from .models import (
+    Booking,
+    BookingRequest,
+    BookingStatus,
+    BookingStatusLog,
+    JobPhoto,
+    JobStep,
+)
 
 # สีป้ายสถานะในหน้า admin ให้กวาดตาหางานด่วนได้เร็ว
 STATUS_COLORS = {
@@ -105,3 +112,14 @@ class BookingStatusLogAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False  # ประวัติต้องแก้ไม่ได้ ไม่งั้นไม่มีค่าเป็นหลักฐาน
+
+
+@admin.register(BookingRequest)
+class BookingRequestAdmin(admin.ModelAdmin):
+    """คำขอแก้ไข/ยกเลิก — ปกติพิจารณาจากหน้าแดชบอร์ด ที่นี่ไว้ตรวจย้อนหลัง"""
+
+    list_display = ("created_at", "booking", "kind", "status", "created_by", "decided_by")
+    list_filter = ("kind", "status", "created_at")
+    search_fields = ("booking__booking_no", "reason", "decision_note")
+    autocomplete_fields = ("booking",)
+    readonly_fields = ("created_at", "decided_at")
