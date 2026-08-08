@@ -161,29 +161,295 @@ $groups  = ['day' => 'รายวัน', 'month' => 'รายเดือน'
 $rangeThai = date('j', strtotime($from)) . ' ' . $THAI_MON[(int) date('n', strtotime($from))] . ' ' . date('Y', strtotime($from))
            . ' – ' . date('j', strtotime($to)) . ' ' . $THAI_MON[(int) date('n', strtotime($to))] . ' ' . date('Y', strtotime($to));
 
+// ══════════════════════════════════════════════
+//  ข้อมูลเพิ่มเติมสำหรับการ์ดสรุป
+// ══════════════════════════════════════════════
+
+// (8) ช่วงก่อนหน้าที่ยาวเท่ากัน — ใช้เทียบ ▲▼
+$spanSec  = strtotime($to) - strtotime($from);
+$prevTo   = date('Y-m-d', strtotime($from . ' -1 day'));
+$prevFrom = date('Y-m-d', strtotime($prevTo) - $spanSec);
+$prevStmt = $pdo->prepare('SELECT COUNT(*) c, ROUND(AVG(score),2) a FROM ratings WHERE created_at BETWEEN ? AND ?');
+$prevStmt->execute([$prevFrom . ' 00:00:00', $prevTo . ' 23:59:59']);
+$prevRow   = $prevStmt->fetch() ?: ['c' => 0, 'a' => null];
+$prevTotal = (int) $prevRow['c'];
+$prevAvg   = $prevRow['a'] !== null ? (float) $prevRow['a'] : null;
+
+$deltaTotal = $prevTotal > 0 ? $rangeTotal - $prevTotal : null;
+$deltaAvg   = ($prevAvg !== null && $rangeAvg > 0) ? round($rangeAvg - $prevAvg, 2) : null;
+
+// รีวิวเมื่อวาน (เทียบกับวันนี้)
+$yesterdayRatings = (int) $pdo->query(
+    'SELECT COUNT(*) FROM ratings WHERE DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)'
+)->fetchColumn();
+$deltaToday = $todayRatings - $yesterdayRatings;
+
+// (11) สัดส่วนรีวิวที่มีข้อเสนอแนะ
+$withFeedback = (int) $pdo->query(
+    "SELECT COUNT(*) FROM ratings WHERE feedback IS NOT NULL AND TRIM(feedback) <> ''"
+)->fetchColumn();
+$feedbackPct = $totalRatings > 0 ? (int) round($withFeedback * 100 / $totalRatings) : 0;
+
+// (5) พนักงานที่มีรีวิวเข้ามาแล้วจริง
+$staffRated     = (int) $pdo->query('SELECT COUNT(DISTINCT staff_id) FROM ratings')->fetchColumn();
+$staffNoRating  = max(0, $totalStaff - $staffRated);
+
+// (9) ข้อมูลกราฟจิ๋ว 7 วันล่าสุด
+$sparkStmt = $pdo->prepare(
+    'SELECT DATE(created_at) d, COUNT(*) c, ROUND(AVG(score),2) a
+     FROM ratings WHERE created_at >= ? GROUP BY DATE(created_at)'
+);
+$sparkStmt->execute([date('Y-m-d', strtotime('-6 days')) . ' 00:00:00']);
+$sparkMap = [];
+foreach ($sparkStmt->fetchAll() as $r) {
+    $sparkMap[(string) $r['d']] = ['c' => (int) $r['c'], 'a' => $r['a'] !== null ? (float) $r['a'] : null];
+}
+$sparkCounts = $sparkAvgs = [];
+for ($i = 6; $i >= 0; $i--) {
+    $k = date('Y-m-d', strtotime("-$i days"));
+    $sparkCounts[] = $sparkMap[$k]['c'] ?? 0;
+    $sparkAvgs[]   = $sparkMap[$k]['a'] ?? null;
+}
+
+// (10) รายการที่ต้องดูด่วน — เซลล์ที่คะแนนเฉลี่ยต่ำกว่า 3
+$watchStaff = $pdo->query('
+    SELECT s.name, ROUND(AVG(r.score),2) AS avg_score, COUNT(r.id) AS total
+    FROM staff s JOIN ratings r ON r.staff_id = s.id
+    GROUP BY s.id, s.name
+    HAVING AVG(r.score) < 3
+    ORDER BY avg_score ASC, total DESC
+    LIMIT 3
+')->fetchAll();
+
+// ----- helper: กราฟเส้นจิ๋ว (SVG) -----
+function sparkSvg(array $vals, ?float $forceMax = null): string
+{
+    $clean = [];
+    $last  = 0.0;
+    foreach ($vals as $v) { $last = $v === null ? $last : (float) $v; $clean[] = $last; }
+    $n = count($clean);
+    if ($n < 2) return '';
+    $max = $forceMax ?? max(1.0, max($clean));
+    if ($max <= 0) $max = 1.0;
+    $w = 100; $h = 26; $step = $w / ($n - 1);
+    $pts = [];
+    foreach ($clean as $i => $v) {
+        $x = round($i * $step, 2);
+        $y = round($h - 2 - ($v / $max) * ($h - 5), 2);
+        $pts[] = $x . ',' . $y;
+    }
+    $line = implode(' ', $pts);
+    return '<svg class="spark" viewBox="0 0 ' . $w . ' ' . $h . '" preserveAspectRatio="none" aria-hidden="true">'
+         . '<polygon points="0,' . $h . ' ' . $line . ' ' . $w . ',' . $h . '" fill="currentColor" opacity="0.13"/>'
+         . '<polyline points="' . $line . '" fill="none" stroke="currentColor" stroke-width="2"'
+         . ' stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>'
+         . '</svg>';
+}
+
+// ----- helper: ป้ายเทียบช่วงก่อน -----
+function deltaTag(?float $d, string $unit = '', int $dec = 0): string
+{
+    if ($d === null) return '<span class="delta flat">— ไม่มีข้อมูลช่วงก่อนหน้า</span>';
+    if (abs($d) < ($dec > 0 ? 0.005 : 0.5)) return '<span class="delta flat">▬ เท่าเดิม</span>';
+    $up  = $d > 0;
+    $cls = $up ? 'up' : 'down';
+    $ar  = $up ? '▲' : '▼';
+    $val = number_format(abs($d), $dec);
+    return '<span class="delta ' . $cls . '">' . $ar . ' ' . $val . $unit . '</span>';
+}
+
+// ----- เวลาที่ดึงข้อมูล (บอกความสดของข้อมูลบนแดชบอร์ด) -----
+$todayThai   = (int) date('j') . ' ' . $THAI_MON[(int) date('n')] . ' ' . date('Y');
+$dataAsOf    = $todayThai . ' เวลา ' . date('H:i') . ' น.';
+
 require 'includes/head.php';
 ?>
-<h1>แดชบอร์ด</h1>
-<p class="page-sub">ภาพรวมผลประเมินความพึงพอใจของลูกค้าทั้งระบบ — ตัวเลข 4 ช่องบนคือยอดสะสมทั้งหมด ส่วนกราฟด้านล่างเลือกช่วงเวลาที่ต้องการดูได้</p>
+<style>
+/* บรรทัดบอกความสดของข้อมูล */
+.as-of {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; color: var(--muted-2); margin-top: 4px;
+}
+.as-of::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--good); flex-shrink: 0;
+}
+/* ═══════════ DASHBOARD — สรุปเน้นอ่านเร็ว ═══════════ */
 
-<div class="stat-grid">
-    <div class="stat-card accent-mint">
-        <div class="st-top"><span class="label">คะแนนเฉลี่ยรวม</span><span class="st-ic">★</span></div>
-        <div class="value"><?= htmlspecialchars((string) $avgScore) ?> <small>/ 5</small></div>
+
+/* การ์ดตัวเลขสรุป */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.kpi {
+    position: relative; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 18px 20px; box-shadow: var(--sh-1);
+    transition: box-shadow 0.18s, border-color 0.18s;
+    display: flex; flex-direction: column;
+}
+.kpi:hover { box-shadow: var(--sh-2); border-color: var(--line-2); }
+.kpi::before {
+    content: ''; position: absolute; top: 12px; bottom: 12px; left: 0;
+    width: 3px; border-radius: 0 3px 3px 0; background: var(--accent);
+}
+.kpi.gold::before { background: var(--mint); }
+/* (7) ตัวชี้วัดหลักเด่นกว่าใบอื่น — ใช้ขนาดตัวเลข + สีทอง ไม่กินความกว้างจนแถวเสียรูป */
+.kpi.primary .kpi-value { font-size: 38px; }
+.kpi.primary { background: linear-gradient(180deg, rgba(var(--glow2),0.05), transparent 60%), var(--panel); }
+
+.kpi-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.kpi-ic {
+    width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(var(--glow),0.09); border: 1px solid rgba(var(--glow),0.2);
+    color: var(--accent-soft);
+}
+.kpi.gold .kpi-ic { background: rgba(var(--glow2),0.10); border-color: rgba(var(--glow2),0.24); color: var(--mint-soft); }
+.kpi-ic svg { width: 19px; height: 19px; }
+.kpi-label { font-size: 13px; color: var(--muted); margin-bottom: 5px; }
+.kpi-value { font-size: 30px; font-weight: 700; color: var(--text); line-height: 1.05; letter-spacing: -0.02em; }
+.kpi-value small { font-size: 15px; font-weight: 500; color: var(--muted); }
+.kpi-sub {
+    font-size: 12.5px; color: var(--muted-2); margin-top: auto;
+    padding-top: 10px; border-top: 1px solid var(--line);
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.kpi-foot-gap { margin-top: 10px; }
+
+/* (8) ป้ายเทียบช่วงก่อนหน้า */
+.delta { font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.delta.up   { color: var(--good); }
+.delta.down { color: var(--bad); }
+.delta.flat { color: var(--muted-2); font-weight: 500; }
+
+/* (9) กราฟเส้นจิ๋ว */
+.spark-wrap { margin-top: 12px; }
+.spark-wrap.red  { color: var(--accent); }
+.spark-wrap.gold { color: var(--mint); }
+.spark { width: 100%; height: 26px; display: block; }
+.spark-cap { font-size: 11px; color: var(--muted-2); margin-top: 4px; }
+
+/* (10) แถบต้องดูด่วน */
+.watch-strip {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-left: 3px solid var(--warn);
+    border-radius: 10px; padding: 14px 16px; margin-top: 14px;
+}
+.watch-ic { color: var(--warn); flex-shrink: 0; display: flex; }
+.watch-ic svg { width: 20px; height: 20px; }
+.watch-body { min-width: 0; }
+.watch-title { font-size: 13.5px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.watch-list { font-size: 13px; color: var(--muted); line-height: 1.7; }
+.watch-list .nm { color: var(--text); font-weight: 600; }
+.watch-list .sc { color: var(--bad); font-weight: 600; }
+.watch-more { font-size: 12.5px; margin-top: 6px; }
+.watch-more a { color: var(--accent-soft); font-weight: 600; text-decoration: none; }
+.watch-more a:hover { text-decoration: underline; }
+
+@media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    .kpi.primary .kpi-value { font-size: 32px; }
+}
+</style>
+
+<!-- หัวข้อรูปแบบเดียวกับทุกหน้าในระบบ + บอกความสดของข้อมูล -->
+<h1>แดชบอร์ด</h1>
+<p class="page-sub">
+    ภาพรวมผลประเมินความพึงพอใจของลูกค้าทั้งระบบ — การ์ดด้านล่างคือยอดสะสมทั้งหมด ส่วนกราฟเลือกช่วงเวลาได้<br>
+    <span class="as-of">ข้อมูล ณ <?= htmlspecialchars($dataAsOf) ?></span>
+</p>
+
+<div class="kpi-grid">
+    <!-- (7) ตัวชี้วัดหลัก — กว้าง 2 ช่อง ตัวเลขใหญ่กว่าใบอื่น -->
+    <div class="kpi gold primary">
+        <div class="kpi-top">
+            <div>
+                <div class="kpi-label">คะแนนเฉลี่ยรวม (ทั้งหมด)</div>
+                <div class="kpi-value"><?= htmlspecialchars((string) $avgScore) ?> <small>/ 5</small></div>
+            </div>
+            <span class="kpi-ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.26L21.6 9l-4.8 4.68 1.13 6.6L12 17.27 6.07 20.28l1.13-6.6L2.4 9l6.7-.74L12 2z"/></svg></span>
+        </div>
+        <!-- (9) แนวโน้มคะแนน 7 วันล่าสุด -->
+        <div class="spark-wrap gold">
+            <?= sparkSvg($sparkAvgs, 5.0) ?>
+            <div class="spark-cap">คะแนนเฉลี่ยราย 7 วันล่าสุด</div>
+        </div>
+        <div class="kpi-sub">
+            <span>ในช่วงที่เลือก <?= $rangeAvg > 0 ? number_format($rangeAvg, 2) : '-' ?> / 5</span>
+            <?= deltaTag($deltaAvg, ' คะแนน', 2) ?>
+        </div>
     </div>
-    <div class="stat-card">
-        <div class="st-top"><span class="label">จำนวนรีวิวทั้งหมด</span><span class="st-ic">▤</span></div>
-        <div class="value"><?= number_format($totalRatings) ?></div>
+
+    <div class="kpi">
+        <div class="kpi-top">
+            <div>
+                <div class="kpi-label">จำนวนรีวิวทั้งหมด</div>
+                <div class="kpi-value"><?= number_format($totalRatings) ?></div>
+            </div>
+            <span class="kpi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></span>
+        </div>
+        <!-- (11) คุณภาพ feedback ไม่ใช่แค่ปริมาณ -->
+        <div class="kpi-foot-gap"></div>
+        <div class="kpi-sub">
+            <span>มีข้อเสนอแนะ <b><?= $feedbackPct ?>%</b> (<?= number_format($withFeedback) ?> รายการ)</span>
+        </div>
     </div>
-    <div class="stat-card">
-        <div class="st-top"><span class="label">รีวิววันนี้</span><span class="st-ic">☀</span></div>
-        <div class="value"><?= number_format($todayRatings) ?></div>
+
+    <div class="kpi">
+        <div class="kpi-top">
+            <div>
+                <div class="kpi-label">รีวิววันนี้</div>
+                <div class="kpi-value"><?= number_format($todayRatings) ?></div>
+            </div>
+            <span class="kpi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+        </div>
+        <!-- (9) จำนวนรีวิว 7 วันล่าสุด -->
+        <div class="spark-wrap red">
+            <?= sparkSvg($sparkCounts) ?>
+        </div>
+        <!-- (2)(3) ไม่มีวันที่ซ้ำ ไม่มีคำว่า "เรียลไทม์" — เทียบเมื่อวานแทน -->
+        <div class="kpi-sub">
+            <span>เมื่อวาน <?= number_format($yesterdayRatings) ?></span>
+            <?= deltaTag($yesterdayRatings > 0 || $todayRatings > 0 ? (float) $deltaToday : null, ' รายการ') ?>
+        </div>
     </div>
-    <div class="stat-card">
-        <div class="st-top"><span class="label">จำนวนพนักงานขาย</span><span class="st-ic">☰</span></div>
-        <div class="value"><?= number_format($totalStaff) ?></div>
+
+    <div class="kpi">
+        <div class="kpi-top">
+            <div>
+                <!-- (5) ข้อความตรงกับข้อมูลจริง: นับพนักงานทั้งหมดในระบบ -->
+                <div class="kpi-label">พนักงานขายในระบบ</div>
+                <div class="kpi-value"><?= number_format($totalStaff) ?></div>
+            </div>
+            <span class="kpi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        </div>
+        <div class="kpi-foot-gap"></div>
+        <div class="kpi-sub">
+            <span>มีรีวิวแล้ว <b><?= number_format($staffRated) ?></b> คน<?= $staffNoRating > 0 ? ' · ยังไม่มี ' . number_format($staffNoRating) . ' คน' : '' ?></span>
+        </div>
     </div>
 </div>
+
+<!-- (10) แจ้งเตือนสิ่งที่ต้องดูด่วน — แสดงเฉพาะเมื่อมีจริง -->
+<?php if (!empty($watchStaff) || $staffNoRating > 0): ?>
+<div class="watch-strip">
+    <span class="watch-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+    <div class="watch-body">
+        <div class="watch-title">ต้องดูด่วน</div>
+        <div class="watch-list">
+            <?php if (!empty($watchStaff)): ?>
+                <?php foreach ($watchStaff as $w): ?>
+                    <div><span class="nm"><?= htmlspecialchars($w['name']) ?></span> คะแนนเฉลี่ย <span class="sc"><?= number_format((float) $w['avg_score'], 2) ?></span> / 5 · จาก <?= number_format((int) $w['total']) ?> รีวิว</div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+            <?php if ($staffNoRating > 0): ?>
+                <div>มีพนักงานขาย <span class="nm"><?= number_format($staffNoRating) ?></span> คน ที่ยังไม่มีรีวิวเข้ามาเลย</div>
+            <?php endif; ?>
+        </div>
+        <div class="watch-more"><a href="report.php">ดูรายละเอียดในหน้ารายงานคะแนน →</a></div>
+    </div>
+</div>
+<?php endif; ?>
 
 <h2 class="section-title">แนวโน้มการประเมินตามช่วงเวลา</h2>
 

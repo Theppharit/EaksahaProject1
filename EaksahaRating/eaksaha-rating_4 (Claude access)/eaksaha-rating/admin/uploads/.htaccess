@@ -1,0 +1,22 @@
+# กันไม่ให้ไฟล์ในโฟลเดอร์นี้ถูกรันเป็นสคริปต์
+# ------------------------------------------------------------
+# ตัวตรวจไฟล์ตอนอัปโหลดเข้มอยู่แล้ว (นามสกุล + MIME + getimagesize)
+# แต่ถ้าวันหนึ่งมีช่องโหว่ให้อัปไฟล์ .php เข้ามาได้ บรรทัดพวกนี้
+# จะทำให้ไฟล์นั้นถูกส่งเป็นข้อความธรรมดา ไม่ถูกเอาไปรัน
+
+php_flag engine off
+
+<IfModule mod_rewrite.c>
+    RewriteEngine Off
+</IfModule>
+
+# กันทุกนามสกุลที่เซิร์ฟเวอร์อาจเอาไปประมวลผล
+<FilesMatch "\.(php|php3|php4|php5|php7|php8|phtml|phar|pl|py|cgi|asp|aspx|jsp|sh|htaccess)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>

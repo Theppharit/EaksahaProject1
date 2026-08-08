@@ -178,19 +178,20 @@ require 'includes/head.php';
 
 <h2 class="section-title"><?= $editData ? 'แก้ไขข้อมูลพนักงานขาย' : 'เพิ่มพนักงานขายใหม่' ?></h2>
 
-<div class="form-card">
+<div class="form-card wide">
     <form method="POST" enctype="multipart/form-data">
         <input type="hidden" name="action" value="<?= $editData ? 'update' : 'create' ?>">
+        <div class="form-grid">
         <?php if ($editData): ?>
             <input type="hidden" name="id" value="<?= (int) $editData['id'] ?>">
-            <div class="field">
+            <div class="field span-2">
                 <label for="code">โค้ดพนักงาน (สำหรับลิงก์/QR)</label>
                 <input type="text" id="code" value="<?= htmlspecialchars($editData['code']) ?>" readonly
                        style="background:var(--panel-3); color:var(--muted-2); cursor:not-allowed;">
                 <div class="hint">แก้ไขไม่ได้ เนื่องจากผูกกับลิงก์/QR ที่แจกไปแล้ว</div>
             </div>
         <?php else: ?>
-            <div class="field">
+            <div class="field span-2">
                 <div class="hint" style="margin-bottom:0;">ระบบจะสร้างโค้ดพนักงาน (เช่น emp004) ให้อัตโนมัติเมื่อบันทึก</div>
             </div>
         <?php endif; ?>
@@ -217,7 +218,11 @@ require 'includes/head.php';
         </div>
         <div class="field">
             <label for="photo">รูปภาพ (ไม่บังคับ)</label>
-            <input type="file" id="photo" name="photo" accept=".jpg,.jpeg,.png,.webp" onchange="previewPhoto(this)">
+            <div class="file-field">
+                <input type="file" id="photo" name="photo" accept=".jpg,.jpeg,.png,.webp" onchange="previewPhoto(this)">
+                <label for="photo" class="file-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>เลือกรูปภาพ</label>
+                <span class="file-name" data-empty="ยังไม่ได้เลือกไฟล์">ยังไม่ได้เลือกไฟล์</span>
+            </div>
             <div class="hint">JPG, PNG, WEBP ขนาดไม่เกิน 2MB</div>
             <div id="photoPreviewBox" style="margin-top:10px; <?= empty($editData['photo']) ? 'display:none;' : '' ?>">
                 <img id="photoPreviewImg"
@@ -228,10 +233,14 @@ require 'includes/head.php';
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary"><?= $editData ? 'บันทึกการแก้ไข' : 'เพิ่มพนักงานขาย' ?></button>
-        <?php if ($editData): ?>
-            <a href="staff.php" class="btn btn-secondary">ยกเลิก</a>
-        <?php endif; ?>
+        </div><!-- /.form-grid -->
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary"><?= $editData ? 'บันทึกการแก้ไข' : 'เพิ่มพนักงานขาย' ?></button>
+            <?php if ($editData): ?>
+                <a href="staff.php" class="btn btn-secondary">ยกเลิก</a>
+            <?php endif; ?>
+        </div>
     </form>
 </div>
 

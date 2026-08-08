@@ -1,0 +1,11 @@
+# กันไม่ให้เปิดไฟล์ในโฟลเดอร์นี้ผ่านเบราว์เซอร์โดยตรง
+# ปกติ PHP จะถูกประมวลผลก่อนอยู่แล้ว แต่ถ้าวันไหน PHP พัง
+# ไฟล์อาจถูกส่งเป็นข้อความล้วนจนกุญแจหลุดได้ บรรทัดนี้กันไว้อีกชั้น
+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>
