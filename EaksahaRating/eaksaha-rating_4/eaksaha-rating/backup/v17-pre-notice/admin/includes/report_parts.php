@@ -220,13 +220,7 @@ function reportResults(
  * เดิมมี 6 คอลัมน์ โดยตำแหน่งงานซ้ำกันแทบทุกแถว และเบียดช่องข้อความลูกค้า
  * ซึ่งเป็นข้อมูลสำคัญที่สุดจนอ่านไม่ออก จึงยุบแบรนด์กับตำแหน่งไปไว้ใต้ชื่อ
  */
-/**
- * @param bool $canHide ปุ่ม "ซ่อนจากสถิติ" ใช้ได้จริงไหม
- *   ต้องส่ง hidden_columns_ready($pdo) เข้ามา ไม่ใช่ดูแค่สิทธิ์
- *   ถ้ายังไม่ได้รัน hardening_migration.sql ปุ่มนี้กดแล้วเด้ง error เสมอ
- *   — โชว์ปุ่มที่กดไม่ได้ แย่กว่าไม่มีปุ่ม เพราะคนใช้จะคิดว่าระบบพัง
- */
-function reportList(array $ratings, bool $showHidden = false, bool $canHide = true): string
+function reportList(array $ratings, bool $showHidden = false): string
 {
     ob_start(); ?>
 <table class="review-table">
@@ -290,7 +284,7 @@ function reportList(array $ratings, bool $showHidden = false, bool $canHide = tr
                             <?php
                             // ซ่อนรีวิว = ตัดออกจากสถิติโดยไม่ลบข้อความ
                             // ผู้ดูแลเท่านั้น เพราะมีผลกับคะแนนของพนักงานโดยตรง
-                            if (can('manage_users') && $canHide): ?>
+                            if (can('manage_users')): ?>
                                 <button type="button" class="hide-btn" data-mode="<?= $isHidden ? 'unhide' : 'hide' ?>">
                                     <?= $isHidden ? 'เอากลับมานับ' : 'ซ่อนจากสถิติ' ?>
                                 </button>

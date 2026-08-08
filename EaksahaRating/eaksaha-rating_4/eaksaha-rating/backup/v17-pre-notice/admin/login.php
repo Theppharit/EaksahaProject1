@@ -5,23 +5,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $remember = !empty($_POST['remember']);
 }
 $cookieLife = $remember ? 60 * 60 * 24 * 30 : 0; // 30 วัน
-
-// ⚠ ต้องตั้งค่าความปลอดภัยของคุกกี้ให้ครบ "ก่อน" session_start() เสมอ
-//
-// บั๊กเดิม: ไฟล์นี้ session_start() ก่อนแล้วค่อย require config
-// แต่ config ตั้งค่า httponly / samesite / use_strict_mode ไว้ในเงื่อนไข
-// if (session_status() === PHP_SESSION_NONE) — ซึ่งตอนนั้น session เริ่มไปแล้ว
-// ค่าทั้งชุดจึงไม่ถูกตั้งบนหน้า login ซึ่งเป็นหน้าที่ออกคุกกี้ล็อกอินตัวจริง
-// ผลคือ JavaScript อ่านคุกกี้ล็อกอินได้ = เกราะกัน XSS ที่ตั้งใจใส่ไว้หายไปทั้งหมด
-//
-// เรียงใหม่: ตั้งค่าเอง → กำหนดอายุ → ค่อย start
-session_set_cookie_params([
-    'lifetime' => $cookieLife,
-    'path'     => '/',
-    'httponly' => true,   // JavaScript อ่านคุกกี้ล็อกอินไม่ได้
-    'samesite' => 'Lax',  // เว็บอื่นสั่งงานแทนเราไม่ได้ (เกราะชั้นสองคู่กับ CSRF)
-]);
-@ini_set('session.use_strict_mode', '1');   // ไม่รับ session id ที่ระบบไม่ได้สร้างเอง
+session_set_cookie_params($cookieLife);
 session_start();
 require '../conn/config.php';
 require 'includes/csrf.php';

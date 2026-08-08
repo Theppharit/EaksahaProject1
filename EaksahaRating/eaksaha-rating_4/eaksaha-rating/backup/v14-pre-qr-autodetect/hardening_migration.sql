@@ -1,14 +1,9 @@
 -- ============================================================
---  กันรีวิวปลอม + ซ่อนรีวิวที่ไม่ควรนับ + ดัชนีสำหรับความเร็ว
+--  กันรีวิวปลอม + ซ่อนรีวิวที่ไม่ควรนับ
 --  ระบบ eTDR — Eaksaha Test Drive Rating
 -- ------------------------------------------------------------
 --  วิธีใช้: phpMyAdmin → ฐานข้อมูล eaksaha_rating → แท็บ SQL → วางทั้งไฟล์ → Go
 --  ย้อนกลับได้ที่ hardening_migration_rollback.sql
---
---  ไฟล์นี้ "รันซ้ำได้" ทุกคำสั่งมี IF NOT EXISTS
---  เหตุผล: ถ้ารันไปครึ่งทางแล้วพลาด จะได้รันใหม่ทั้งไฟล์ได้เลย
---          ไม่ต้องมานั่งไล่ลบทีละคำสั่งว่าอันไหนผ่านไปแล้ว
---  (MariaDB ที่มากับ XAMPP รองรับไวยากรณ์นี้)
 -- ============================================================
 
 -- ---------- 1) บันทึกว่าใครส่งรีวิวไปแล้วบ้าง ----------
@@ -37,32 +32,16 @@ CREATE TABLE IF NOT EXISTS `rate_limits` (
 -- จะไม่มีทางแก้ข้อมูลเลย คอลัมน์ชุดนี้ให้ผู้ดูแล "ตัดออกจากสถิติ" ได้
 -- โดยไม่ลบทิ้ง — ข้อความต้นฉบับยังอยู่ครบ ตรวจย้อนหลังได้เสมอ
 ALTER TABLE `ratings`
-    ADD COLUMN IF NOT EXISTS `hidden_at`     TIMESTAMP    NULL AFTER `scored_at`,
-    ADD COLUMN IF NOT EXISTS `hidden_by`     VARCHAR(120) NULL AFTER `hidden_at`,
-    ADD COLUMN IF NOT EXISTS `hidden_reason` VARCHAR(255) NULL AFTER `hidden_by`;
+    ADD COLUMN `hidden_at`     TIMESTAMP    NULL AFTER `scored_at`,
+    ADD COLUMN `hidden_by`     VARCHAR(120) NULL AFTER `hidden_at`,
+    ADD COLUMN `hidden_reason` VARCHAR(255) NULL AFTER `hidden_by`;
+
+-- คิวรีสถิติทุกตัวจะมีเงื่อนไข hidden_at IS NULL จึงต้องมี index ช่วย
+CREATE INDEX `idx_ratings_hidden` ON `ratings` (`hidden_at`);
 
 
--- ---------- 3) ดัชนีสำหรับคิวรีที่ใช้บ่อยที่สุด ----------
--- ทุกคิวรีสถิติมีรูปแบบเดียวกันหมด:
---     WHERE hidden_at IS NULL AND created_at BETWEEN ? AND ?
--- ถ้าทำดัชนีแยกทีละคอลัมน์ MySQL จะเลือกใช้ได้แค่ตัวเดียว
--- แล้วต้องไล่อ่านแถวที่เหลือเอง — ดัชนีคู่จึงคุ้มกว่ามาก
--- ลำดับ (hidden_at, created_at) สำคัญ: กรอง hidden_at ก่อนเสมอ
-CREATE INDEX IF NOT EXISTS `idx_ratings_vis_time` ON `ratings` (`hidden_at`, `created_at`);
-
--- หน้า "คะแนนรายพนักงาน" กับหน้าของ sales กรองด้วย staff_id ก่อน แล้วค่อยตัดช่วงเวลา
-CREATE INDEX IF NOT EXISTS `idx_ratings_staff_time` ON `ratings` (`staff_id`, `hidden_at`, `created_at`);
-
--- ปุ่ม "ลองให้ดาวใหม่" ไล่หารายการที่ AI ยังทำไม่เสร็จ เรียงตามเวลา
-CREATE INDEX IF NOT EXISTS `idx_ratings_ai_time` ON `ratings` (`ai_status`, `created_at`);
-
-
--- ---------- 4) ตรวจผล ----------
--- ทั้ง 3 ตัวเลขต้องขึ้นมาโดยไม่มี error = migration สมบูรณ์
+-- ---------- 3) ตรวจผล ----------
 SELECT
-    (SELECT COUNT(*) FROM `ratings`)                           AS `รีวิวทั้งหมด`,
+    (SELECT COUNT(*) FROM `ratings`)                          AS `รีวิวทั้งหมด`,
     (SELECT COUNT(*) FROM `ratings` WHERE `hidden_at` IS NULL) AS `ที่นับในสถิติ`,
     (SELECT COUNT(*) FROM `rate_limits`)                       AS `บันทึกการส่ง`;
-
--- ดูว่าดัชนีลงครบไหม (ควรเห็น idx_ratings_vis_time / _staff_time / _ai_time)
-SHOW INDEX FROM `ratings`;

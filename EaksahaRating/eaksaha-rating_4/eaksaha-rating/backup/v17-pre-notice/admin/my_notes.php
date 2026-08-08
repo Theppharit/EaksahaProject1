@@ -111,13 +111,7 @@ require 'includes/head.php';
         ยังไม่มีข้อความจากหัวหน้า
     </div>
 <?php else: ?>
-    <?php foreach ($notes as $n):
-        // NULL = AI ยังไม่ได้ให้ดาว ไม่ใช่ได้ 0 ดาว — ต้องแยกให้ออก
-        // พนักงานขายเป็นคนอ่านหน้านี้ การโชว์ ☆☆☆☆☆ ให้เขาเห็นทั้งที่ยังไม่มีคะแนน
-        // เป็นเรื่องใหญ่กว่าหน้าอื่น เพราะกระทบความรู้สึกโดยตรง
-        $sc = $n['score'] !== null ? (int) $n['score'] : null;
-        $isUnread = (int) $n['is_read'] === 0;
-    ?>
+    <?php foreach ($notes as $n): $sc = (int) $n['score']; $isUnread = (int) $n['is_read'] === 0; ?>
         <div class="nt <?= $isUnread ? 'unread' : '' ?>">
             <div class="nt-head">
                 <span class="nt-from"><?= htmlspecialchars($n['author_name']) ?></span>
@@ -130,11 +124,7 @@ require 'includes/head.php';
             <div class="nt-src">
                 <div class="nt-src-l">
                     เกี่ยวกับรีวิวเมื่อ <?= htmlspecialchars($fmt($n['review_at'])) ?> ·
-                    <?php if ($sc !== null): ?>
-                        <span class="stars-display"><span aria-hidden="true"><?= str_repeat('★', $sc) . str_repeat('☆', 5 - $sc) ?></span></span>
-                    <?php else: ?>
-                        <span class="ai-chip pending">รอ AI ให้ดาว</span>
-                    <?php endif; ?>
+                    <span class="stars-display"><span aria-hidden="true"><?= str_repeat('★', $sc) . str_repeat('☆', 5 - $sc) ?></span></span>
                 </div>
                 <div class="nt-src-t"><?= $n['feedback'] !== null && $n['feedback'] !== '' ? nl2br(htmlspecialchars($n['feedback'])) : '-' ?></div>
             </div>

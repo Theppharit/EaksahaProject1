@@ -378,42 +378,5 @@ try {
         ]
     );
 } catch (PDOException $e) {
-    // ── ฐานข้อมูลล่ม ──
-    // เดิมพ่นข้อความ error ดิบออกหน้าจอ ซึ่งมีทั้งชื่อ host ชื่อฐานข้อมูล และชื่อผู้ใช้
-    // ปัญหาคือ rate.php กับ thankyou.php เป็นหน้าที่ "ลูกค้า" เห็น
-    // ลูกค้าที่สแกน QR แล้วเจอข้อความแบบนั้นจะไม่เข้าใจ และดูไม่น่าเชื่อถือด้วย
-    //
-    // ตอนนี้: บันทึกรายละเอียดจริงลง error log ให้ผู้ดูแลตามได้
-    // ส่วนบนหน้าจอแสดงข้อความสุภาพที่บอก "ทำอะไรต่อ" แทน
-    error_log('[eTDR] เชื่อมต่อฐานข้อมูลไม่สำเร็จ: ' . $e->getMessage());
-
-    $isAdminArea = str_contains($_SERVER['SCRIPT_NAME'] ?? '', '/admin/');
-
-    http_response_code(503);                 // บอกเบราว์เซอร์ว่าล่มชั่วคราว ไม่ใช่หายถาวร
-    header('Retry-After: 60');
-    header('Content-Type: text/html; charset=utf-8');
-    echo '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">'
-       . '<meta name="viewport" content="width=device-width, initial-scale=1">'
-       . '<title>ระบบขัดข้องชั่วคราว</title>'
-       . '<style>body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;max-width:460px;'
-       . 'margin:70px auto;padding:0 22px;line-height:1.85;color:#16181D}'
-       . 'h1{font-size:21px;margin-bottom:6px}p{color:#565C69;font-size:15px}'
-       . 'code{background:#F0F1F4;padding:2px 6px;border-radius:5px;font-size:13px}</style>'
-       . '</head><body><h1>ระบบขัดข้องชั่วคราว</h1>';
-
-    if ($isAdminArea) {
-        echo '<p>เชื่อมต่อฐานข้อมูลไม่ได้ในขณะนี้</p>'
-           . '<p>สิ่งที่ควรตรวจตามลำดับ:<br>'
-           . '1. เปิดโปรแกรม XAMPP แล้วดูว่า <code>MySQL</code> ขึ้นสถานะ Running หรือยัง<br>'
-           . '2. ถ้ายังไม่ขึ้น กด Start ที่แถว MySQL แล้วรีเฟรชหน้านี้<br>'
-           . '3. ถ้ายังไม่ได้ ดูรายละเอียดข้อผิดพลาดที่ <code>C:\\xampp\\apache\\logs\\error.log</code></p>'
-           . '<p><b>ข้อมูลรีวิวไม่ได้หายไปไหน</b> — แค่เปิดอ่านไม่ได้ชั่วคราวเท่านั้น</p>';
-    } else {
-        echo '<p>ขออภัย ขณะนี้ระบบประเมินไม่พร้อมให้บริการชั่วคราว</p>'
-           . '<p>รบกวนลองสแกน QR ใหม่อีกครั้งในอีกสักครู่ '
-           . 'หรือแจ้งพนักงานขายที่ให้บริการคุณได้เลยครับ</p>';
-    }
-
-    echo '</body></html>';
-    exit;
+    die('เชื่อมต่อฐานข้อมูลไม่สำเร็จ: ' . $e->getMessage());
 }

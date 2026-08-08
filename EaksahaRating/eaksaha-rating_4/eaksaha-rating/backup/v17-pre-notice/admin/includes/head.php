@@ -110,7 +110,7 @@ if (user_role() === 'sales' && user_staff_id() !== null && isset($pdo)) {
 
             <?php if (can('manage_staff')): ?>
                 <a href="staff.php" class="<?= $ap === 'staff' ? 'active' : '' ?>">
-                    <span class="nav-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> พนักงานและผู้ใช้งาน
+                    <span class="nav-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> พนักงานขาย
                 </a>
             <?php endif; ?>
 
@@ -120,7 +120,11 @@ if (user_role() === 'sales' && user_staff_id() !== null && isset($pdo)) {
                 </a>
             <?php endif; ?>
 
-            
+            <?php if (can('manage_users')): ?>
+                <a href="users.php" class="<?= $ap === 'users' ? 'active' : '' ?>">
+                    <span class="nav-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></span> ผู้ใช้งานระบบ
+                </a>
+            <?php endif; ?>
 
             <a href="change_password.php" class="<?= $ap === 'password' ? 'active' : '' ?>">
                 <span class="nav-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3"/><path d="m17 6 2.5 2.5"/><path d="m14.5 8.5 2.5 2.5"/></svg></span> เปลี่ยนรหัสผ่าน
@@ -307,9 +311,3 @@ if (user_role() === 'sales' && user_staff_id() !== null && isset($pdo)) {
     </script>
 
     <main class="main">
-    <?php
-    // แถบประกาศ/แจ้งเตือน — อยู่บนสุดของทุกหน้า ก่อนหัวข้อหน้า
-    // วางไว้ที่นี่จุดเดียว หน้าใหม่ที่เพิ่มทีหลังจะได้ตามไปเองโดยไม่ต้องแก้อะไร
-    require_once __DIR__ . '/notice.php';
-    echo notice_bar($pdo ?? null, $_SESSION['admin_role'] ?? 'sales');
-    ?>

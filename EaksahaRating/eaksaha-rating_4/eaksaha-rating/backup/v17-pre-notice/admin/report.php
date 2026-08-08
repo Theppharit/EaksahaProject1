@@ -27,9 +27,7 @@ $scores   = $f['scores'];
 // เดิม LIMIT 200 ตายตัว พอรีวิวเกิน 200 รายการเก่าก็ดูไม่ได้อีกเลย
 $perPage = 50;
 $page    = max(1, (int) ($_GET['page'] ?? 1));
-// $offset คำนวณทีหลัง หลังรู้จำนวนหน้าจริงแล้ว (ดูหัวข้อ "แบ่งหน้า" ด้านล่าง)
-// เดิมคำนวณตรงนี้เลย พอเปิด ?page=9 จากบุ๊กมาร์ก หรือกรองแล้วผลลดลง
-// จะได้ตารางว่างทั้งที่มีข้อมูล — ดูเหมือนข้อมูลหาย
+$offset  = ($page - 1) * $perPage;
 
 // ----- โหมดดูรายการที่ถูกซ่อน (ผู้ดูแลเท่านั้น) -----
 $showHidden = can('manage_users') && ($_GET['hidden'] ?? '') === '1' && hidden_columns_ready($pdo);
@@ -93,16 +91,6 @@ $hiddenCols = hidden_columns_ready($pdo)
     ? 'r.hidden_at, r.hidden_by, r.hidden_reason,'
     : 'NULL AS hidden_at, NULL AS hidden_by, NULL AS hidden_reason,';
 
-// ── แบ่งหน้า: ต้องนับก่อน แล้วค่อยดึงรายการ ──
-// ลำดับนี้สำคัญ ถ้าดึงก่อนนับ แล้วหน้าที่ขอเกินจำนวนหน้าจริง
-// จะได้ตารางว่างพร้อมแถบเลขหน้าที่ไฮไลต์หน้าสุดท้าย = ดูเหมือนข้อมูลหาย
-$stTotal = $pdo->prepare("SELECT COUNT(*) FROM ratings r JOIN staff s ON s.id = r.staff_id $listWhere");
-$stTotal->execute($listParams);
-$listTotal  = (int) $stTotal->fetchColumn();
-$totalPages = max(1, (int) ceil($listTotal / $perPage));
-if ($page > $totalPages) { $page = $totalPages; }
-$offset = ($page - 1) * $perPage;
-
 $stList = $pdo->prepare("
     SELECT r.id, r.score, r.feedback, r.created_at, $aiCols $noteCol $hiddenCols
            r.staff_id, s.name, s.position, b.name AS brand_name, b.color AS brand_color
@@ -115,6 +103,13 @@ $stList = $pdo->prepare("
 ");
 $stList->execute($listParams);
 $ratings = $stList->fetchAll();
+
+// จำนวนทั้งหมดในโหมดที่กำลังดู (ใช้คำนวณจำนวนหน้า)
+$stTotal = $pdo->prepare("SELECT COUNT(*) FROM ratings r JOIN staff s ON s.id = r.staff_id $listWhere");
+$stTotal->execute($listParams);
+$listTotal  = (int) $stTotal->fetchColumn();
+$totalPages = max(1, (int) ceil($listTotal / $perPage));
+if ($page > $totalPages) { $page = $totalPages; }
 
 // จำนวนรายการที่ถูกซ่อนทั้งหมด (ไว้โชว์ปุ่มสลับโหมด)
 $hiddenTotal = 0;
@@ -148,7 +143,7 @@ $keepForLinks = array_filter([
 $filterHtml = reportFilterBar($range, $dateFrom, $dateTo, $brandId, $staffId, $score, $brandOptions, $staffOptions);
 $resultHtml = reportResults($rangeText, $fCount, $fAvg, $dist, $distTotal, $distColors, $distLabels,
                             $fPending, $scores, $keepForLinks);
-$listHtml   = reportList($ratings, $showHidden, hidden_columns_ready($pdo));
+$listHtml   = reportList($ratings, $showHidden);
 $listCount  = number_format($listTotal) . ($totalPages > 1 ? ' · หน้า ' . $page . '/' . $totalPages : '');
 $pagerHtml  = reportPager($page, $totalPages, $_GET);
 

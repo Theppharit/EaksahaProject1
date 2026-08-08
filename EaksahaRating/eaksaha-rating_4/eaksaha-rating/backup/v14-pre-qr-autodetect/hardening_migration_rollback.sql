@@ -3,20 +3,15 @@
 -- ------------------------------------------------------------
 --  คำเตือน: รีวิวที่เคยถูกซ่อนไว้จะกลับมานับในสถิติทั้งหมด
 --           และประวัติว่าใครซ่อนเพราะอะไรจะหายไป
---
---  รันซ้ำได้เช่นกัน (IF EXISTS ทุกคำสั่ง)
 -- ============================================================
 
 DROP TABLE IF EXISTS `rate_limits`;
 
-DROP INDEX IF EXISTS `idx_ratings_hidden`     ON `ratings`;   -- ของเวอร์ชันเก่า
-DROP INDEX IF EXISTS `idx_ratings_vis_time`   ON `ratings`;
-DROP INDEX IF EXISTS `idx_ratings_staff_time` ON `ratings`;
-DROP INDEX IF EXISTS `idx_ratings_ai_time`    ON `ratings`;
+DROP INDEX `idx_ratings_hidden` ON `ratings`;
 
 ALTER TABLE `ratings`
-    DROP COLUMN IF EXISTS `hidden_at`,
-    DROP COLUMN IF EXISTS `hidden_by`,
-    DROP COLUMN IF EXISTS `hidden_reason`;
+    DROP COLUMN `hidden_at`,
+    DROP COLUMN `hidden_by`,
+    DROP COLUMN `hidden_reason`;
 
 SELECT COUNT(*) AS `จำนวนรีวิวที่เหลือ` FROM `ratings`;

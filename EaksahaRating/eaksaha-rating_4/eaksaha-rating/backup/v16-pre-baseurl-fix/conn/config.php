@@ -43,31 +43,11 @@ define('SYS_DESC', 'ระบบประเมินพนักงานขา
 //  ปัญหา: ถ้าผู้ดูแลเปิดหลังบ้านผ่าน http://localhost/... QR ที่ได้
 //         จะชี้ไปที่ "เครื่องนี้" ลูกค้าสแกนด้วยมือถือแล้วเปิดไม่ขึ้น
 //
-//  ⚠ จุดที่พลาดกันบ่อยที่สุด: ต้องใส่ "path เต็ม" ที่นับจาก htdocs ลงมา
-//    ไม่ใช่แค่ชื่อโฟลเดอร์สุดท้าย ถ้าใส่ไม่ครบจะได้ 404 Not Found ตอนสแกน
-//
-//    โครงสร้างจริงของเครื่องนี้:
-//      C:\xampp\htdocs\EaksahaProject1\EaksahaRating\eaksaha-rating_4 (Claude access)\eaksaha-rating
-//      └─ ทุกอย่างหลัง htdocs คือ path ที่ต้องใส่
-//
-//    ✗ ผิด : 'http://192.168.1.102/eaksaha-rating'
-//    ✓ ถูก : 'http://192.168.1.102/EaksahaProject1/EaksahaRating/eaksaha-rating_4 (Claude access)/eaksaha-rating'
-//
-//  พิมพ์ช่องว่างกับวงเล็บลงไปได้ตรงๆ เลย ระบบเข้ารหัสให้เอง (ดู rate_base_url())
-//  ไม่ต้องมี / ปิดท้าย
-//
-//  เมื่อขึ้นเซิร์ฟเวอร์จริงค่อยเปลี่ยนเป็น เช่น 'https://rating.eaksaha.com'
-//  เว้นว่าง = ให้ระบบเดา IP ในวง LAN ให้เอง (ใช้ได้ แต่ IP อาจเปลี่ยนเมื่อรีสตาร์ต)
-//  ── สถานะตอนนี้: เว้นว่างไว้โดยตั้งใจ ──────────────────────────
-//  ทดสอบแล้วว่า path ที่ระบบเดาให้ถูกต้องอยู่แล้ว (2026-08-08)
-//  ที่สแกนแล้วขึ้น 404 รอบก่อนเป็นเพราะ XAMPP ไม่ได้เปิดอยู่ ไม่ใช่เพราะที่อยู่ผิด
-//
-//  เว้นว่างดีกว่าใส่ IP ตายตัว เพราะเครื่องนี้ย้ายไปมาระหว่างที่ทำงานกับที่อื่น
-//  IP จึงเปลี่ยนตามวง wifi ถ้าฮาร์ดโค้ดไว้ พอเปลี่ยนที่แล้วลิงก์จะตายทันที
-//  ปล่อยให้ระบบเดาเอง = ถูกต้องตามวงที่ต่ออยู่เสมอ
-//
-//  ค่อยมาใส่ค่าตายตัวตอนที่จะพิมพ์ QR แจกถาวร หรือขึ้นเซิร์ฟเวอร์จริง
-define('PUBLIC_BASE_URL', '');
+//  วิธีตั้งค่า: ใส่ที่อยู่ที่เครื่องอื่นเข้าถึงได้จริง (ไม่ต้องมี / ปิดท้าย)
+//    ทดสอบในวง LAN     : 'http://192.168.1.50/eaksaha-rating'
+//                        (ดู IP ด้วยคำสั่ง ipconfig บน Windows)
+//    ขึ้นเซิร์ฟเวอร์จริง : 'https://rating.eaksaha.com'
+define('PUBLIC_BASE_URL', 'http://192.168.1.102/eaksaha-rating');
 
 /**
  * เดา IP ของเครื่องนี้ในวง LAN
@@ -122,45 +102,8 @@ function rate_base_url(): array
     $suffix = '/rate.php?code=';
 
     if (defined('PUBLIC_BASE_URL') && PUBLIC_BASE_URL !== '') {
-        // เข้ารหัส path ให้เอง — คนตั้งค่าจะได้พิมพ์ที่อยู่แบบอ่านออกตรงๆ ลงไปได้
-        // เช่น '.../eaksaha-rating_4 (Claude access)/eaksaha-rating'
-        // ไม่ต้องมานั่งแปลงช่องว่างเป็น %20 หรือวงเล็บเป็น %28 เอง (พลาดง่ายมาก)
-        // ส่วนไหนที่มี % อยู่แล้ว = เข้ารหัสมาแล้ว ปล่อยผ่าน ไม่งั้นจะเข้ารหัสซ้ำซ้อน
-        $raw    = rtrim(PUBLIC_BASE_URL, '/');
-        $parts  = parse_url($raw);
-        $scheme = $parts['scheme'] ?? 'http';
-        $auth   = ($parts['host'] ?? '') . (isset($parts['port']) ? ':' . $parts['port'] : '');
-        $path   = $parts['path'] ?? '';
-
-        $segs = array_map(
-            fn($s) => str_contains($s, '%') ? $s : rawurlencode($s),
-            array_filter(explode('/', $path), 'strlen')
-        );
-        $dir = $segs ? '/' . implode('/', $segs) : '';
-
-        $url = $auth !== '' ? $scheme . '://' . $auth . $dir . $suffix : $raw . $suffix;
-
-        // ── ตรวจว่า path ที่ตั้งไว้ตรงกับที่ระบบวางอยู่จริงไหม ──
-        // เคสจริงที่เคยเจอ: คนตั้งค่าลอกตัวอย่างในคอมเมนต์มาทั้งดุ้น
-        // ได้ '/eaksaha-rating' ทั้งที่ของจริงอยู่ลึกลงไป 3 ชั้น → สแกน QR แล้ว 404
-        // เตือนเฉพาะตอนโฮสต์เป็น IP เท่านั้น เพราะถ้าเป็นชื่อโดเมนจริง
-        // path อาจต่างได้ตามปกติ (docroot ชี้ตรงมาที่โฟลเดอร์นี้ หรือมี Alias)
-        $mismatch = false;
-        $hostOnly = $parts['host'] ?? '';
-        if (filter_var($hostOnly, FILTER_VALIDATE_IP) && isset($_SERVER['SCRIPT_NAME'])) {
-            $here = dirname(dirname($_SERVER['SCRIPT_NAME']));   // ขึ้นมาหนึ่งชั้นจาก /admin/
-            $norm = fn($p) => rtrim(str_replace('\\', '/', rawurldecode((string) $p)), '/');
-            $mismatch = $norm($here) !== '' && $norm($here) !== $norm($path);
-        }
-
-        return [
-            'url'      => $url,
-            'host'     => $hostOnly,
-            'source'   => 'config',
-            'mismatch' => $mismatch,
-            'expected' => isset($_SERVER['SCRIPT_NAME'])
-                          ? rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/') : '',
-        ];
+        $url = rtrim(PUBLIC_BASE_URL, '/') . $suffix;
+        return ['url' => $url, 'host' => parse_url($url, PHP_URL_HOST) ?: '', 'source' => 'config'];
     }
 
     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
@@ -378,42 +321,5 @@ try {
         ]
     );
 } catch (PDOException $e) {
-    // ── ฐานข้อมูลล่ม ──
-    // เดิมพ่นข้อความ error ดิบออกหน้าจอ ซึ่งมีทั้งชื่อ host ชื่อฐานข้อมูล และชื่อผู้ใช้
-    // ปัญหาคือ rate.php กับ thankyou.php เป็นหน้าที่ "ลูกค้า" เห็น
-    // ลูกค้าที่สแกน QR แล้วเจอข้อความแบบนั้นจะไม่เข้าใจ และดูไม่น่าเชื่อถือด้วย
-    //
-    // ตอนนี้: บันทึกรายละเอียดจริงลง error log ให้ผู้ดูแลตามได้
-    // ส่วนบนหน้าจอแสดงข้อความสุภาพที่บอก "ทำอะไรต่อ" แทน
-    error_log('[eTDR] เชื่อมต่อฐานข้อมูลไม่สำเร็จ: ' . $e->getMessage());
-
-    $isAdminArea = str_contains($_SERVER['SCRIPT_NAME'] ?? '', '/admin/');
-
-    http_response_code(503);                 // บอกเบราว์เซอร์ว่าล่มชั่วคราว ไม่ใช่หายถาวร
-    header('Retry-After: 60');
-    header('Content-Type: text/html; charset=utf-8');
-    echo '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">'
-       . '<meta name="viewport" content="width=device-width, initial-scale=1">'
-       . '<title>ระบบขัดข้องชั่วคราว</title>'
-       . '<style>body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;max-width:460px;'
-       . 'margin:70px auto;padding:0 22px;line-height:1.85;color:#16181D}'
-       . 'h1{font-size:21px;margin-bottom:6px}p{color:#565C69;font-size:15px}'
-       . 'code{background:#F0F1F4;padding:2px 6px;border-radius:5px;font-size:13px}</style>'
-       . '</head><body><h1>ระบบขัดข้องชั่วคราว</h1>';
-
-    if ($isAdminArea) {
-        echo '<p>เชื่อมต่อฐานข้อมูลไม่ได้ในขณะนี้</p>'
-           . '<p>สิ่งที่ควรตรวจตามลำดับ:<br>'
-           . '1. เปิดโปรแกรม XAMPP แล้วดูว่า <code>MySQL</code> ขึ้นสถานะ Running หรือยัง<br>'
-           . '2. ถ้ายังไม่ขึ้น กด Start ที่แถว MySQL แล้วรีเฟรชหน้านี้<br>'
-           . '3. ถ้ายังไม่ได้ ดูรายละเอียดข้อผิดพลาดที่ <code>C:\\xampp\\apache\\logs\\error.log</code></p>'
-           . '<p><b>ข้อมูลรีวิวไม่ได้หายไปไหน</b> — แค่เปิดอ่านไม่ได้ชั่วคราวเท่านั้น</p>';
-    } else {
-        echo '<p>ขออภัย ขณะนี้ระบบประเมินไม่พร้อมให้บริการชั่วคราว</p>'
-           . '<p>รบกวนลองสแกน QR ใหม่อีกครั้งในอีกสักครู่ '
-           . 'หรือแจ้งพนักงานขายที่ให้บริการคุณได้เลยครับ</p>';
-    }
-
-    echo '</body></html>';
-    exit;
+    die('เชื่อมต่อฐานข้อมูลไม่สำเร็จ: ' . $e->getMessage());
 }

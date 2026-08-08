@@ -456,15 +456,6 @@ require 'includes/head.php';
     <span class="as-of">ข้อมูล ณ <?= htmlspecialchars($dataAsOf) ?></span>
 </p>
 
-<?php
-// เช็กลิสต์ความพร้อม — เห็นเฉพาะ admin และหายไปเองเมื่อแก้ครบ
-// (งานตั้งค่าที่ค้างเคยอยู่แค่ในไฟล์ TODO ซึ่งไม่มีใครเปิดอ่าน)
-if (can('manage_users')) {
-    require_once 'includes/health.php';
-    echo system_health_box($pdo);
-}
-?>
-
 <div class="kpi-grid">
     <!-- (7) ตัวชี้วัดหลัก — กว้าง 2 ช่อง ตัวเลขใหญ่กว่าใบอื่น -->
     <div class="kpi gold primary">
@@ -749,20 +740,7 @@ if (can('manage_users')) {
                             <?php endif; ?>
                         </td>
                         <td class="wrap-cell"><?= htmlspecialchars($row['position']) ?></td>
-                        <td>
-                            <?php
-                            // score เป็น NULL ระหว่างที่ AI ยังไม่ได้อ่านข้อความ
-                            // ถ้า cast เป็น int ตรงๆ จะได้ 0 แล้วโชว์ ☆☆☆☆☆
-                            // ซึ่งอ่านได้ว่า "ลูกค้าให้ 0 ดาว" — คนละเรื่องกับ "ยังไม่ได้ให้ดาว"
-                            // ผู้บริหารเห็นแล้วอาจไปว่าพนักงานทั้งที่ยังไม่มีคะแนนจริง
-                            if ($row['score'] !== null):
-                                $sc = (int) $row['score'];
-                            ?>
-                                <span class="stars-display" aria-label="<?= $sc ?> จาก 5 คะแนน"><span aria-hidden="true"><?= str_repeat('★', $sc) . str_repeat('☆', 5 - $sc) ?></span></span>
-                            <?php else: ?>
-                                <span class="ai-chip pending">รอ AI ให้ดาว</span>
-                            <?php endif; ?>
-                        </td>
+                        <td class="stars-display" aria-label="<?= (int) $row['score'] ?> จาก 5 คะแนน"><span aria-hidden="true"><?= str_repeat('★', (int) $row['score']) . str_repeat('☆', 5 - (int) $row['score']) ?></span></td>
                         <td class="wrap-cell muted-cell">
                             <?= $row['feedback'] !== null && $row['feedback'] !== ''
                                 ? nl2br(htmlspecialchars($row['feedback']))

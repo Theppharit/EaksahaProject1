@@ -1290,34 +1290,3 @@ html[data-theme="dark"] .btn-danger { border-color: rgba(255,107,122,0.4); }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
-
-/* ─────────── หน้า "พนักงานและผู้ใช้งาน" (รวม 2 หน้าเดิมเข้าด้วยกัน) ───────────
-   ป้ายบอกสถานะบัญชีล็อกอิน วางต่อจากโค้ดพนักงานในบรรทัดเดียวกัน
-   เพื่อไม่ให้แถวสูงขึ้น — ตารางนี้เคยมีปัญหาเรื่องความสูงมาแล้ว */
-.acct-chip {
-  display: inline-block; margin-left: 7px; padding: 1px 8px;
-  border-radius: 999px; font-size: 11px; font-weight: 500; white-space: nowrap;
-  border: 1px solid var(--line); background: var(--panel-3); color: var(--muted-2);
-}
-.acct-chip.on   { color: var(--good); background: rgba(21,128,61,.09);  border-color: rgba(21,128,61,.26); }
-.acct-chip.off  { color: var(--warn); background: rgba(180,83,9,.09);   border-color: rgba(180,83,9,.26); }
-.acct-chip.none { color: var(--muted-2); }
-
-/* กล่องบัญชีในฟอร์มพนักงาน — คั่นให้เห็นว่าเป็นเรื่องคนละส่วนกับข้อมูลพนักงาน */
-.acct-block {
-  margin-top: 4px; padding: 14px 15px;
-  border: 1px dashed var(--line-2); border-radius: 11px; background: var(--panel-2);
-}
-.acct-fields { margin-top: 12px; }
-.acct-section > summary { font-size: 15px; font-weight: 600; }
-.acct-section .count-badge { margin-left: 8px; }
-
-/* ป้ายสิทธิ์ + แถวบัญชีที่ปิดอยู่ (ย้ายมาจากหน้าผู้ใช้งานระบบเดิม) */
-.role-tag { padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 500; white-space: nowrap; }
-.role-tag.admin   { color: var(--accent-soft); background: rgba(var(--glow),0.09);  border: 1px solid rgba(var(--glow),0.26); }
-.role-tag.manager { color: var(--mint-soft);   background: rgba(var(--glow2),0.10); border: 1px solid rgba(var(--glow2),0.26); }
-.role-tag.sales   { color: var(--muted);       background: var(--panel-3);          border: 1px solid var(--line); }
-.u-off td { opacity: 0.55; }
-.u-name { font-weight: 600; color: var(--text); }
-.u-sub  { font-size: 12.5px; color: var(--muted-2); margin-top: 3px; }
-.me-tag { font-size: 11.5px; color: var(--good); margin-left: 6px; }

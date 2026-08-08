@@ -68,24 +68,6 @@ $statusText = [
     'manual'  => 'ผู้ดูแลกรอกเอง',
 ];
 
-/**
- * กันสูตร Excel ที่แฝงมากับข้อความลูกค้า (CSV injection)
- * ------------------------------------------------------------
- * ลูกค้าพิมพ์ข้อความอะไรก็ได้ลงช่องข้อเสนอแนะ ถ้าขึ้นต้นด้วย = + - @
- * Excel จะถือว่าเป็น "สูตร" ไม่ใช่ข้อความ แล้วถามผู้จัดการว่าจะรันไหม
- * (เช่น =HYPERLINK(...) หลอกให้กดลิงก์ หรือคำสั่งเรียกโปรแกรมภายนอก)
- *
- * เติม ' นำหน้า = บังคับให้ Excel อ่านเป็นข้อความล้วน
- * เครื่องหมายนี้ไม่แสดงในเซลล์ ผู้อ่านจึงไม่เห็นความต่าง
- */
-$safeCsv = function ($v): string {
-    $s = (string) $v;
-    if ($s !== '' && strpbrk($s[0], "=+-@\t\r") !== false) {
-        return "'" . $s;
-    }
-    return $s;
-};
-
 $n = 0;
 while ($row = $st->fetch()) {
     $n++;
@@ -93,17 +75,17 @@ while ($row = $st->fetch()) {
     fputcsv($out, [
         date('d/m/Y', $t),
         date('H:i', $t),
-        $safeCsv($row['name']),
-        $safeCsv($row['code']),
-        $safeCsv($row['position']),
-        $safeCsv($row['brand_name'] ?? '-'),
+        $row['name'],
+        $row['code'],
+        $row['position'],
+        $row['brand_name'] ?? '-',
         $row['score'] !== null ? (int) $row['score'] : '',
         $statusText[$row['ai_status'] ?? ''] ?? '-',
         $row['ai_score'] !== null ? (int) $row['ai_score'] : '',
         $row['ai_confidence'] !== null ? round((float) $row['ai_confidence'] * 100) : '',
-        $safeCsv($row['ai_reason'] ?? ''),
+        $row['ai_reason'] ?? '',
         // ตัดขึ้นบรรทัดใหม่ในข้อความออก ไม่งั้นเซลล์ใน Excel จะสูงผิดปกติ
-        $safeCsv(trim(preg_replace('/\s*\R\s*/u', ' ', (string) $row['feedback']))),
+        trim(preg_replace('/\s*\R\s*/u', ' ', (string) $row['feedback'])),
     ]);
 }
 
